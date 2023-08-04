@@ -1,12 +1,12 @@
 create table sys_menu
 (
-    id           bigint unsigned auto_increment comment '主键'
+    id           bigint auto_increment comment '主键'
         primary key,
     gmt_create   datetime         default CURRENT_TIMESTAMP not null comment '创建时间',
     gmt_modified datetime         default CURRENT_TIMESTAMP not null comment '修改时间',
-    status_id    tinyint unsigned default 1                 not null comment '状态(1:正常，0:禁用)',
-    sort         int unsigned     default 1                 not null comment '排序',
-    parent_id    bigint unsigned                            not null comment '父ID',
+    status_id    tinyint  default 1               not null comment '状态(1:正常，0:禁用)',
+    sort         int      default 1               not null comment '排序',
+    parent_id    bigint                             not null comment '父ID',
     menu_name    varchar(50)                                not null comment '菜单名称',
     menu_url     varchar(255)     default ''                null comment '路由路径',
     api_url      varchar(255)     default ''                null comment '接口URL',
@@ -16,7 +16,7 @@ create table sys_menu
     constraint menu_name
         unique (menu_name)
 )
-    comment '菜单信息' charset = utf8mb4;
+    comment '菜单信息';
 
 INSERT INTO sys_menu (id, gmt_create, gmt_modified, status_id, sort, parent_id, menu_name, menu_url, api_url, menu_icon, remark, menu_type) VALUES (1, '2022-07-14 15:40:10', '2022-07-14 17:40:10', 1, 0, 0, '首页', '/home', '', 'SmileOutlined', '首页', 1);
 INSERT INTO sys_menu (id, gmt_create, gmt_modified, status_id, sort, parent_id, menu_name, menu_url, api_url, menu_icon, remark, menu_type) VALUES (2, '2022-07-14 17:40:10', '2022-07-14 17:40:10', 1, 1, 0, '权限管理', '', '', 'SettingOutlined', '权限管理', 1);

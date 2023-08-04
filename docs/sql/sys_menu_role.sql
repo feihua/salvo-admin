@@ -1,15 +1,15 @@
 create table sys_menu_role
 (
-    id           bigint unsigned auto_increment comment '主键'
+    id           bigint  auto_increment comment '主键'
         primary key,
     gmt_create   datetime         default CURRENT_TIMESTAMP not null comment '创建时间',
     gmt_modified datetime         default CURRENT_TIMESTAMP not null comment '修改时间',
-    status_id    tinyint unsigned default 1                 not null comment '状态(1:正常，0:禁用)',
-    sort         int unsigned     default 1                 not null comment '排序',
-    menu_id      bigint unsigned                            not null comment '菜单ID',
-    role_id      bigint unsigned                            not null comment '角色ID'
+    status_id    tinyint  default 1               not null comment '状态(1:正常，0:禁用)',
+    sort         int      default 1               not null comment '排序',
+    menu_id      bigint                             not null comment '菜单ID',
+    role_id      bigint                             not null comment '角色ID'
 )
-    comment '菜单角色关联表' charset = utf8mb4;
+    comment '菜单角色关联表';
 
 INSERT INTO sys_menu_role (id, gmt_create, gmt_modified, status_id, sort, menu_id, role_id) VALUES (1544492801968857203, '2022-07-22 17:48:01', '2022-07-22 17:48:01', 1, 1, 1, 3);
 INSERT INTO sys_menu_role (id, gmt_create, gmt_modified, status_id, sort, menu_id, role_id) VALUES (1544492801968857204, '2022-07-22 17:48:01', '2022-07-22 17:48:01', 1, 1, 3, 3);
