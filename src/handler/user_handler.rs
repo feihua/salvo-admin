@@ -15,67 +15,69 @@ pub async fn login(req: &mut Request, res: &mut Response) {
     log::info!("user login params: {:?}", &item);
 
 
-    let user_result = SysUser::select_by_column(&mut RB.clone(), "mobile", &item.mobile).await;
-    log::info!("select_by_column: {:?}",user_result);
+    let user_result = SysUser::select_by_mobile(&mut RB.clone(),  &item.mobile).await;
+    log::info!("select_by_mobile: {:?}",user_result);
 
     match user_result {
-        Ok(d) => {
-            if d.len() == 0 {
-                let resp = BaseResponse {
-                    msg: "用户不存在".to_string(),
-                    code: 1,
-                    data: Some("None"),
-                };
-                return res.render(Json(resp));
-            }
-
-            let user = d.get(0).unwrap().clone();
-            let id = user.id.unwrap();
-            let username = user.real_name.unwrap();
-            let password = user.password.unwrap();
-
-            if password.ne(&item.password) {
-                let resp = BaseResponse {
-                    msg: "密码不正确".to_string(),
-                    code: 1,
-                    data: Some("None"),
-                };
-                return res.render(Json(resp));
-            }
-
-            let data = SysMenu::select_page(&mut RB.clone(), &PageRequest::new(1, 1000)).await;
-
-            let mut btn_menu: Vec<String> = Vec::new();
-
-            for x in data.unwrap().records {
-                btn_menu.push(x.api_url.unwrap_or_default());
-            }
-
-            match JWTToken::new(id, &username, btn_menu).create_token("123") {
-                Ok(token) => {
+        Ok(u) => {
+            match u {
+                None => {
                     let resp = BaseResponse {
-                        msg: "successful".to_string(),
-                        code: 0,
-                        data: Some(UserLoginData {
-                            mobile: item.mobile.to_string(),
-                            token,
-                        }),
-                    };
-
-                    res.render(Json(resp))
-                }
-                Err(err) => {
-                    let er = match err {
-                        WhoUnfollowedError::JwtTokenError(s) => { s }
-                        _ => "no math error".to_string()
-                    };
-                    let resp = BaseResponse {
-                        msg: er,
+                        msg: "用户不存在".to_string(),
                         code: 1,
                         data: Some("None"),
                     };
+                    return res.render(Json(resp));
+                }
+                Some(user) => {
+                    let id = user.id.unwrap();
+                    let username = user.real_name.unwrap();
+                    let password = user.password.unwrap();
 
-                    res.render(Json(resp))
+                    if password.ne(&item.password) {
+                        let resp = BaseResponse {
+                            msg: "密码不正确".to_string(),
+                            code: 1,
+                            data: Some("None"),
+                        };
+                        return res.render(Json(resp));
+                    }
+
+                    let data = SysMenu::select_page(&mut RB.clone(), &PageRequest::new(1, 1000)).await;
+
+                    let mut btn_menu: Vec<String> = Vec::new();
+
+                    for x in data.unwrap().records {
+                        btn_menu.push(x.api_url.unwrap_or_default());
+                    }
+
+                    match JWTToken::new(id, &username, btn_menu).create_token("123") {
+                        Ok(token) => {
+                            let resp = BaseResponse {
+                                msg: "successful".to_string(),
+                                code: 0,
+                                data: Some(UserLoginData {
+                                    mobile: item.mobile.to_string(),
+                                    token,
+                                }),
+                            };
+
+                            res.render(Json(resp))
+                        }
+                        Err(err) => {
+                            let er = match err {
+                                WhoUnfollowedError::JwtTokenError(s) => { s }
+                                _ => "no math error".to_string()
+                            };
+                            let resp = BaseResponse {
+                                msg: er,
+                                code: 1,
+                                data: Some("None"),
+                            };
+
+                            res.render(Json(resp))
+                        }
+                    }
                 }
             }
         }

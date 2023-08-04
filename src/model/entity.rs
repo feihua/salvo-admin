@@ -34,6 +34,8 @@ impl_select_page!(SysUser{select_page_by_name(mobile:&str,status_id:&str) =>"
 
 impl_select!(SysUser{select_by_id(id:i32) -> Option => "`where id = #{id} limit 1`"});
 
+impl_select!(SysUser{select_by_mobile(mobile:&str) -> Option => "`where mobile = #{mobile} limit 1`"});
+
 // user_role
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct SysRoleUser {
