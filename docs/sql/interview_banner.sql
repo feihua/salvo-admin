@@ -9,7 +9,7 @@ create table interview_banner
     banner_status int      default 1                 not null comment '状态',
     remark        varchar(255)                       not null comment '备注',
     create_time   datetime default CURRENT_TIMESTAMP not null comment '创建时间',
-    update_time   datetime default CURRENT_TIMESTAMP not null comment '修改时间'
+    update_time   datetime default CURRENT_TIMESTAMP not null on update CURRENT_TIMESTAMP comment '修改时间'
 )
     comment 'app轮播图';
 
