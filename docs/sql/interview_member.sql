@@ -11,4 +11,4 @@ create table interview_member
 )
     comment '会员信息';
 
-INSERT INTO rustdb.interview_member (id, phone, name, password, level, create_time, update_time) VALUES (1, '18613030352', 'koobe', '123456', '1', '2023-08-10 16:14:12', '2023-08-03 16:15:30');
+INSERT INTO interview_member (id, phone, name, password, level, create_time, update_time) VALUES (1, '18613030352', 'koobe', '123456', '1', '2023-08-10 16:14:12', '2023-08-03 16:15:30');

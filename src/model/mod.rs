@@ -1,4 +1,8 @@
-pub mod entity;
+pub mod user;
+pub mod role;
+pub mod menu;
+pub mod user_role;
+pub mod role_menu;
 pub mod member;
 pub mod banner;
 pub mod interview_type;

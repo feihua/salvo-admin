@@ -13,5 +13,5 @@ create table interview_banner
 )
     comment 'app轮播图';
 
-INSERT INTO rustdb.interview_banner (id, title, image_url, webview_url, banner_sort, banner_status, remark, create_time, update_time) VALUES (1, '1', '1', '1', 1, 1, '1', '2023-08-03 15:02:48', '2023-08-03 15:02:51');
-INSERT INTO rustdb.interview_banner (id, title, image_url, webview_url, banner_sort, banner_status, remark, create_time, update_time) VALUES (2, 'test', 'https://www.baidu.com', 'https://www.baidu.com', 1, 1, '测试', '2023-08-03 15:04:44', '2023-08-03 15:39:29');
+INSERT INTO interview_banner (id, title, image_url, webview_url, banner_sort, banner_status, remark, create_time, update_time) VALUES (1, '1', '1', '1', 1, 1, '1', '2023-08-03 15:02:48', '2023-08-03 15:02:51');
+INSERT INTO interview_banner (id, title, image_url, webview_url, banner_sort, banner_status, remark, create_time, update_time) VALUES (2, 'test', 'https://www.baidu.com', 'https://www.baidu.com', 1, 1, '测试', '2023-08-03 15:04:44', '2023-08-03 15:39:29');

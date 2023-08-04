@@ -8,5 +8,5 @@ create table interview_type
 )
     comment '题目类型';
 
-INSERT INTO rustdb.interview_type (id, interview_code, create_time, update_time) VALUES (1, 'php', '2023-08-03 16:31:46', '2023-08-03 16:32:45');
-INSERT INTO rustdb.interview_type (id, interview_code, create_time, update_time) VALUES (2, 'python', '2023-08-03 16:32:26', '2023-08-03 16:32:26');
+INSERT INTO interview_type (id, interview_code, create_time, update_time) VALUES (1, 'php', '2023-08-03 16:31:46', '2023-08-03 16:32:45');
+INSERT INTO interview_type (id, interview_code, create_time, update_time) VALUES (2, 'python', '2023-08-03 16:32:26', '2023-08-03 16:32:26');

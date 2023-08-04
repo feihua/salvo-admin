@@ -4,7 +4,7 @@ use salvo::{Request, Response};
 use salvo::prelude::*;
 use crate::{RB};
 
-use crate::model::entity::{SysMenu};
+use crate::model::menu::{SysMenu};
 use crate::vo::handle_result;
 use crate::vo::menu_vo::{*};
 
@@ -35,8 +35,8 @@ pub async fn menu_list(req: &mut Request, res: &mut Response) {
                     api_url: x.api_url.unwrap_or_default(),
                     remark: x.remark.unwrap_or_default(),
                     menu_type: x.menu_type.unwrap(),
-                    create_time: x.gmt_create.unwrap().0.to_string(),
-                    update_time: x.gmt_modified.unwrap().0.to_string(),
+                    create_time: x.create_time.unwrap().0.to_string(),
+                    update_time: x.update_time.unwrap().0.to_string(),
                 })
             }
             MenuListResp {
@@ -66,8 +66,8 @@ pub async fn menu_save(req: &mut Request, res: &mut Response) {
 
     let role = SysMenu {
         id: None,
-        gmt_create: Some(DateTime::now()),
-        gmt_modified: Some(DateTime::now()),
+        create_time: Some(DateTime::now()),
+        update_time: Some(DateTime::now()),
         status_id: Some(menu.status_id),
         sort: Some(menu.sort),
         parent_id: Some(menu.parent_id.unwrap_or(0)),
@@ -91,8 +91,8 @@ pub async fn menu_update(req: &mut Request, res: &mut Response) {
 
     let sys_menu = SysMenu {
         id: Some(menu.id),
-        gmt_create: None,
-        gmt_modified: Some(DateTime::now()),
+        create_time: None,
+        update_time: Some(DateTime::now()),
         status_id: Some(menu.status_id),
         sort: Some(menu.sort),
         parent_id: Some(menu.parent_id),

@@ -18,7 +18,7 @@ impl_select_page!(InterviewType{select_page() =>"
 
 impl_select_page!(InterviewType{select_page_by_name(name:&str) =>"
      if name != null && name != '':
-       where real_name != #{name}
+       where user_name != #{name}
      if name == '':
-       where real_name != ''"
+       where user_name != ''"
 },"interview_type");

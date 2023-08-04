@@ -10,4 +10,4 @@ create table interview_title
 )
     comment '面试题目';
 
-INSERT INTO rustdb.interview_title (id, title, content, interview_type, create_time, update_time) VALUES (1, '测试', '测试', 'java', '2023-08-03 16:28:57', '2023-08-03 16:30:06');
+INSERT INTO interview_title (id, title, content, interview_type, create_time, update_time) VALUES (1, '测试', '测试', 'java', '2023-08-03 16:28:57', '2023-08-03 16:30:06');

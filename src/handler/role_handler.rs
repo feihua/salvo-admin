@@ -3,7 +3,9 @@ use rbatis::sql::{PageRequest};
 use salvo::{Request, Response};
 use salvo::prelude::*;
 
-use crate::model::entity::{SysRole, query_menu_by_role, SysMenu, SysMenuRole};
+use crate::model::role::{SysRole};
+use crate::model::menu::{ SysMenu};
+use crate::model::role_menu::{query_menu_by_role, SysRoleMenu};
 use crate::RB;
 use crate::vo::handle_result;
 use crate::vo::role_vo::*;
@@ -34,8 +36,8 @@ pub async fn role_list(req: &mut Request, res: &mut Response) {
                     status_id: x.status_id.unwrap(),
                     role_name: x.role_name.unwrap_or_default(),
                     remark: x.remark.unwrap_or_default(),
-                    create_time: x.gmt_create.unwrap().0.to_string(),
-                    update_time: x.gmt_modified.unwrap().0.to_string(),
+                    create_time: x.create_time.unwrap().0.to_string(),
+                    update_time: x.update_time.unwrap().0.to_string(),
                 })
             }
 
@@ -69,8 +71,8 @@ pub async fn role_save(req: &mut Request, res: &mut Response) {
 
     let sys_role = SysRole {
         id: None,
-        gmt_create: Some(DateTime::now()),
-        gmt_modified: Some(DateTime::now()),
+        create_time: Some(DateTime::now()),
+        update_time: Some(DateTime::now()),
         status_id: Some(1),
         sort: Some(role.sort),
         role_name: Some(role.role_name),
@@ -90,8 +92,8 @@ pub async fn role_update(req: &mut Request, res: &mut Response) {
 
     let sys_role = SysRole {
         id: Some(role.id),
-        gmt_create: None,
-        gmt_modified: Some(DateTime::now()),
+        create_time: None,
+        update_time: Some(DateTime::now()),
         status_id: Some(role.status_id),
         sort: Some(role.sort),
         role_name: Some(role.role_name),
@@ -168,16 +170,16 @@ pub async fn update_role_menu(req: &mut Request, res: &mut Response) {
 
 
 
-    SysMenuRole::delete_by_column(&mut RB.clone(), "role_id", &role_id).await.expect("删除角色菜单异常");
+    SysRoleMenu::delete_by_column(&mut RB.clone(), "role_id", &role_id).await.expect("删除角色菜单异常");
 
-    let mut menu_role: Vec<SysMenuRole> = Vec::new();
+    let mut menu_role: Vec<SysRoleMenu> = Vec::new();
 
     for x in &item.menu_ids {
         let menu_id= x.clone();
-        menu_role.push(SysMenuRole {
+        menu_role.push(SysRoleMenu {
             id: None,
-            gmt_create: Some(DateTime::now()),
-            gmt_modified: Some(DateTime::now()),
+            create_time: Some(DateTime::now()),
+            update_time: Some(DateTime::now()),
             status_id: Some(1),
             sort: Some(1),
             menu_id: Some(menu_id),
@@ -185,7 +187,7 @@ pub async fn update_role_menu(req: &mut Request, res: &mut Response) {
         })
     }
 
-    let result = SysMenuRole::insert_batch(&mut RB.clone(), &menu_role, item.menu_ids.len() as u64).await;
+    let result = SysRoleMenu::insert_batch(&mut RB.clone(), &menu_role, item.menu_ids.len() as u64).await;
 
     res.render(Json(handle_result(result)))
 }

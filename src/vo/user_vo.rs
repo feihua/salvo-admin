@@ -112,7 +112,7 @@ pub struct UserListData {
     pub sort: i32,
     pub status_id: i32,
     pub mobile: String,
-    pub real_name: String,
+    pub user_name: String,
     pub remark: String,
     pub create_time: String,
     pub update_time: String,
@@ -121,7 +121,7 @@ pub struct UserListData {
 #[derive(Debug, Serialize, Deserialize)]
 pub struct UserSaveReq {
     pub mobile: String,
-    pub real_name: String,
+    pub user_name: String,
     pub remark: String,
 }
 
@@ -131,7 +131,7 @@ pub struct UserUpdateReq {
     pub sort: i32,
     pub status_id: i32,
     pub mobile: String,
-    pub real_name: String,
+    pub user_name: String,
     pub remark: String,
 }
 

@@ -4,7 +4,10 @@ use rbatis::sql::{PageRequest};
 use rbs::to_value;
 use salvo::{Request, Response};
 use salvo::prelude::*;
-use crate::model::entity::{SysMenu, SysRole, SysRoleUser, SysUser};
+use crate::model::user::{SysUser};
+use crate::model::menu::{SysMenu};
+use crate::model::role::{SysRole};
+use crate::model::user_role::{SysUserRole};
 use crate::RB;
 use crate::utils::error::WhoUnfollowedError;
 use crate::vo::user_vo::*;
@@ -33,7 +36,7 @@ pub async fn login(req: &mut Request, res: &mut Response) {
                 }
                 Some(user) => {
                     let id = user.id.unwrap();
-                    let username = user.real_name.unwrap();
+                    let username = user.user_name.unwrap();
                     let password = user.password.unwrap();
 
                     if password.ne(&item.password) {
@@ -91,7 +94,7 @@ pub async fn login(req: &mut Request, res: &mut Response) {
 }
 
 async fn query_btn_menu(id: &i32) -> Vec<String> {
-    let user_role = SysRoleUser::select_by_column(&mut RB.clone(), "user_id", id.clone()).await;
+    let user_role = SysUserRole::select_by_column(&mut RB.clone(), "user_id", id.clone()).await;
     // 判断是不是超级管理员
     let mut is_admin = false;
 
@@ -138,8 +141,8 @@ pub async fn query_user_role(req: &mut Request, res: &mut Response) {
             sort: x.sort.unwrap(),
             role_name: x.role_name.unwrap_or_default(),
             remark: x.remark.unwrap_or_default(),
-            create_time: x.gmt_create.unwrap().0.to_string(),
-            update_time: x.gmt_modified.unwrap().0.to_string(),
+            create_time: x.create_time.unwrap().0.to_string(),
+            update_time: x.update_time.unwrap().0.to_string(),
         });
 
         user_role_ids.push(x.id.unwrap_or_default());
@@ -175,7 +178,7 @@ pub async fn update_user_role(req: &mut Request, res: &mut Response) {
         return res.render(Json(resp));
     }
 
-    let sys_result = SysRoleUser::delete_by_column(&mut RB.clone(), "user_id", user_id).await;
+    let sys_result = SysUserRole::delete_by_column(&mut RB.clone(), "user_id", user_id).await;
 
     if sys_result.is_err() {
         let resp = BaseResponse {
@@ -186,13 +189,13 @@ pub async fn update_user_role(req: &mut Request, res: &mut Response) {
         return res.render(Json(resp));
     }
 
-    let mut sys_role_user_list: Vec<SysRoleUser> = Vec::new();
+    let mut sys_role_user_list: Vec<SysUserRole> = Vec::new();
     for role_id in role_ids {
         let role_id = role_id.clone();
-        sys_role_user_list.push(SysRoleUser {
+        sys_role_user_list.push(SysUserRole {
             id: None,
-            gmt_create: Some(DateTime::now()),
-            gmt_modified: Some(DateTime::now()),
+            create_time: Some(DateTime::now()),
+            update_time: Some(DateTime::now()),
             status_id: Some(1),
             sort: Some(1),
             role_id: Some(role_id),
@@ -200,7 +203,7 @@ pub async fn update_user_role(req: &mut Request, res: &mut Response) {
         })
     }
 
-    let result = SysRoleUser::insert_batch(&mut RB.clone(), &sys_role_user_list, len as u64).await;
+    let result = SysUserRole::insert_batch(&mut RB.clone(), &sys_role_user_list, len as u64).await;
 
     res.render(Json(handle_result(result)))
 }
@@ -261,7 +264,7 @@ pub async fn query_user_menu(depot: &mut Depot, res: &mut Response) {
                             sys_menu,
                             btn_menu,
                             avatar: "https://gw.alipayobjects.com/zos/antfincdn/XAosXuNZyF/BiazfanxmamNRoxxVxka.png".to_string(),
-                            name: u.real_name.unwrap_or_default(),
+                            name: u.user_name.unwrap_or_default(),
                         }),
                     };
                     res.render(Json(resp))
@@ -304,10 +307,10 @@ pub async fn user_list(req: &mut Request, res: &mut Response) {
                     sort: x.sort.unwrap(),
                     status_id: x.status_id.unwrap(),
                     mobile: x.mobile.unwrap_or_default(),
-                    real_name: x.real_name.unwrap_or_default(),
+                    user_name: x.user_name.unwrap_or_default(),
                     remark: x.remark.unwrap_or_default(),
-                    create_time: x.gmt_create.unwrap().0.to_string(),
-                    update_time: x.gmt_modified.unwrap().0.to_string(),
+                    create_time: x.create_time.unwrap().0.to_string(),
+                    update_time: x.update_time.unwrap().0.to_string(),
                 })
             }
 
@@ -341,13 +344,12 @@ pub async fn user_save(req: &mut Request, res: &mut Response) {
 
     let sys_user = SysUser {
         id: None,
-        gmt_create: Some(DateTime::now()),
-        gmt_modified: Some(DateTime::now()),
+        create_time: Some(DateTime::now()),
+        update_time: Some(DateTime::now()),
         status_id: Some(1),
         sort: Some(1),
-        user_no: Some(1),
         mobile: Some(user.mobile),
-        real_name: Some(user.real_name),
+        user_name: Some(user.user_name),
         remark: Some(user.remark),
         password: Some("123456".to_string()),
     };
@@ -365,13 +367,12 @@ pub async fn user_update(req: &mut Request, res: &mut Response) {
 
     let sys_user = SysUser {
         id: Some(user.id),
-        gmt_create: None,
-        gmt_modified: Some(DateTime::now()),
+        create_time: None,
+        update_time: Some(DateTime::now()),
         status_id: Some(user.status_id),
         sort: Some(user.sort),
-        user_no: None,
         mobile: Some(user.mobile),
-        real_name: Some(user.real_name),
+        user_name: Some(user.user_name),
         remark: Some(user.remark),
         password: None,
     };
