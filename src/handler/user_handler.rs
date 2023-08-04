@@ -1,5 +1,7 @@
+use std::collections::HashMap;
 use rbatis::rbdc::datetime::DateTime;
 use rbatis::sql::{PageRequest};
+use rbs::to_value;
 use salvo::{Request, Response};
 use salvo::prelude::*;
 use crate::model::entity::{SysMenu, SysRole, SysRoleUser, SysUser};
@@ -15,7 +17,7 @@ pub async fn login(req: &mut Request, res: &mut Response) {
     log::info!("user login params: {:?}", &item);
 
 
-    let user_result = SysUser::select_by_mobile(&mut RB.clone(),  &item.mobile).await;
+    let user_result = SysUser::select_by_mobile(&mut RB.clone(), &item.mobile).await;
     log::info!("select_by_mobile: {:?}",user_result);
 
     match user_result {
@@ -43,13 +45,7 @@ pub async fn login(req: &mut Request, res: &mut Response) {
                         return res.render(Json(resp));
                     }
 
-                    let data = SysMenu::select_page(&mut RB.clone(), &PageRequest::new(1, 1000)).await;
-
-                    let mut btn_menu: Vec<String> = Vec::new();
-
-                    for x in data.unwrap().records {
-                        btn_menu.push(x.api_url.unwrap_or_default());
-                    }
+                    let btn_menu = query_btn_menu(&id).await;
 
                     match JWTToken::new(id, &username, btn_menu).create_token("123") {
                         Ok(token) => {
@@ -94,11 +90,41 @@ pub async fn login(req: &mut Request, res: &mut Response) {
     }
 }
 
+async fn query_btn_menu(id: &i32) -> Vec<String> {
+    let user_role = SysRoleUser::select_by_column(&mut RB.clone(), "user_id", id.clone()).await;
+    // 判断是不是超级管理员
+    let mut is_admin = false;
+
+    for x in user_role.unwrap() {
+        if x.role_id.unwrap() == 1 {
+            is_admin = true;
+            break;
+        }
+    }
+
+    let mut btn_menu: Vec<String> = Vec::new();
+    if is_admin {
+        let data = SysMenu::select_all(&mut RB.clone()).await;
+
+        for x in data.unwrap() {
+            btn_menu.push(x.api_url.unwrap_or_default());
+        }
+        log::info!("admin login: {:?}",id);
+        btn_menu
+    } else {
+        let btn_menu_map: Vec<HashMap<String, String>> = RB.query_decode("select distinct u.api_url from sys_role_user t left join sys_role usr on t.role_id = usr.id left join sys_menu_role usrm on usr.id = usrm.role_id left join sys_menu u on usrm.menu_id = u.id where t.user_id = ?", vec![to_value!(id)]).await.unwrap();
+        for x in btn_menu_map {
+            btn_menu.push(x.get("api_url").unwrap().to_string());
+        }
+        log::info!("ordinary login: {:?}",id);
+        btn_menu
+    }
+}
+
 #[handler]
 pub async fn query_user_role(req: &mut Request, res: &mut Response) {
     let item = req.parse_json::<QueryUserRoleReq>().await;
     log::info!("query_user_role params: {:?}", item);
-
 
     let sys_role = SysRole::select_page(&mut RB.clone(), &PageRequest::new(1, 1000)).await;
 
