@@ -1,0 +1,51 @@
+###登录 login
+POST {{host}}/api/login
+Content-Type: application/json
+
+{
+  "mobile": "18613030352",
+  "password": "123456"
+}
+> {% client.global.set("token", response.body.data.token); %}
+
+###题目列表 title_list
+POST {{host}}/api/title_list
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "current": 1,
+  "pageSize": 10
+}
+###新增题目 title_save
+POST {{host}}/api/title_save
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "title": "测试",
+  "content": "测试",
+  "interview_type": "java"
+}
+
+###删除题目 title_delete
+POST {{host}}/api/title_delete
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "ids": [100]
+}
+###更新题目 title_update
+POST {{host}}/api/title_update
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "id": 1,
+  "title": "测试",
+  "content": "测试",
+  "interview_type": "java"
+}
+
+

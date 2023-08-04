@@ -1,0 +1,47 @@
+###登录 login
+POST {{host}}/api/login
+Content-Type: application/json
+
+{
+  "mobile": "18613030352",
+  "password": "123456"
+}
+> {% client.global.set("token", response.body.data.token); %}
+
+###类型列表 type_list
+POST {{host}}/api/type_list
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "current": 1,
+  "pageSize": 10
+}
+###新增类型 type_save
+POST {{host}}/api/type_save
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "interview_code": "python"
+}
+
+###删除类型 type_delete
+POST {{host}}/api/type_delete
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "ids": [100]
+}
+###更新类型 type_update
+POST {{host}}/api/type_update
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "id": 1,
+  "interview_code": "php"
+}
+
+

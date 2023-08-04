@@ -1,0 +1,52 @@
+###登录 login
+POST {{host}}/api/login
+Content-Type: application/json
+
+{
+  "mobile": "18613030352",
+  "password": "123456"
+}
+> {% client.global.set("token", response.body.data.token); %}
+
+###会员信息列表 member_list
+POST {{host}}/api/member_list
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "current": 1,
+  "pageSize": 10
+}
+###新增会员信息 member_save
+POST {{host}}/api/member_save
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "phone": "18613030352",
+  "name": "koobe",
+  "password": "123456",
+  "level": "1"
+}
+
+###删除会员信息 member_delete
+POST {{host}}/api/member_delete
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "ids": [100]
+}
+###更新会员信息 member_update
+POST {{host}}/api/member_update
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "id": 1,
+  "phone": "18613030352",
+  "name": "koobe",
+  "password": "123456",
+  "level": "1"
+}
+

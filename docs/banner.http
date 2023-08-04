@@ -1,0 +1,58 @@
+###登录 login
+POST {{host}}/api/login
+Content-Type: application/json
+
+{
+  "mobile": "18613030352",
+  "password": "123456"
+}
+> {% client.global.set("token", response.body.data.token); %}
+
+###轮播图列表 banner_list
+POST {{host}}/api/banner_list
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "current": 1,
+  "pageSize": 10
+}
+###新增轮播图 banner_save
+POST {{host}}/api/banner_save
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "title": "test",
+  "image_url": "https://www.baidu.com",
+  "webview_url": "https://www.baidu.com",
+  "banner_sort": 1,
+  "banner_status": 1,
+  "remark": "测试"
+}
+
+###删除轮播图 banner_delete
+POST {{host}}/api/banner_delete
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "ids": [100]
+}
+###更新轮播图 banner_update
+POST {{host}}/api/banner_update
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "id": 1,
+  "title": "test",
+  "image_url": "https://www.baidu.com",
+  "webview_url": "https://www.baidu.com",
+  "banner_sort": 1,
+  "banner_status": 1,
+  "remark": "测试"
+}
+
+
+
