@@ -50,6 +50,16 @@ pub async fn login(req: &mut Request, res: &mut Response) {
 
                     let btn_menu = query_btn_menu(&id).await;
 
+                    if btn_menu.len() == 0 {
+                        let resp = BaseResponse {
+                            msg: "用户没有分配角色或者菜单,不能登录".to_string(),
+                            code: 1,
+                            data: Some("None"),
+                        };
+
+                        return res.render(Json(resp));
+                    }
+
                     match JWTToken::new(id, &username, btn_menu).create_token("123") {
                         Ok(token) => {
                             let resp = BaseResponse {
