@@ -23,7 +23,7 @@ Content-Type: application/json
   "current": 1,
   "pageSize": 10,
   "mobile": "18613030352",
-  "status_id": "1"
+  "status_id": 1
 }
 ###新增用户 user_save
 POST {{host}}/api/user_save
@@ -54,7 +54,7 @@ Authorization: Bearer {{token}}
   "real_name": "test123",
   "remark": "test123",
   "sort": 1,
-  "status_id": "1"
+  "status_id": 1
 }
 
 ###查询角色菜单 query_role_menu

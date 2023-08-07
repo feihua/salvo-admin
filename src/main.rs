@@ -33,7 +33,7 @@ async fn main() {
     let mysql_url = "mysql://root:ad879037-c7a4-4063-9236-6bfc35d54b7d@139.159.180.129:3306/rustdb";
     RB.init(rbdc_mysql::driver::MysqlDriver {}, mysql_url).unwrap();
 
-    let acceptor = TcpListener::new("127.0.0.1:8100").bind().await;
+    let acceptor = TcpListener::new("0.0.0.0:8100").bind().await;
     Server::new(acceptor).serve(route()).await;
 }
 
