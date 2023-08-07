@@ -5,7 +5,7 @@ use salvo::prelude::*;
 use crate::{RB};
 
 use crate::model::menu::{SysMenu};
-use crate::vo::handle_result;
+use crate::vo::{BaseResponse, handle_result};
 use crate::vo::menu_vo::{*};
 
 
@@ -115,8 +115,19 @@ pub async fn menu_delete(req: &mut Request, res: &mut Response) {
     let item = req.parse_json::<MenuDeleteReq>().await.unwrap();
     log::info!("menu_delete params: {:?}", &item);
 
+    let id = item.id;
 
-    let result = SysMenu::delete_in_column(&mut RB.clone(), "id", &item.ids).await;
+    //有下级的时候 不能直接删除
+    let menus = SysMenu::select_by_column(&mut RB.clone(), "parent_id", id.clone()).await.unwrap_or_default();
 
+    if menus.len() > 0 {
+        return res.render(Json(BaseResponse {
+            msg: "有下级菜单,不能直接删除".to_string(),
+            code: 1,
+            data: Some("None".to_string()),
+        }));
+    }
+
+    let result = SysMenu::delete_by_column(&mut RB.clone(), "id", id).await;
     res.render(Json(handle_result(result)))
 }
