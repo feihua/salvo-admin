@@ -405,10 +405,18 @@ pub async fn user_delete(req: &mut Request, res: &mut Response) {
     let item = req.parse_json::<UserDeleteReq>().await.unwrap();
     log::info!("user_delete params: {:?}", &item);
 
+    let ids = item.ids;
+    for id in ids {
+        if id != 1 {//id为1的用户为系统预留用户,不能删除
+            SysUser::delete_by_column(&mut RB.clone(), "id", &id).await
+        }
+    }
 
-    let result = SysUser::delete_in_column(&mut RB.clone(), "id", &item.ids).await;
-
-    res.render(Json(handle_result(result)))
+    res.render(Json(BaseResponse {
+        msg: "successful".to_string(),
+        code: 0,
+        data: Some("None".to_string()),
+    }))
 }
 
 #[handler]

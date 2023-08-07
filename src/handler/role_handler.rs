@@ -4,10 +4,11 @@ use salvo::{Request, Response};
 use salvo::prelude::*;
 
 use crate::model::role::{SysRole};
-use crate::model::menu::{ SysMenu};
+use crate::model::menu::{SysMenu};
 use crate::model::role_menu::{query_menu_by_role, SysRoleMenu};
+use crate::model::user_role::SysUserRole;
 use crate::RB;
-use crate::vo::handle_result;
+use crate::vo::{BaseResponse, handle_result};
 use crate::vo::role_vo::*;
 
 
@@ -109,10 +110,21 @@ pub async fn role_update(req: &mut Request, res: &mut Response) {
 #[handler]
 pub async fn role_delete(req: &mut Request, res: &mut Response) {
     let item = req.parse_json::<RoleDeleteReq>().await.unwrap();
-    println!("item: {:?}", &item);
+    log::info!("role_delete params: {:?}", &item);
+
+    let ids = item.ids;
+    let user_role_list = SysUserRole::select_in_column(&mut RB.clone(), "role_id", &ids).await.unwrap_or_default();
+
+    if user_role_list.len() > 0 {
+        return res.render(Json(BaseResponse {
+            msg: "角色已被使用,不能直接删除".to_string(),
+            code: 1,
+            data: Some("None".to_string()),
+        }));
+    }
 
 
-    let result = SysRole::delete_in_column(&mut RB.clone(), "id", &item.ids).await;
+    let result = SysRole::delete_in_column(&mut RB.clone(), "id", &ids).await;
 
     res.render(Json(handle_result(result)))
 }
@@ -169,13 +181,12 @@ pub async fn update_role_menu(req: &mut Request, res: &mut Response) {
     let role_id = item.role_id;
 
 
-
     SysRoleMenu::delete_by_column(&mut RB.clone(), "role_id", &role_id).await.expect("删除角色菜单异常");
 
     let mut menu_role: Vec<SysRoleMenu> = Vec::new();
 
     for x in &item.menu_ids {
-        let menu_id= x.clone();
+        let menu_id = x.clone();
         menu_role.push(SysRoleMenu {
             id: None,
             create_time: Some(DateTime::now()),

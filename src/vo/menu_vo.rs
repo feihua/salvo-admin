@@ -59,5 +59,5 @@ pub struct MenuUpdateReq {
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct MenuDeleteReq {
-    pub ids: Vec<i32>,
+    pub id: i32,
 }
