@@ -135,16 +135,13 @@ pub async fn query_role_menu(req: &mut Request, res: &mut Response) {
     let item = req.parse_json::<QueryRoleMenuReq>().await.unwrap();
     log::info!("query_role_menu params: {:?}", &item);
 
-
-    let role_menu_list = query_menu_by_role(&mut RB.clone(), item.role_id).await;
-
-    let menu_list = SysMenu::select_all(&mut RB.clone()).await;
+    // 查询所有菜单
+    let menu_list = SysMenu::select_all(&mut RB.clone()).await.unwrap_or_default();
 
     let mut menu_data_list: Vec<MenuDataList> = Vec::new();
-    let mut role_menus: Vec<i32> = Vec::new();
+    let mut role_menu_ids: Vec<i32> = Vec::new();
 
-
-    for y in menu_list.unwrap_or_default() {
+    for y in menu_list {
         let x = y.clone();
         menu_data_list.push(MenuDataList {
             id: x.id.unwrap(),
@@ -154,18 +151,25 @@ pub async fn query_role_menu(req: &mut Request, res: &mut Response) {
             label: y.menu_name,
             is_penultimate: y.parent_id == 2,
         });
+        role_menu_ids.push(x.id.unwrap())
     }
 
-    for x in role_menu_list.unwrap_or_default() {
-        let m_id = x.get("menu_id").unwrap().clone();
-        role_menus.push(m_id)
+    //不是超级管理员的时候,就要查询角色和菜单的关联
+    if item.role_id != 1 {
+        role_menu_ids.clear();
+        let role_menu_list = query_menu_by_role(&mut RB.clone(), item.role_id).await.unwrap_or_default();
+
+        for x in role_menu_list {
+            let m_id = x.get("menu_id").unwrap().clone();
+            role_menu_ids.push(m_id)
+        }
     }
 
     let resp = QueryRoleMenuResp {
         msg: "successful".to_string(),
         code: 0,
         data: QueryRoleMenuData {
-            role_menus,
+            role_menus: role_menu_ids,
             menu_list: menu_data_list,
         },
     };
@@ -191,10 +195,10 @@ pub async fn update_role_menu(req: &mut Request, res: &mut Response) {
             id: None,
             create_time: Some(DateTime::now()),
             update_time: Some(DateTime::now()),
-            status_id: Some(1),
-            sort: Some(1),
-            menu_id: Some(menu_id),
-            role_id: Some(role_id.clone()),
+            status_id: 1,
+            sort: 1,
+            menu_id,
+            role_id: role_id.clone(),
         })
     }
 
