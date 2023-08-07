@@ -4,13 +4,32 @@
 
 # 前端项目
 
-```http
+```
 https://github.com/feihua/salvo-admin-ui.git
 ```
 
 # 预览地址
 
 http://139.159.180.129:81/salvo 账号：18613030352 密码：123456
+
+# 本地启动
+
+```
+1.创建数据库并导入sql脚本
+2.修改main.rs代码中的 let mysql_url = "mysql://root:123456@127.0.0.1:3306/rustdb" 为你自己的数据信息
+3.启动 cargo run main.rs
+4.验证脚本在docs目录下,请求接口前要先执行登录接口(user.http文件中)
+
+POST {{host}}/api/login
+Content-Type: application/json
+
+{
+  "mobile": "18613030352",
+  "password": "123456"
+}
+> {% client.global.set("token", response.body.data.token); %}
+
+```
 
 # 系统截图
 
