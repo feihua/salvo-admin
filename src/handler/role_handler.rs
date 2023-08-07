@@ -32,9 +32,9 @@ pub async fn role_list(req: &mut Request, res: &mut Response) {
             for x in d.records {
                 role_list_resp.push(RoleListData {
                     id: x.id.unwrap(),
-                    sort: x.sort.unwrap(),
-                    status_id: x.status_id.unwrap(),
-                    role_name: x.role_name.unwrap_or_default(),
+                    sort: x.sort,
+                    status_id: x.status_id,
+                    role_name: x.role_name,
                     remark: x.remark.unwrap_or_default(),
                     create_time: x.create_time.unwrap().0.to_string(),
                     update_time: x.update_time.unwrap().0.to_string(),
@@ -73,10 +73,10 @@ pub async fn role_save(req: &mut Request, res: &mut Response) {
         id: None,
         create_time: Some(DateTime::now()),
         update_time: Some(DateTime::now()),
-        status_id: Some(1),
-        sort: Some(role.sort),
-        role_name: Some(role.role_name),
-        remark: Some(role.remark),
+        status_id: role.status_id,
+        sort: role.sort,
+        role_name: role.role_name,
+        remark: role.remark,
     };
 
     let result = SysRole::insert(&mut RB.clone(), &sys_role).await;
@@ -94,10 +94,10 @@ pub async fn role_update(req: &mut Request, res: &mut Response) {
         id: Some(role.id),
         create_time: None,
         update_time: Some(DateTime::now()),
-        status_id: Some(role.status_id),
-        sort: Some(role.sort),
-        role_name: Some(role.role_name),
-        remark: Some(role.remark),
+        status_id: role.status_id,
+        sort: role.sort,
+        role_name: role.role_name,
+        remark: role.remark,
     };
 
     let result = SysRole::update_by_column(&mut RB.clone(), &sys_role, "id").await;
@@ -136,11 +136,11 @@ pub async fn query_role_menu(req: &mut Request, res: &mut Response) {
         let x = y.clone();
         menu_data_list.push(MenuDataList {
             id: x.id.unwrap(),
-            parent_id: x.parent_id.unwrap(),
-            title: x.menu_name.unwrap_or_default(),
+            parent_id: x.parent_id,
+            title: x.menu_name,
             key: y.id.unwrap().to_string(),
-            label: y.menu_name.unwrap_or_default(),
-            is_penultimate: y.parent_id == Some(2),
+            label: y.menu_name,
+            is_penultimate: y.parent_id == 2,
         });
     }
 

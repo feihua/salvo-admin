@@ -122,7 +122,9 @@ pub struct UserListData {
 pub struct UserSaveReq {
     pub mobile: String,
     pub user_name: String,
-    pub remark: String,
+    pub status_id: i32,
+    pub sort: i32,
+    pub remark: Option<String>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -132,7 +134,7 @@ pub struct UserUpdateReq {
     pub status_id: i32,
     pub mobile: String,
     pub user_name: String,
-    pub remark: String,
+    pub remark: Option<String>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]

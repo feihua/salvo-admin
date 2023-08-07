@@ -36,8 +36,8 @@ pub async fn login(req: &mut Request, res: &mut Response) {
                 }
                 Some(user) => {
                     let id = user.id.unwrap();
-                    let username = user.user_name.unwrap();
-                    let password = user.password.unwrap();
+                    let username = user.user_name;
+                    let password = user.password;
 
                     if password.ne(&item.password) {
                         let resp = BaseResponse {
@@ -99,7 +99,7 @@ async fn query_btn_menu(id: &i32) -> Vec<String> {
     let mut is_admin = false;
 
     for x in user_role.unwrap() {
-        if x.role_id.unwrap() == 1 {
+        if x.role_id == 1 {
             is_admin = true;
             break;
         }
@@ -126,26 +126,30 @@ async fn query_btn_menu(id: &i32) -> Vec<String> {
 
 #[handler]
 pub async fn query_user_role(req: &mut Request, res: &mut Response) {
-    let item = req.parse_json::<QueryUserRoleReq>().await;
+    let item = req.parse_json::<QueryUserRoleReq>().await.unwrap();
     log::info!("query_user_role params: {:?}", item);
 
-    let sys_role = SysRole::select_page(&mut RB.clone(), &PageRequest::new(1, 1000)).await;
-
-    let mut sys_role_list: Vec<UserRoleList> = Vec::new();
+    let user_role = SysUserRole::select_by_column(&mut RB.clone(), "user_id", item.user_id).await;
     let mut user_role_ids: Vec<i32> = Vec::new();
 
-    for x in sys_role.unwrap().records {
+    for x in user_role.unwrap() {
+        user_role_ids.push(x.role_id);
+    }
+
+    let sys_role = SysRole::select_all(&mut RB.clone()).await;
+
+    let mut sys_role_list: Vec<UserRoleList> = Vec::new();
+
+    for x in sys_role.unwrap() {
         sys_role_list.push(UserRoleList {
             id: x.id.unwrap(),
-            status_id: x.status_id.unwrap(),
-            sort: x.sort.unwrap(),
-            role_name: x.role_name.unwrap_or_default(),
+            status_id: x.status_id,
+            sort: x.sort,
+            role_name: x.role_name,
             remark: x.remark.unwrap_or_default(),
             create_time: x.create_time.unwrap().0.to_string(),
             update_time: x.update_time.unwrap().0.to_string(),
         });
-
-        user_role_ids.push(x.id.unwrap_or_default());
     }
 
     let resp = QueryUserRoleResp {
@@ -165,11 +169,11 @@ pub async fn update_user_role(req: &mut Request, res: &mut Response) {
     let user_role = req.parse_json::<UpdateUserRoleReq>().await.unwrap();
     log::info!("update_user_role params: {:?}", user_role);
 
-    let user_id = user_role.user_id;
+    let user_id = user_role.user_id.clone();
     let role_ids = &user_role.role_ids;
     let len = user_role.role_ids.len();
 
-    if user_id == 1 {
+    if user_id.clone() == 1 {
         let resp = BaseResponse {
             msg: "不能修改超级管理员的角色".to_string(),
             code: 1,
@@ -178,7 +182,7 @@ pub async fn update_user_role(req: &mut Request, res: &mut Response) {
         return res.render(Json(resp));
     }
 
-    let sys_result = SysUserRole::delete_by_column(&mut RB.clone(), "user_id", user_id).await;
+    let sys_result = SysUserRole::delete_by_column(&mut RB.clone(), "user_id", user_id.clone()).await;
 
     if sys_result.is_err() {
         let resp = BaseResponse {
@@ -191,15 +195,15 @@ pub async fn update_user_role(req: &mut Request, res: &mut Response) {
 
     let mut sys_role_user_list: Vec<SysUserRole> = Vec::new();
     for role_id in role_ids {
-        let role_id = role_id.clone();
+        let r_id = role_id.clone();
         sys_role_user_list.push(SysUserRole {
             id: None,
             create_time: Some(DateTime::now()),
             update_time: Some(DateTime::now()),
-            status_id: Some(1),
-            sort: Some(1),
-            role_id: Some(role_id),
-            user_id: Some(user_id.clone()),
+            status_id: 1,
+            sort: 1,
+            role_id: r_id,
+            user_id: user_id.clone(),
         })
     }
 
@@ -240,20 +244,20 @@ pub async fn query_user_menu(depot: &mut Depot, res: &mut Response) {
 
                     for x in data.unwrap().records {
                         let y = x.clone();
-                        if y.menu_type != Some(3) {
+                        if y.menu_type != 3 {
                             sys_menu.push(MenuUserList {
                                 id: y.id.unwrap(),
-                                parent_id: y.parent_id.unwrap(),
-                                name: y.menu_name.unwrap_or_default(),
+                                parent_id: y.parent_id,
+                                name: y.menu_name,
                                 icon: y.menu_icon.unwrap_or_default(),
                                 api_url: y.api_url.as_ref().unwrap().to_string(),
-                                menu_type: y.menu_type.unwrap(),
+                                menu_type: y.menu_type,
                                 path: y.menu_url.unwrap_or_default(),
                             });
                         }
 
                         btn_menu.push(x.api_url.unwrap_or_default());
-                        btn_menu_str.push_str(&x.menu_name.unwrap_or_default());
+                        btn_menu_str.push_str(&x.menu_name);
                         btn_menu_str.push_str(&",")
                     }
 
@@ -264,7 +268,7 @@ pub async fn query_user_menu(depot: &mut Depot, res: &mut Response) {
                             sys_menu,
                             btn_menu,
                             avatar: "https://gw.alipayobjects.com/zos/antfincdn/XAosXuNZyF/BiazfanxmamNRoxxVxka.png".to_string(),
-                            name: u.user_name.unwrap_or_default(),
+                            name: u.user_name,
                         }),
                     };
                     res.render(Json(resp))
@@ -304,10 +308,10 @@ pub async fn user_list(req: &mut Request, res: &mut Response) {
             for x in d.records {
                 user_list_resp.push(UserListData {
                     id: x.id.unwrap(),
-                    sort: x.sort.unwrap(),
-                    status_id: x.status_id.unwrap(),
-                    mobile: x.mobile.unwrap_or_default(),
-                    user_name: x.user_name.unwrap_or_default(),
+                    sort: x.sort,
+                    status_id: x.status_id,
+                    mobile: x.mobile,
+                    user_name: x.user_name,
                     remark: x.remark.unwrap_or_default(),
                     create_time: x.create_time.unwrap().0.to_string(),
                     update_time: x.update_time.unwrap().0.to_string(),
@@ -346,12 +350,12 @@ pub async fn user_save(req: &mut Request, res: &mut Response) {
         id: None,
         create_time: Some(DateTime::now()),
         update_time: Some(DateTime::now()),
-        status_id: Some(1),
-        sort: Some(1),
-        mobile: Some(user.mobile),
-        user_name: Some(user.user_name),
-        remark: Some(user.remark),
-        password: Some("123456".to_string()),
+        status_id: user.status_id,
+        sort: user.sort,
+        mobile: user.mobile,
+        user_name: user.user_name,
+        remark: user.remark,
+        password: "123456".to_string(),//默认密码为123456,暂时不加密
     };
 
     let result = SysUser::insert(&mut RB.clone(), &sys_user).await;
@@ -365,21 +369,34 @@ pub async fn user_update(req: &mut Request, res: &mut Response) {
     let user = req.parse_json::<UserUpdateReq>().await.unwrap();
     log::info!("user_update params: {:?}", &user);
 
-    let sys_user = SysUser {
-        id: Some(user.id),
-        create_time: None,
-        update_time: Some(DateTime::now()),
-        status_id: Some(user.status_id),
-        sort: Some(user.sort),
-        mobile: Some(user.mobile),
-        user_name: Some(user.user_name),
-        remark: Some(user.remark),
-        password: None,
-    };
+    let result = SysUser::select_by_id(&mut RB.clone(), user.id.clone()).await.unwrap();
 
-    let result = SysUser::update_by_column(&mut RB.clone(), &sys_user, "id").await;
+    match result {
+        None => {
+            res.render(Json(BaseResponse {
+                msg: "用户不存在".to_string(),
+                code: 1,
+                data: Some("None".to_string()),
+            }))
+        }
+        Some(s_user) => {
+            let sys_user = SysUser {
+                id: Some(user.id),
+                create_time: s_user.create_time,
+                update_time: Some(DateTime::now()),
+                status_id: user.status_id,
+                sort: user.sort,
+                mobile: user.mobile,
+                user_name: user.user_name,
+                remark: user.remark,
+                password: s_user.password,
+            };
 
-    res.render(Json(handle_result(result)))
+            let result = SysUser::update_by_column(&mut RB.clone(), &sys_user, "id").await;
+
+            res.render(Json(handle_result(result)))
+        }
+    }
 }
 
 
@@ -399,13 +416,12 @@ pub async fn update_user_password(req: &mut Request, res: &mut Response) {
     let user_pwd = req.parse_json::<UpdateUserPwdReq>().await.unwrap();
     log::info!("update_user_pwd params: {:?}", &user_pwd);
 
-
     let user_result = SysUser::select_by_id(&mut RB.clone(), user_pwd.id).await;
 
     match user_result {
         Ok(user) => {
             let mut sys_user = user.unwrap();
-            sys_user.password = Some(user_pwd.re_pwd);
+            sys_user.password = user_pwd.re_pwd;
             let result = SysUser::update_by_column(&mut RB.clone(), &sys_user, "id").await;
 
             res.render(Json(handle_result(result)))

@@ -3,18 +3,18 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct SysMenu {
-    pub  id: Option<i32>,
-    pub  create_time: Option<DateTime>,
-    pub  update_time: Option<DateTime>,
-    pub  status_id: Option<i32>,
-    pub  sort: Option<i32>,
-    pub  parent_id: Option<i32>,
-    pub  menu_name: Option<String>,
-    pub  menu_url: Option<String>,
-    pub  api_url: Option<String>,
-    pub  menu_icon: Option<String>,
-    pub  remark: Option<String>,
-    pub  menu_type: Option<i32>,
+    pub id: Option<i32>,
+    pub create_time: Option<DateTime>,
+    pub update_time: Option<DateTime>,
+    pub status_id: i32,
+    pub sort: i32,
+    pub parent_id: i32,
+    pub menu_name: String,
+    pub menu_url: Option<String>,
+    pub api_url: Option<String>,
+    pub menu_icon: Option<String>,
+    pub remark: Option<String>,
+    pub menu_type: i32,
 
 }
 

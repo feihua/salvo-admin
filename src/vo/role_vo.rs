@@ -34,7 +34,8 @@ pub struct RoleListData {
 pub struct RoleSaveReq {
     pub role_name: String,
     pub sort: i32,
-    pub remark: String,
+    pub status_id: i32,
+    pub remark: Option<String>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -43,7 +44,7 @@ pub struct RoleUpdateReq {
     pub sort: i32,
     pub status_id: i32,
     pub role_name: String,
-    pub remark: String,
+    pub remark: Option<String>,
 }
 
 

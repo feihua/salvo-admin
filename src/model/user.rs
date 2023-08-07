@@ -3,15 +3,15 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct SysUser {
-    pub  id: Option<i32>,
-    pub  create_time: Option<DateTime>,
-    pub  update_time: Option<DateTime>,
-    pub  status_id: Option<i32>,
-    pub  sort: Option<i32>,
-    pub  mobile: Option<String>,
-    pub  user_name: Option<String>,
-    pub  remark: Option<String>,
-    pub  password: Option<String>,
+    pub id: Option<i32>,
+    pub create_time: Option<DateTime>,
+    pub update_time: Option<DateTime>,
+    pub status_id: i32,
+    pub sort: i32,
+    pub mobile: String,
+    pub user_name: String,
+    pub remark: Option<String>,
+    pub password: String,
 
 }
 
