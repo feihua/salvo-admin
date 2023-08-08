@@ -5,6 +5,6 @@ ENV TZ Asia/Shanghai
 WORKDIR /app
 
 COPY ./src/config/log4rs.yaml /app/src/config/log4rs.yaml
-COPY ./target/release/salvo_admin /app/
+COPY ./target/release/salvo-admin /app/
 
-CMD ["./salvo_admin"]
+CMD ["./salvo-admin"]
