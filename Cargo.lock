@@ -1922,19 +1922,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "salvo-utils"
-version = "0.0.5"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "35cb87a925e7696818a5a716dc6b17ff4ffa8cb769be907b623bc8637d661234"
-dependencies = [
- "hyper",
- "pin-project-lite",
- "tokio",
- "tracing",
-]
-
-[[package]]
-name = "salvo_admin"
+name = "salvo-admin"
 version = "0.1.0"
 dependencies = [
  "futures",
@@ -1952,6 +1940,18 @@ dependencies = [
  "serde_json",
  "thiserror",
  "tokio",
+]
+
+[[package]]
+name = "salvo-utils"
+version = "0.0.5"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "35cb87a925e7696818a5a716dc6b17ff4ffa8cb769be907b623bc8637d661234"
+dependencies = [
+ "hyper",
+ "pin-project-lite",
+ "tokio",
+ "tracing",
 ]
 
 [[package]]

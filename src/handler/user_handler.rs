@@ -14,11 +14,11 @@ use crate::vo::user_vo::*;
 use crate::utils::jwt_util::JWTToken;
 use crate::vo::{BaseResponse, handle_result};
 
+// 后台用户登录
 #[handler]
 pub async fn login(req: &mut Request, res: &mut Response) {
     let item = req.parse_json::<UserLoginReq>().await.unwrap();
     log::info!("user login params: {:?}", &item);
-
 
     let user_result = SysUser::select_by_mobile(&mut RB.clone(), &item.mobile).await;
     log::info!("select_by_mobile: {:?}",user_result);
@@ -343,35 +343,34 @@ pub async fn query_user_menu(depot: &mut Depot, res: &mut Response) {
     }
 }
 
-
+// 查询用户列表
 #[handler]
 pub async fn user_list(req: &mut Request, res: &mut Response) {
     let item = req.parse_json::<UserListReq>().await.unwrap();
     log::info!("query user_list params: {:?}", &item);
 
-
     let mobile = item.mobile.as_deref().unwrap_or_default();
     let status_id = item.status_id.as_deref().unwrap_or_default();
 
-    let page = &PageRequest::new(item.page_no, item.page_size);
-    let result = SysUser::select_page_by_name(&mut RB.clone(), page, mobile, status_id).await;
+    let page_req = &PageRequest::new(item.page_no, item.page_size);
+    let result = SysUser::select_page_by_name(&mut RB.clone(), page_req, mobile, status_id).await;
 
     let resp = match result {
-        Ok(d) => {
-            let total = d.total;
+        Ok(page) => {
+            let total = page.total;
 
-            let mut user_list_resp: Vec<UserListData> = Vec::new();
+            let mut list_data: Vec<UserListData> = Vec::new();
 
-            for x in d.records {
-                user_list_resp.push(UserListData {
-                    id: x.id.unwrap(),
-                    sort: x.sort,
-                    status_id: x.status_id,
-                    mobile: x.mobile,
-                    user_name: x.user_name,
-                    remark: x.remark.unwrap_or_default(),
-                    create_time: x.create_time.unwrap().0.to_string(),
-                    update_time: x.update_time.unwrap().0.to_string(),
+            for user in page.records {
+                list_data.push(UserListData {
+                    id: user.id.unwrap(),
+                    sort: user.sort,
+                    status_id: user.status_id,
+                    mobile: user.mobile,
+                    user_name: user.user_name,
+                    remark: user.remark.unwrap_or_default(),
+                    create_time: user.create_time.unwrap().0.to_string(),
+                    update_time: user.update_time.unwrap().0.to_string(),
                 })
             }
 
@@ -380,7 +379,7 @@ pub async fn user_list(req: &mut Request, res: &mut Response) {
                 code: 0,
                 success: true,
                 total,
-                data: Some(user_list_resp),
+                data: Some(list_data),
             }
         }
         Err(err) => {
@@ -397,7 +396,7 @@ pub async fn user_list(req: &mut Request, res: &mut Response) {
     res.render(Json(resp))
 }
 
-
+// 添加用户信息
 #[handler]
 pub async fn user_save(req: &mut Request, res: &mut Response) {
     let user = req.parse_json::<UserSaveReq>().await.unwrap();
@@ -420,7 +419,7 @@ pub async fn user_save(req: &mut Request, res: &mut Response) {
     res.render(Json(handle_result(result)))
 }
 
-
+// 更新用户信息
 #[handler]
 pub async fn user_update(req: &mut Request, res: &mut Response) {
     let user = req.parse_json::<UserUpdateReq>().await.unwrap();
@@ -436,17 +435,17 @@ pub async fn user_update(req: &mut Request, res: &mut Response) {
                 data: Some("None".to_string()),
             }))
         }
-        Some(s_user) => {
+        Some(sys_user) => {
             let sys_user = SysUser {
                 id: Some(user.id),
-                create_time: s_user.create_time,
+                create_time: sys_user.create_time,
                 update_time: Some(DateTime::now()),
                 status_id: user.status_id,
                 sort: user.sort,
                 mobile: user.mobile,
                 user_name: user.user_name,
                 remark: user.remark,
-                password: s_user.password,
+                password: sys_user.password,
             };
 
             let result = SysUser::update_by_column(&mut RB.clone(), &sys_user, "id").await;
@@ -456,7 +455,7 @@ pub async fn user_update(req: &mut Request, res: &mut Response) {
     }
 }
 
-
+// 删除用户信息
 #[handler]
 pub async fn user_delete(req: &mut Request, res: &mut Response) {
     let item = req.parse_json::<UserDeleteReq>().await.unwrap();
@@ -476,20 +475,41 @@ pub async fn user_delete(req: &mut Request, res: &mut Response) {
     }))
 }
 
+// 更新用户密码
 #[handler]
 pub async fn update_user_password(req: &mut Request, res: &mut Response) {
     let user_pwd = req.parse_json::<UpdateUserPwdReq>().await.unwrap();
     log::info!("update_user_pwd params: {:?}", &user_pwd);
 
-    let user_result = SysUser::select_by_id(&mut RB.clone(), user_pwd.id).await;
+    let sys_user_result = SysUser::select_by_id(&mut RB.clone(), user_pwd.id).await;
 
-    match user_result {
-        Ok(user) => {
-            let mut sys_user = user.unwrap();
-            sys_user.password = user_pwd.re_pwd;
-            let result = SysUser::update_by_column(&mut RB.clone(), &sys_user, "id").await;
+    match sys_user_result {
+        Ok(user_result) => {
+            match user_result {
+                None => {
+                    let resp = BaseResponse {
+                        msg: "用户不存在".to_string(),
+                        code: 1,
+                        data: Some("None"),
+                    };
+                    res.render(Json(resp))
+                }
+                Some(mut user) => {
+                    if user.password == user_pwd.pwd {
+                        user.password = user_pwd.re_pwd;
+                        let result = SysUser::update_by_column(&mut RB.clone(), &user, "id").await;
 
-            res.render(Json(handle_result(result)))
+                        res.render(Json(handle_result(result)))
+                    } else {
+                        let resp = BaseResponse {
+                            msg: "旧密码不正确".to_string(),
+                            code: 1,
+                            data: Some("None"),
+                        };
+                        res.render(Json(resp))
+                    }
+                }
+            }
         }
         Err(err) => {
             let resp = BaseResponse {

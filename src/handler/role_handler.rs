@@ -11,64 +11,61 @@ use crate::RB;
 use crate::vo::{BaseResponse, handle_result};
 use crate::vo::role_vo::*;
 
-
+// 查询角色列表
 #[handler]
 pub async fn role_list(req: &mut Request, res: &mut Response) {
     let item = req.parse_json::<RoleListReq>().await.unwrap();
     log::info!("role_list params: {:?}", &item);
 
+    let role_name = item.role_name.unwrap_or_default();
+    let status_id = item.status_id.unwrap_or_default();
 
-    let role_name = item.role_name.as_deref().unwrap_or_default();
-    let status_id = item.status_id.as_deref().unwrap_or_default();
+    let page_req = &PageRequest::new(item.page_no, item.page_size);
+    let result = SysRole::select_page_by_name(&mut RB.clone(), page_req, &role_name, &status_id).await;
 
-    let page = &PageRequest::new(item.page_no, item.page_size);
-    let result = SysRole::select_page_by_name(&mut RB.clone(), page, role_name, status_id).await;
+    match result {
+        Ok(page) => {
+            let total = page.total;
 
-    let resp = match result {
-        Ok(d) => {
-            let total = d.total;
+            let mut list_data: Vec<RoleListData> = Vec::new();
 
-            let mut role_list_resp: Vec<RoleListData> = Vec::new();
-
-            for x in d.records {
-                role_list_resp.push(RoleListData {
-                    id: x.id.unwrap(),
-                    sort: x.sort,
-                    status_id: x.status_id,
-                    role_name: x.role_name,
-                    remark: x.remark.unwrap_or_default(),
-                    create_time: x.create_time.unwrap().0.to_string(),
-                    update_time: x.update_time.unwrap().0.to_string(),
+            for role in page.records {
+                list_data.push(RoleListData {
+                    id: role.id.unwrap(),
+                    sort: role.sort,
+                    status_id: role.status_id,
+                    role_name: role.role_name,
+                    remark: role.remark.unwrap_or_default(),
+                    create_time: role.create_time.unwrap().0.to_string(),
+                    update_time: role.update_time.unwrap().0.to_string(),
                 })
             }
 
-            RoleListResp {
-                msg: "successful".to_string(),
+            res.render(Json(RoleListResp {
+                msg: "查询角色列表成功".to_string(),
                 code: 0,
                 success: true,
                 total,
-                data: Some(role_list_resp),
-            }
+                data: Some(list_data),
+            }))
         }
         Err(err) => {
-            RoleListResp {
+            res.render(Json(RoleListResp {
                 msg: err.to_string(),
                 code: 1,
                 success: true,
                 total: 0,
                 data: None,
-            }
+            }))
         }
-    };
-
-    res.render(Json(resp))
+    }
 }
 
-
+// 添加角色信息
 #[handler]
 pub async fn role_save(req: &mut Request, res: &mut Response) {
     let role = req.parse_json::<RoleSaveReq>().await.unwrap();
-    println!("model: {:?}", &role);
+    log::info!("role_save params: {:?}", &role);
 
     let sys_role = SysRole {
         id: None,
@@ -85,11 +82,11 @@ pub async fn role_save(req: &mut Request, res: &mut Response) {
     res.render(Json(handle_result(result)))
 }
 
-
+// 更新角色信息
 #[handler]
 pub async fn role_update(req: &mut Request, res: &mut Response) {
     let role = req.parse_json::<RoleUpdateReq>().await.unwrap();
-    println!("item: {:?}", &role);
+    log::info!("role_update params: {:?}", &role);
 
     let sys_role = SysRole {
         id: Some(role.id),
@@ -106,7 +103,7 @@ pub async fn role_update(req: &mut Request, res: &mut Response) {
     res.render(Json(handle_result(result)))
 }
 
-
+// 删除角色信息
 #[handler]
 pub async fn role_delete(req: &mut Request, res: &mut Response) {
     let item = req.parse_json::<RoleDeleteReq>().await.unwrap();
@@ -129,7 +126,7 @@ pub async fn role_delete(req: &mut Request, res: &mut Response) {
     res.render(Json(handle_result(result)))
 }
 
-
+// 查询角色关联的菜单
 #[handler]
 pub async fn query_role_menu(req: &mut Request, res: &mut Response) {
     let item = req.parse_json::<QueryRoleMenuReq>().await.unwrap();
@@ -177,32 +174,42 @@ pub async fn query_role_menu(req: &mut Request, res: &mut Response) {
     res.render(Json(resp))
 }
 
-
+// 更新角色关联的菜单
 #[handler]
 pub async fn update_role_menu(req: &mut Request, res: &mut Response) {
     let item = req.parse_json::<UpdateRoleMenuReq>().await.unwrap();
     log::info!("update_role_menu params: {:?}", &item);
     let role_id = item.role_id;
 
+    let role_menu_result = SysRoleMenu::delete_by_column(&mut RB.clone(), "role_id", &role_id).await;
 
-    SysRoleMenu::delete_by_column(&mut RB.clone(), "role_id", &role_id).await.expect("删除角色菜单异常");
+    match role_menu_result {
+        Ok(_) => {
+            let mut menu_role: Vec<SysRoleMenu> = Vec::new();
 
-    let mut menu_role: Vec<SysRoleMenu> = Vec::new();
+            for id in &item.menu_ids {
+                let menu_id = id.clone();
+                menu_role.push(SysRoleMenu {
+                    id: None,
+                    create_time: Some(DateTime::now()),
+                    update_time: Some(DateTime::now()),
+                    status_id: 1,
+                    sort: 1,
+                    menu_id,
+                    role_id: role_id.clone(),
+                })
+            }
 
-    for x in &item.menu_ids {
-        let menu_id = x.clone();
-        menu_role.push(SysRoleMenu {
-            id: None,
-            create_time: Some(DateTime::now()),
-            update_time: Some(DateTime::now()),
-            status_id: 1,
-            sort: 1,
-            menu_id,
-            role_id: role_id.clone(),
-        })
+            let result = SysRoleMenu::insert_batch(&mut RB.clone(), &menu_role, item.menu_ids.len() as u64).await;
+
+            res.render(Json(handle_result(result)))
+        }
+        Err(err) => {
+            res.render(Json(BaseResponse {
+                msg: err.to_string(),
+                code: 1,
+                data: Some("None".to_string()),
+            }))
+        }
     }
-
-    let result = SysRoleMenu::insert_batch(&mut RB.clone(), &menu_role, item.menu_ids.len() as u64).await;
-
-    res.render(Json(handle_result(result)))
 }
