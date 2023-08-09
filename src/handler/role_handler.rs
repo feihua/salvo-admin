@@ -8,7 +8,7 @@ use crate::model::menu::{SysMenu};
 use crate::model::role_menu::{query_menu_by_role, SysRoleMenu};
 use crate::model::user_role::SysUserRole;
 use crate::RB;
-use crate::vo::{BaseResponse, handle_result};
+use crate::vo::{err_result_msg, err_result_page, handle_result, ok_result_page};
 use crate::vo::role_vo::*;
 
 // 查询角色列表
@@ -41,22 +41,10 @@ pub async fn role_list(req: &mut Request, res: &mut Response) {
                 })
             }
 
-            res.render(Json(RoleListResp {
-                msg: "查询角色列表成功".to_string(),
-                code: 0,
-                success: true,
-                total,
-                data: Some(list_data),
-            }))
+            res.render(Json(ok_result_page(list_data, total)))
         }
         Err(err) => {
-            res.render(Json(RoleListResp {
-                msg: err.to_string(),
-                code: 1,
-                success: true,
-                total: 0,
-                data: None,
-            }))
+            res.render(Json(err_result_page(err.to_string())))
         }
     }
 }
@@ -113,11 +101,7 @@ pub async fn role_delete(req: &mut Request, res: &mut Response) {
     let user_role_list = SysUserRole::select_in_column(&mut RB.clone(), "role_id", &ids).await.unwrap_or_default();
 
     if user_role_list.len() > 0 {
-        return res.render(Json(BaseResponse {
-            msg: "角色已被使用,不能直接删除".to_string(),
-            code: 1,
-            data: Some("None".to_string()),
-        }));
+        return res.render(Json(err_result_msg("角色已被使用,不能直接删除".to_string())));
     }
 
 
@@ -205,11 +189,7 @@ pub async fn update_role_menu(req: &mut Request, res: &mut Response) {
             res.render(Json(handle_result(result)))
         }
         Err(err) => {
-            res.render(Json(BaseResponse {
-                msg: err.to_string(),
-                code: 1,
-                data: Some("None".to_string()),
-            }))
+            res.render(Json(err_result_msg(err.to_string())))
         }
     }
 }

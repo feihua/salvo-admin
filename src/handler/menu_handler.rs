@@ -4,7 +4,7 @@ use salvo::prelude::*;
 use crate::{RB};
 
 use crate::model::menu::{SysMenu};
-use crate::vo::{BaseResponse, handle_result};
+use crate::vo::{err_result_msg, err_result_page, handle_result, ok_result_page};
 use crate::vo::menu_vo::{*};
 
 
@@ -38,18 +38,10 @@ pub async fn menu_list(req: &mut Request, res: &mut Response) {
                     update_time: menu.update_time.unwrap().0.to_string(),
                 })
             }
-            res.render(Json(MenuListResp {
-                msg: "查询菜单成功".to_string(),
-                code: 0,
-                data: Some(list_data),
-            }))
+            res.render(Json(ok_result_page(list_data, 0)))
         }
         Err(err) => {
-            res.render(Json(MenuListResp {
-                msg: err.to_string(),
-                code: 1,
-                data: None,
-            }))
+            res.render(Json(err_result_page(err.to_string())))
         }
     };
 }
@@ -106,7 +98,7 @@ pub async fn menu_update(req: &mut Request, res: &mut Response) {
     res.render(Json(handle_result(result)))
 }
 
-
+// 删除菜单信息
 #[handler]
 pub async fn menu_delete(req: &mut Request, res: &mut Response) {
     let item = req.parse_json::<MenuDeleteReq>().await.unwrap();
@@ -118,11 +110,7 @@ pub async fn menu_delete(req: &mut Request, res: &mut Response) {
     let menus = SysMenu::select_by_column(&mut RB.clone(), "parent_id", id.clone()).await.unwrap_or_default();
 
     if menus.len() > 0 {
-        return res.render(Json(BaseResponse {
-            msg: "有下级菜单,不能直接删除".to_string(),
-            code: 1,
-            data: Some("None".to_string()),
-        }));
+        return res.render(Json(err_result_msg("有下级菜单,不能直接删除".to_string())));
     }
 
     let result = SysMenu::delete_by_column(&mut RB.clone(), "id", id).await;

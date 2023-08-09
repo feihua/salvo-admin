@@ -12,7 +12,7 @@ use crate::RB;
 use crate::utils::error::WhoUnfollowedError;
 use crate::vo::user_vo::*;
 use crate::utils::jwt_util::JWTToken;
-use crate::vo::{BaseResponse, handle_result};
+use crate::vo::{err_result_msg, err_result_page, handle_result, ok_result_data, ok_result_msg, ok_result_page};
 
 // 后台用户登录
 #[handler]
@@ -27,12 +27,7 @@ pub async fn login(req: &mut Request, res: &mut Response) {
         Ok(u) => {
             match u {
                 None => {
-                    let resp = BaseResponse {
-                        msg: "用户不存在".to_string(),
-                        code: 1,
-                        data: Some("None"),
-                    };
-                    return res.render(Json(resp));
+                    return res.render(Json(err_result_msg("用户不存在".to_string())));
                 }
                 Some(user) => {
                     let id = user.id.unwrap();
@@ -40,51 +35,29 @@ pub async fn login(req: &mut Request, res: &mut Response) {
                     let password = user.password;
 
                     if password.ne(&item.password) {
-                        let resp = BaseResponse {
-                            msg: "密码不正确".to_string(),
-                            code: 1,
-                            data: Some("None"),
-                        };
-                        return res.render(Json(resp));
+                        return res.render(Json(err_result_msg("密码不正确".to_string())));
                     }
 
                     let btn_menu = query_btn_menu(&id).await;
 
                     if btn_menu.len() == 0 {
-                        let resp = BaseResponse {
-                            msg: "用户没有分配角色或者菜单,不能登录".to_string(),
-                            code: 1,
-                            data: Some("None"),
-                        };
-
-                        return res.render(Json(resp));
+                        return res.render(Json(err_result_msg("用户没有分配角色或者菜单,不能登录".to_string())));
                     }
 
                     match JWTToken::new(id, &username, btn_menu).create_token("123") {
                         Ok(token) => {
-                            let resp = BaseResponse {
-                                msg: "successful".to_string(),
-                                code: 0,
-                                data: Some(UserLoginData {
-                                    mobile: item.mobile.to_string(),
-                                    token,
-                                }),
-                            };
-
-                            res.render(Json(resp))
+                            res.render(Json(ok_result_data(UserLoginData {
+                                mobile: item.mobile.to_string(),
+                                token,
+                            })))
                         }
                         Err(err) => {
                             let er = match err {
                                 WhoUnfollowedError::JwtTokenError(s) => { s }
                                 _ => "no math error".to_string()
                             };
-                            let resp = BaseResponse {
-                                msg: er,
-                                code: 1,
-                                data: Some("None"),
-                            };
 
-                            res.render(Json(resp))
+                            res.render(Json(err_result_msg(er)))
                         }
                     }
                 }
@@ -93,12 +66,7 @@ pub async fn login(req: &mut Request, res: &mut Response) {
 
         Err(err) => {
             log::info!("select_by_column: {:?}",err);
-            let resp = BaseResponse {
-                msg: "查询用户异常".to_string(),
-                code: 1,
-                data: Some("None"),
-            };
-            return res.render(Json(resp));
+            return res.render(Json(err_result_msg("查询用户异常".to_string())));
         }
     }
 }
@@ -162,18 +130,13 @@ pub async fn query_user_role(req: &mut Request, res: &mut Response) {
         });
     }
 
-    let resp = QueryUserRoleResp {
-        msg: "successful".to_string(),
-        code: 0,
-        data: QueryUserRoleData {
-            sys_role_list,
-            user_role_ids,
-        },
-    };
-
-    res.render(Json(resp))
+    res.render(Json(ok_result_data(QueryUserRoleData {
+        sys_role_list,
+        user_role_ids,
+    })))
 }
 
+// 更新用户与角色的关联
 #[handler]
 pub async fn update_user_role(req: &mut Request, res: &mut Response) {
     let user_role = req.parse_json::<UpdateUserRoleReq>().await.unwrap();
@@ -184,23 +147,13 @@ pub async fn update_user_role(req: &mut Request, res: &mut Response) {
     let len = user_role.role_ids.len();
 
     if user_id.clone() == 1 {
-        let resp = BaseResponse {
-            msg: "不能修改超级管理员的角色".to_string(),
-            code: 1,
-            data: Some("None"),
-        };
-        return res.render(Json(resp));
+        return res.render(Json(err_result_msg("不能修改超级管理员的角色".to_string())));
     }
 
     let sys_result = SysUserRole::delete_by_column(&mut RB.clone(), "user_id", user_id.clone()).await;
 
     if sys_result.is_err() {
-        let resp = BaseResponse {
-            msg: "更新用户角色异常".to_string(),
-            code: 1,
-            data: Some("None"),
-        };
-        return res.render(Json(resp));
+        return res.render(Json(err_result_msg("更新用户角色异常".to_string())));
     }
 
     let mut sys_role_user_list: Vec<SysUserRole> = Vec::new();
@@ -239,11 +192,7 @@ pub async fn query_user_menu(depot: &mut Depot, res: &mut Response) {
             match sys_user {
                 // 用户不存在的情况
                 None => {
-                    res.render(Json(BaseResponse {
-                        msg: "用户不存在".to_string(),
-                        code: 1,
-                        data: Some(""),
-                    }))
+                    res.render(Json(err_result_msg("用户不存在".to_string())))
                 }
                 Some(user) => {
                     let user_role = SysUserRole::select_by_column(&mut RB.clone(), "user_id", user.id).await;
@@ -318,27 +267,18 @@ pub async fn query_user_menu(depot: &mut Depot, res: &mut Response) {
                         sys_menu.push(menu)
                     }
 
-                    let resp = BaseResponse {
-                        msg: "successful".to_string(),
-                        code: 0,
-                        data: Some(QueryUserMenuData {
-                            sys_menu,
-                            btn_menu,
-                            avatar: "https://gw.alipayobjects.com/zos/antfincdn/XAosXuNZyF/BiazfanxmamNRoxxVxka.png".to_string(),
-                            name: user.user_name,
-                        }),
-                    };
-                    res.render(Json(resp))
+                    res.render(Json(ok_result_data(QueryUserMenuData {
+                        sys_menu,
+                        btn_menu,
+                        avatar: "https://gw.alipayobjects.com/zos/antfincdn/XAosXuNZyF/BiazfanxmamNRoxxVxka.png".to_string(),
+                        name: user.user_name,
+                    })))
                 }
             }
         }
         // 查询用户数据库异常
         Err(err) => {
-            res.render(Json(BaseResponse {
-                msg: err.to_string(),
-                code: 1,
-                data: Some(""),
-            }))
+            res.render(Json(err_result_msg(err.to_string())))
         }
     }
 }
@@ -355,7 +295,7 @@ pub async fn user_list(req: &mut Request, res: &mut Response) {
     let page_req = &PageRequest::new(item.page_no, item.page_size);
     let result = SysUser::select_page_by_name(&mut RB.clone(), page_req, mobile, status_id).await;
 
-    let resp = match result {
+    match result {
         Ok(page) => {
             let total = page.total;
 
@@ -374,26 +314,12 @@ pub async fn user_list(req: &mut Request, res: &mut Response) {
                 })
             }
 
-            UserListResp {
-                msg: "successful".to_string(),
-                code: 0,
-                success: true,
-                total,
-                data: Some(list_data),
-            }
+            res.render(Json(ok_result_page(list_data, total)))
         }
         Err(err) => {
-            UserListResp {
-                msg: err.to_string(),
-                code: 1,
-                success: true,
-                total: 0,
-                data: None,
-            }
+            res.render(Json(err_result_page(err.to_string())))
         }
-    };
-
-    res.render(Json(resp))
+    }
 }
 
 // 添加用户信息
@@ -429,11 +355,7 @@ pub async fn user_update(req: &mut Request, res: &mut Response) {
 
     match result {
         None => {
-            res.render(Json(BaseResponse {
-                msg: "用户不存在".to_string(),
-                code: 1,
-                data: Some("None".to_string()),
-            }))
+            res.render(Json(err_result_msg("用户不存在".to_string())))
         }
         Some(sys_user) => {
             let sys_user = SysUser {
@@ -464,15 +386,11 @@ pub async fn user_delete(req: &mut Request, res: &mut Response) {
     let ids = item.ids;
     for id in ids {
         if id != 1 {//id为1的用户为系统预留用户,不能删除
-            SysUser::delete_by_column(&mut RB.clone(), "id", &id).await.expect("删除用户异常");
+            let _ = SysUser::delete_by_column(&mut RB.clone(), "id", &id).await;
         }
     }
 
-    res.render(Json(BaseResponse {
-        msg: "successful".to_string(),
-        code: 0,
-        data: Some("None".to_string()),
-    }))
+    res.render(Json(ok_result_msg("删除用户信息成功".to_string())))
 }
 
 // 更新用户密码
@@ -487,12 +405,7 @@ pub async fn update_user_password(req: &mut Request, res: &mut Response) {
         Ok(user_result) => {
             match user_result {
                 None => {
-                    let resp = BaseResponse {
-                        msg: "用户不存在".to_string(),
-                        code: 1,
-                        data: Some("None"),
-                    };
-                    res.render(Json(resp))
+                    res.render(Json(err_result_msg("用户不存在".to_string())))
                 }
                 Some(mut user) => {
                     if user.password == user_pwd.pwd {
@@ -501,23 +414,13 @@ pub async fn update_user_password(req: &mut Request, res: &mut Response) {
 
                         res.render(Json(handle_result(result)))
                     } else {
-                        let resp = BaseResponse {
-                            msg: "旧密码不正确".to_string(),
-                            code: 1,
-                            data: Some("None"),
-                        };
-                        res.render(Json(resp))
+                        res.render(Json(err_result_msg("旧密码不正确".to_string())))
                     }
                 }
             }
         }
         Err(err) => {
-            let resp = BaseResponse {
-                msg: err.to_string(),
-                code: 1,
-                data: Some("None"),
-            };
-            res.render(Json(resp))
+            res.render(Json(err_result_msg(err.to_string())))
         }
     }
 }
