@@ -1,22 +1,23 @@
 #[macro_use]
 extern crate rbatis;
 
+use once_cell::sync::Lazy;
+use rbatis::RBatis;
+use salvo::prelude::*;
+
+use crate::handler::banner_handler::{*};
+use crate::handler::member_handler::{*};
+use crate::handler::menu_handler::{*};
+use crate::handler::role_handler::{*};
+use crate::handler::title_handler::{*};
+use crate::handler::type_handler::{*};
+use crate::handler::user_handler::{*};
+use crate::utils::auth::auth_token;
+
 pub mod model;
 pub mod vo;
 pub mod handler;
 pub mod utils;
-
-use once_cell::sync::Lazy;
-use salvo::prelude::*;
-use rbatis::RBatis;
-use crate::handler::menu_handler::{*};
-use crate::handler::role_handler::{*};
-use crate::handler::user_handler::{*};
-use crate::handler::banner_handler::{*};
-use crate::handler::member_handler::{*};
-use crate::handler::title_handler::{*};
-use crate::handler::type_handler::{*};
-use crate::utils::auth::auth_token;
 
 pub static RB: Lazy<RBatis> = Lazy::new(RBatis::new);
 

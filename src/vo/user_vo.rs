@@ -24,13 +24,6 @@ pub struct QueryUserRoleReq {
     pub user_id: i32,
 }
 
-#[derive(Debug, Serialize)]
-pub struct QueryUserRoleResp {
-    pub msg: String,
-    pub code: i32,
-    pub data: QueryUserRoleData,
-}
-
 #[derive(Debug, Serialize, Deserialize)]
 pub struct QueryUserRoleData {
     pub sys_role_list: Vec<UserRoleList>,
@@ -95,15 +88,6 @@ pub struct UserListReq {
     pub page_size: u64,
     pub mobile: Option<String>,
     pub status_id: Option<String>,
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-pub struct UserListResp {
-    pub msg: String,
-    pub code: i32,
-    pub success: bool,
-    pub total: u64,
-    pub data: Option<Vec<UserListData>>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]

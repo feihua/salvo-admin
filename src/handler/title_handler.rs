@@ -1,13 +1,12 @@
 use rbatis::rbdc::datetime::DateTime;
-use rbatis::sql::{PageRequest};
+use rbatis::sql::PageRequest;
 use salvo::{Request, Response};
 use salvo::prelude::*;
 
-use crate::model::title::{ Title };
+use crate::model::title::Title;
 use crate::RB;
 use crate::vo::handle_result;
 use crate::vo::title_vo::*;
-
 
 // 添加面试题目
 #[handler]

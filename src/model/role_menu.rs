@@ -1,7 +1,8 @@
 use std::collections::HashMap;
+
+use rbatis::rbatis::RBatis;
 use rbatis::rbdc::datetime::DateTime;
 use serde::{Deserialize, Serialize};
-use rbatis::rbatis::RBatis;
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct SysRoleMenu {

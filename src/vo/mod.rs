@@ -1,7 +1,8 @@
 use std::fmt::Debug;
+
 use rbatis::rbdc::db::ExecResult;
+use rbatis::rbdc::Error;
 use serde::Serialize;
-use rbatis::rbdc::{Error};
 
 pub mod user_vo;
 pub mod role_vo;

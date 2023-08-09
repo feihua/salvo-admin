@@ -1,10 +1,10 @@
 use rbatis::rbdc::datetime::DateTime;
-use rbatis::sql::{PageRequest};
+use rbatis::sql::PageRequest;
 use salvo::{Request, Response};
 use salvo::prelude::*;
 
-use crate::model::role::{SysRole};
-use crate::model::menu::{SysMenu};
+use crate::model::menu::SysMenu;
+use crate::model::role::SysRole;
 use crate::model::role_menu::{query_menu_by_role, SysRoleMenu};
 use crate::model::user_role::SysUserRole;
 use crate::RB;
