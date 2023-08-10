@@ -23,7 +23,7 @@ impl_select_page!(Banner{select_page() =>"
 
 impl_select_page!(Banner{select_page_by_name(name:&str) =>"
      if name != null && name != '':
-       where user_name != #{name}
+       where real_name != #{name}
      if name == '':
-       where user_name != ''"
+       where real_name != ''"
 },"interview_banner");

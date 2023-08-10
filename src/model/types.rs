@@ -2,7 +2,7 @@ use rbatis::rbdc::datetime::DateTime;
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct InterviewType {
+pub struct Types {
     pub id: Option<i32>,
     pub interview_code: String,
     pub create_time: Option<DateTime>,
@@ -10,15 +10,15 @@ pub struct InterviewType {
 
 }
 
-rbatis::crud!(InterviewType {},"interview_type");
-impl_select_page!(InterviewType{select_page() =>"
+rbatis::crud!(Types {},"interview_types");
+impl_select_page!(Types{select_page() =>"
      if !sql.contains('count'):
        order by create_time desc"
-},"interview_type");
+},"interview_types");
 
-impl_select_page!(InterviewType{select_page_by_name(name:&str) =>"
+impl_select_page!(Types{select_page_by_name(name:&str) =>"
      if name != null && name != '':
-       where user_name != #{name}
+       where real_name != #{name}
      if name == '':
-       where user_name != ''"
-},"interview_type");
+       where real_name != ''"
+},"interview_types");

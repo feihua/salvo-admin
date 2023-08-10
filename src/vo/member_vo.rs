@@ -2,10 +2,11 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct MemberSaveReq {
+    pub id: i32,
     pub phone: String,
     pub name: String,
     pub password: String,
-    pub level: String
+    pub level: String,
 
 }
 
@@ -16,12 +17,11 @@ pub struct MemberDeleteReq {
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct MemberUpdateReq {
-    pub id: i32,
+    pub id: Option<i32>,
     pub phone: String,
     pub name: String,
     pub password: String,
     pub level: String,
-
 
 }
 
@@ -31,21 +31,17 @@ pub struct MemberListReq {
     pub page_no: u64,
     #[serde(rename = "pageSize")]
     pub page_size: u64,
+    pub id: Option<i32>,
+    pub phone: Option<String>,
+    pub name: Option<String>,
+    pub password: Option<String>,
+    pub level: Option<String>,
 
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-pub struct MemberListResp {
-    pub msg: String,
-    pub code: i32,
-    pub success: bool,
-    pub total: u64,
-    pub data: Option<Vec<MemberListData>>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct MemberListData {
-    pub id: i32,
+    pub id: Option<i32>,
     pub phone: String,
     pub name: String,
     pub password: String,

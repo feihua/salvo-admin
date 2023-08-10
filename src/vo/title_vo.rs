@@ -2,10 +2,10 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct TitleSaveReq {
+    pub id: i32,
     pub title: String,
     pub content: String,
     pub interview_type: String,
-
 
 }
 
@@ -16,11 +16,10 @@ pub struct TitleDeleteReq {
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct TitleUpdateReq {
-    pub id: i32,
+    pub id: Option<i32>,
     pub title: String,
     pub content: String,
     pub interview_type: String,
-
 
 }
 
@@ -30,22 +29,16 @@ pub struct TitleListReq {
     pub page_no: u64,
     #[serde(rename = "pageSize")]
     pub page_size: u64,
+    pub id: Option<i32>,
+    pub title: Option<String>,
+    pub content: Option<String>,
+    pub interview_type: Option<String>,
 
-
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-pub struct TitleListResp {
-    pub msg: String,
-    pub code: i32,
-    pub success: bool,
-    pub total: u64,
-    pub data: Option<Vec<TitleListData>>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct TitleListData {
-    pub id: i32,
+    pub id: Option<i32>,
     pub title: String,
     pub content: String,
     pub interview_type: String,

@@ -10,7 +10,7 @@ use crate::handler::member_handler::{*};
 use crate::handler::menu_handler::{*};
 use crate::handler::role_handler::{*};
 use crate::handler::title_handler::{*};
-use crate::handler::type_handler::{*};
+use crate::handler::types_handler::{*};
 use crate::handler::user_handler::{*};
 use crate::utils::auth::auth_token;
 
@@ -73,9 +73,9 @@ fn route() -> Router {
                 .push(Router::new().path("title_save").post(title_save))
                 .push(Router::new().path("title_update").post(title_update))
                 .push(Router::new().path("title_delete").post(title_delete))
-                .push(Router::new().path("type_list").post(type_list))
-                .push(Router::new().path("type_save").post(type_save))
-                .push(Router::new().path("type_update").post(type_update))
-                .push(Router::new().path("type_delete").post(type_delete))
+                .push(Router::new().path("type_list").post(types_list))
+                .push(Router::new().path("type_save").post(types_save))
+                .push(Router::new().path("type_update").post(types_update))
+                .push(Router::new().path("type_delete").post(types_delete))
         )
 }

@@ -5,7 +5,7 @@ use salvo::prelude::*;
 
 use crate::model::member::Member;
 use crate::RB;
-use crate::vo::handle_result;
+use crate::vo::{err_result_page, handle_result, ok_result_page};
 use crate::vo::member_vo::*;
 
 // 添加会员信息
@@ -48,14 +48,14 @@ pub async fn member_update(req: &mut Request, res: &mut Response) {
     log::info!("member_update params: {:?}", &item);
 
     let member = Member {
-        id: Some(item.id),
+        id: item.id,
         phone: item.phone,
         name: item.name,
         password: item.password,
         level: item.level,
-        create_time: None,
+        create_time: Some(DateTime::now()),
         update_time: Some(DateTime::now()),
-    
+
     };
 
     let result = Member::update_by_column(&mut RB.clone(), &member, "id").await;
@@ -72,43 +72,30 @@ pub async fn member_list(req: &mut Request, res: &mut Response) {
     let page=&PageRequest::new(item.page_no, item.page_size);
     let result = Member::select_page(&mut RB.clone(), page).await;
 
-    let resp = match result {
+    match result {
         Ok(d) => {
             let total = d.total;
 
-            let mut member_list_res: Vec<MemberListData> = Vec::new();
+            let mut member_list_data: Vec<MemberListData> = Vec::new();
 
             for x in d.records {
-                member_list_res.push(MemberListData {
-                        id: x.id.unwrap(),
-                        phone: x.phone,
-                        name: x.name,
-                        password: x.password,
-                        level: x.level,
-                        create_time: x.create_time.unwrap().0.to_string(),
-                        update_time: x.update_time.unwrap().0.to_string(),
-                    
+                member_list_data.push(MemberListData {
+                    id: x.id,
+                    phone: x.phone,
+                    name: x.name,
+                    password: x.password,
+                    level: x.level,
+                    create_time: x.create_time.unwrap().0.to_string(),
+                    update_time: x.update_time.unwrap().0.to_string(),
+
                 })
             }
 
-            MemberListResp {
-                msg: "successful".to_string(),
-                code: 0,
-                success: true,
-                total,
-                data: Some(member_list_res),
-            }
+            res.render(Json(ok_result_page(member_list_data, total)))
         }
         Err(err) => {
-            MemberListResp {
-                msg: err.to_string(),
-                code: 1,
-                success: false,
-                total: 0,
-                data: None,
-            }
+            res.render(Json(err_result_page(err.to_string())))
         }
-    };
+    }
 
-    res.render(Json(resp))
 }

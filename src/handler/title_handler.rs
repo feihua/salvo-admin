@@ -5,7 +5,7 @@ use salvo::prelude::*;
 
 use crate::model::title::Title;
 use crate::RB;
-use crate::vo::handle_result;
+use crate::vo::{err_result_page, handle_result, ok_result_page};
 use crate::vo::title_vo::*;
 
 // 添加面试题目
@@ -47,13 +47,13 @@ pub async fn title_update(req: &mut Request, res: &mut Response) {
     log::info!("title_update params: {:?}", &item);
 
     let title = Title {
-        id: Some(item.id),
+        id: item.id,
         title: item.title,
         content: item.content,
         interview_type: item.interview_type,
-        create_time: None,
+        create_time: Some(DateTime::now()),
         update_time: Some(DateTime::now()),
-    
+
     };
 
     let result = Title::update_by_column(&mut RB.clone(), &title, "id").await;
@@ -70,42 +70,29 @@ pub async fn title_list(req: &mut Request, res: &mut Response) {
     let page=&PageRequest::new(item.page_no, item.page_size);
     let result = Title::select_page(&mut RB.clone(), page).await;
 
-    let resp = match result {
+    match result {
         Ok(d) => {
             let total = d.total;
 
-            let mut title_list_res: Vec<TitleListData> = Vec::new();
+            let mut title_list_data: Vec<TitleListData> = Vec::new();
 
             for x in d.records {
-                title_list_res.push(TitleListData {
-                        id: x.id.unwrap(),
-                        title: x.title,
-                        content: x.content,
-                        interview_type: x.interview_type,
-                        create_time: x.create_time.unwrap().0.to_string(),
-                        update_time: x.update_time.unwrap().0.to_string(),
-                    
+                title_list_data.push(TitleListData {
+                    id: x.id,
+                    title: x.title,
+                    content: x.content,
+                    interview_type: x.interview_type,
+                    create_time: x.create_time.unwrap().0.to_string(),
+                    update_time: x.update_time.unwrap().0.to_string(),
+
                 })
             }
 
-            TitleListResp {
-                msg: "successful".to_string(),
-                code: 0,
-                success: true,
-                total,
-                data: Some(title_list_res),
-            }
+            res.render(Json(ok_result_page(title_list_data, total)))
         }
         Err(err) => {
-            TitleListResp {
-                msg: err.to_string(),
-                code: 1,
-                success: false,
-                total: 0,
-                data: None,
-            }
+            res.render(Json(err_result_page(err.to_string())))
         }
-    };
+    }
 
-    res.render(Json(resp))
 }

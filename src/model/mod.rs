@@ -5,5 +5,5 @@ pub mod user_role;
 pub mod role_menu;
 pub mod member;
 pub mod banner;
-pub mod interview_type;
 pub mod title;
+pub mod types;
