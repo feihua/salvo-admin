@@ -8,7 +8,7 @@ use crate::model::role::SysRole;
 use crate::model::role_menu::{query_menu_by_role, SysRoleMenu};
 use crate::model::user_role::SysUserRole;
 use crate::RB;
-use crate::vo::{err_result_msg, err_result_page, handle_result, ok_result_page};
+use crate::vo::{err_result_msg, err_result_page, handle_result, ok_result_data, ok_result_page};
 use crate::vo::role_vo::*;
 
 // 查询角色列表
@@ -146,16 +146,10 @@ pub async fn query_role_menu(req: &mut Request, res: &mut Response) {
         }
     }
 
-    let resp = QueryRoleMenuResp {
-        msg: "successful".to_string(),
-        code: 0,
-        data: QueryRoleMenuData {
-            role_menus: role_menu_ids,
-            menu_list: menu_data_list,
-        },
-    };
-
-    res.render(Json(resp))
+    res.render(Json(ok_result_data(QueryRoleMenuData {
+        role_menus: role_menu_ids,
+        menu_list: menu_data_list,
+    })))
 }
 
 // 更新角色关联的菜单

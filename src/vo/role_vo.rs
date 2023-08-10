@@ -51,13 +51,6 @@ pub struct QueryRoleMenuReq {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-pub struct QueryRoleMenuResp {
-    pub msg: String,
-    pub code: i32,
-    pub data: QueryRoleMenuData,
-}
-
-#[derive(Debug, Serialize, Deserialize)]
 pub struct QueryRoleMenuData {
     pub role_menus: Vec<i32>,
     pub menu_list: Vec<MenuDataList>,

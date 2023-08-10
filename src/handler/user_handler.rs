@@ -48,10 +48,7 @@ pub async fn login(req: &mut Request, res: &mut Response) {
 
                     match JWTToken::new(id, &username, btn_menu).create_token("123") {
                         Ok(token) => {
-                            res.render(Json(ok_result_data(UserLoginData {
-                                mobile: item.mobile.to_string(),
-                                token,
-                            })))
+                            res.render(Json(ok_result_data(token)))
                         }
                         Err(err) => {
                             let er = match err {
