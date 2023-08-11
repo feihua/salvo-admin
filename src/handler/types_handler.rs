@@ -47,7 +47,7 @@ pub async fn types_update(req: &mut Request, res: &mut Response) {
     let types = Types {
         id: item.id,
         interview_code: item.interview_code,
-        create_time: Some(DateTime::now()),
+        create_time: None,
         update_time: Some(DateTime::now()),
 
     };

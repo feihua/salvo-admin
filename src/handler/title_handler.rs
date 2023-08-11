@@ -51,7 +51,7 @@ pub async fn title_update(req: &mut Request, res: &mut Response) {
         title: item.title,
         content: item.content,
         interview_type: item.interview_type,
-        create_time: Some(DateTime::now()),
+        create_time: None,
         update_time: Some(DateTime::now()),
 
     };

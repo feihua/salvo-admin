@@ -2,7 +2,6 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct MemberSaveReq {
-    pub id: i32,
     pub phone: String,
     pub name: String,
     pub password: String,

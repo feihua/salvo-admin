@@ -57,7 +57,7 @@ pub async fn banner_update(req: &mut Request, res: &mut Response) {
         banner_sort: item.banner_sort,
         banner_status: item.banner_status,
         remark: item.remark,
-        create_time: Some(DateTime::now()),
+        create_time: None,
         update_time: Some(DateTime::now()),
 
     };

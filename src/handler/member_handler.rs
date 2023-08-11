@@ -53,7 +53,7 @@ pub async fn member_update(req: &mut Request, res: &mut Response) {
         name: item.name,
         password: item.password,
         level: item.level,
-        create_time: Some(DateTime::now()),
+        create_time: None,
         update_time: Some(DateTime::now()),
 
     };

@@ -2,7 +2,6 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct TitleSaveReq {
-    pub id: i32,
     pub title: String,
     pub content: String,
     pub interview_type: String,

@@ -2,7 +2,6 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct BannerSaveReq {
-    pub id: i32,
     pub title: String,
     pub image_url: String,
     pub webview_url: String,
