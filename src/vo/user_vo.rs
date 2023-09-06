@@ -74,7 +74,7 @@ pub struct UserListReq {
     #[serde(rename = "pageSize")]
     pub page_size: u64,
     pub mobile: Option<String>,
-    pub status_id: Option<String>,
+    pub status_id: Option<i32>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]

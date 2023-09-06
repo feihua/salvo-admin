@@ -20,11 +20,11 @@ impl_select_page!(SysUser{select_page() =>"
      if !sql.contains('count'):
        order by create_time desc"});
 
-impl_select_page!(SysUser{select_page_by_name(mobile:&str,status_id:&str) =>"
+impl_select_page!(SysUser{select_page_by_name(mobile:&str,status_id:i32) =>"
       where 1=1
      if mobile != null && mobile != '':
        ` and mobile = #{mobile} `
-     if status_id != null && status_id != '':
+     if status_id != null && status_id != 2:
        ` and status_id = #{status_id} `
      if !sql.contains('count'):
         ` order by create_time desc `"});

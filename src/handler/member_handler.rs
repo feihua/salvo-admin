@@ -1,3 +1,4 @@
+use log::error;
 use rbatis::rbdc::datetime::DateTime;
 use rbatis::sql::PageRequest;
 use salvo::{Request, Response};
@@ -94,6 +95,7 @@ pub async fn member_list(req: &mut Request, res: &mut Response) {
             res.render(Json(ok_result_page(member_list_data, total)))
         }
         Err(err) => {
+            error!("{}", err.to_string());
             res.render(Json(err_result_page(err.to_string())))
         }
     }

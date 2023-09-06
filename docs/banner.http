@@ -23,7 +23,7 @@ Content-Type: application/json
 Authorization: Bearer {{token}}
 
 {
-  "title": "test",
+  "title": "java",
   "image_url": "https://www.baidu.com",
   "webview_url": "https://www.baidu.com",
   "banner_sort": 1,
@@ -46,7 +46,7 @@ Authorization: Bearer {{token}}
 
 {
   "id": 1,
-  "title": "test",
+  "title": "abc",
   "image_url": "https://www.baidu.com",
   "webview_url": "https://www.baidu.com",
   "banner_sort": 1,

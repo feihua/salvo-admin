@@ -1,3 +1,4 @@
+use log::error;
 use rbatis::rbdc::datetime::DateTime;
 use rbatis::sql::PageRequest;
 use salvo::{Request, Response};
@@ -44,6 +45,7 @@ pub async fn role_list(req: &mut Request, res: &mut Response) {
             res.render(Json(ok_result_page(list_data, total)))
         }
         Err(err) => {
+            error!("{}", err.to_string());
             res.render(Json(err_result_page(err.to_string())))
         }
     }
@@ -183,6 +185,7 @@ pub async fn update_role_menu(req: &mut Request, res: &mut Response) {
             res.render(Json(handle_result(result)))
         }
         Err(err) => {
+            error!("{}", err.to_string());
             res.render(Json(err_result_msg(err.to_string())))
         }
     }

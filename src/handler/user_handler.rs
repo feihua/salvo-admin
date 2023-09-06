@@ -1,5 +1,6 @@
 use std::collections::HashMap;
 
+use log::error;
 use rbatis::rbdc::datetime::DateTime;
 use rbatis::sql::PageRequest;
 use rbs::to_value;
@@ -64,7 +65,7 @@ pub async fn login(req: &mut Request, res: &mut Response) {
         }
 
         Err(err) => {
-            log::info!("select_by_column: {:?}",err);
+            log::error!("select_by_column: {:?}",err);
             return res.render(Json(err_result_msg("查询用户异常".to_string())));
         }
     }
@@ -277,6 +278,7 @@ pub async fn query_user_menu(depot: &mut Depot, res: &mut Response) {
         }
         // 查询用户数据库异常
         Err(err) => {
+            error!("{}", err.to_string());
             res.render(Json(err_result_msg(err.to_string())))
         }
     }
@@ -289,7 +291,8 @@ pub async fn user_list(req: &mut Request, res: &mut Response) {
     log::info!("query user_list params: {:?}", &item);
 
     let mobile = item.mobile.as_deref().unwrap_or_default();
-    let status_id = item.status_id.as_deref().unwrap_or_default();
+    //状态(1:正常，0:禁用),不传状态参数的时候,默认为2,在rbatis语句中判断
+    let status_id = item.status_id.unwrap_or(2);
 
     let page_req = &PageRequest::new(item.page_no, item.page_size);
     let result = SysUser::select_page_by_name(&mut RB.clone(), page_req, mobile, status_id).await;
@@ -316,6 +319,7 @@ pub async fn user_list(req: &mut Request, res: &mut Response) {
             res.render(Json(ok_result_page(list_data, total)))
         }
         Err(err) => {
+            error!("{}", err.to_string());
             res.render(Json(err_result_page(err.to_string())))
         }
     }
@@ -419,6 +423,7 @@ pub async fn update_user_password(req: &mut Request, res: &mut Response) {
             }
         }
         Err(err) => {
+            error!("{}", err.to_string());
             res.render(Json(err_result_msg(err.to_string())))
         }
     }

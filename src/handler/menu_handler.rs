@@ -1,3 +1,4 @@
+use log::error;
 use rbatis::rbdc::datetime::DateTime;
 use salvo::{Request, Response};
 use salvo::prelude::*;
@@ -40,6 +41,7 @@ pub async fn menu_list(req: &mut Request, res: &mut Response) {
             res.render(Json(ok_result_page(list_data, 0)))
         }
         Err(err) => {
+            error!("{}", err.to_string());
             res.render(Json(err_result_page(err.to_string())))
         }
     };
