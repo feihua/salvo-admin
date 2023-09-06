@@ -1,4 +1,5 @@
 use rbatis::rbdc::datetime::DateTime;
+use rbatis::sql::IntoSql;
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -21,7 +22,7 @@ pub struct SysMenu {
 rbatis::crud!(SysMenu {});
 impl_select_page!(SysMenu{select_page() =>"
      if !sql.contains('count'):
-       order by create_time asc"});
+       order by sort asc"});
 
 impl_select_page!(SysMenu{select_page_by_name(name:&str) =>"
      if name != null && name != '':
@@ -30,3 +31,4 @@ impl_select_page!(SysMenu{select_page_by_name(name:&str) =>"
         where user_name != ''"});
 
 impl_select!(SysMenu{select_by_id(id:i32) -> Option => "`where id = #{id} limit 1`"});
+impl_select!(SysMenu{select_by_ids(ids:&[i32]) -> Vec => "`where status_id = 1 and id in ${ids.sql()} order by sort asc`"});
