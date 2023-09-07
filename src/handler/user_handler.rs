@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 
 use log::error;
 use rbatis::rbdc::datetime::DateTime;
@@ -211,12 +211,12 @@ pub async fn query_user_menu(depot: &mut Depot, res: &mut Response) {
 
                     let mut sys_menu: Vec<MenuUserList> = Vec::new();
                     let mut btn_menu: Vec<String> = Vec::new();
-                    let mut sys_menu_ids: Vec<i32> = Vec::new();
+                    let mut sys_menu_ids: HashSet<i32> = HashSet::new();
 
                     for x in sys_menu_list {
                         if x.menu_type != 3 {
-                            sys_menu_ids.push(x.id.unwrap_or_default().clone());
-                            sys_menu_ids.push(x.parent_id.clone())
+                            sys_menu_ids.insert(x.id.unwrap_or_default().clone());
+                            sys_menu_ids.insert(x.parent_id.clone());
                         }
 
                         if x.api_url.clone().unwrap_or_default().len() > 0 {
@@ -224,7 +224,11 @@ pub async fn query_user_menu(depot: &mut Depot, res: &mut Response) {
                         }
                     }
 
-                    let menu_result = SysMenu::select_by_ids(&mut RB.clone(), &sys_menu_ids).await.unwrap();
+                    let mut menu_ids = Vec::new();
+                    for id in sys_menu_ids {
+                        menu_ids.push(id)
+                    }
+                    let menu_result = SysMenu::select_by_ids(&mut RB.clone(), &menu_ids).await.unwrap();
                     for menu in menu_result {
                         sys_menu.push(MenuUserList {
                             id: menu.id.unwrap(),
