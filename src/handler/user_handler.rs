@@ -218,10 +218,6 @@ pub async fn query_user_menu(depot: &mut Depot, res: &mut Response) {
                             sys_menu_ids.insert(x.id.unwrap_or_default().clone());
                             sys_menu_ids.insert(x.parent_id.clone());
                         }
-
-                        if x.api_url.clone().unwrap_or_default().len() > 0 {
-                            btn_menu.push(x.api_url.unwrap_or_default());
-                        }
                     }
 
                     let mut menu_ids = Vec::new();
@@ -239,6 +235,10 @@ pub async fn query_user_menu(depot: &mut Depot, res: &mut Response) {
                             menu_type: menu.menu_type,
                             path: menu.menu_url.unwrap_or_default(),
                         });
+
+                        if menu.api_url.clone().unwrap_or_default().len() > 0 {
+                            btn_menu.push(menu.api_url.unwrap_or_default());
+                        }
                     }
 
                     res.render(Json(ok_result_data(QueryUserMenuData {
