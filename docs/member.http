@@ -15,7 +15,10 @@ Authorization: Bearer {{token}}
 
 {
   "current": 1,
-  "pageSize": 10
+  "pageSize": 10,
+  "phone": "18613030352",
+  "name": "koobe",
+  "level": "1"
 }
 ###新增会员信息 member_save
 POST {{host}}/api/member_save

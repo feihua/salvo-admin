@@ -30,10 +30,8 @@ pub struct MemberListReq {
     pub page_no: u64,
     #[serde(rename = "pageSize")]
     pub page_size: u64,
-    pub id: Option<i32>,
     pub phone: Option<String>,
     pub name: Option<String>,
-    pub password: Option<String>,
     pub level: Option<String>,
 
 }

@@ -19,9 +19,12 @@ impl_select_page!(Member{select_page() =>"
        order by create_time desc"
 },"interview_member");
 
-impl_select_page!(Member{select_page_by_name(name:&str) =>"
+impl_select_page!(Member{select_page_by_name(phone:&str, name:&str, level:&str) =>"
+        where 1=1
+     if phone != null && phone != '':
+        ` and phone= #{phone}`
      if name != null && name != '':
-       where real_name != #{name}
-     if name == '':
-       where real_name != ''"
+        ` and name= #{name}`
+     if level != null && level != '':
+        ` and level= #{level}` "
 },"interview_member");

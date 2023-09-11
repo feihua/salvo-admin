@@ -70,8 +70,11 @@ pub async fn member_list(req: &mut Request, res: &mut Response) {
     let item = req.parse_json::<MemberListReq>().await.unwrap();
     log::info!("member_list params: {:?}", &item);
 
-    let page=&PageRequest::new(item.page_no, item.page_size);
-    let result = Member::select_page(&mut RB.clone(), page).await;
+    let phone = item.phone.as_deref().unwrap_or_default();
+    let name = item.name.as_deref().unwrap_or_default();
+    let level = item.level.as_deref().unwrap_or_default();
+    let page = &PageRequest::new(item.page_no, item.page_size);
+    let result = Member::select_page_by_name(&mut RB.clone(), page, phone, name, level).await;
 
     match result {
         Ok(d) => {
