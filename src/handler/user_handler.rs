@@ -218,6 +218,9 @@ pub async fn query_user_menu(depot: &mut Depot, res: &mut Response) {
                             sys_menu_ids.insert(x.id.unwrap_or_default().clone());
                             sys_menu_ids.insert(x.parent_id.clone());
                         }
+                        if x.api_url.clone().unwrap_or_default().len() > 0 {
+                            btn_menu.push(x.api_url.unwrap_or_default());
+                        }
                     }
 
                     let mut menu_ids = Vec::new();
