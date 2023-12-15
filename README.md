@@ -21,9 +21,13 @@ https://github.com/feihua/rocket-admin.git # rocket框架
 https://github.com/feihua/axum-admin.git   # axum框架
 ```
 
-# 预览地址
+# 分支对应orm框架说明
 
-http://139.159.180.129:81/salvo 账号：18613030352 密码：123456
+| 分支             | orm框架  |
+|----------------|--------|
+| master         | rbatis |
+| sea-orm-dev    |   sea-orm     |
+| diesel-orm-dev |   diesel-orm     |
 
 # 本地启动
 
