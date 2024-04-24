@@ -2,7 +2,7 @@ use std::collections::{HashMap, HashSet};
 
 use log::error;
 use rbatis::rbdc::datetime::DateTime;
-use rbatis::sql::PageRequest;
+use rbatis::plugin::page::PageRequest;
 use rbs::to_value;
 use salvo::{Request, Response};
 use salvo::prelude::*;

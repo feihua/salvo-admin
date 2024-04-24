@@ -1,6 +1,6 @@
 use log::error;
 use rbatis::rbdc::datetime::DateTime;
-use rbatis::sql::PageRequest;
+use rbatis::plugin::page::PageRequest;
 use salvo::{Request, Response};
 use salvo::prelude::*;
 

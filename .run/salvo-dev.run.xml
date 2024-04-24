@@ -3,7 +3,7 @@
     <option name="accountModel" />
     <option name="accountModels" />
     <option name="address" />
-    <option name="afterCommand" value="cd salvo-admin &amp;&amp; cargo build -r &amp;&amp; nohup salvo-admin &amp;" />
+    <option name="afterCommand" value="cargo build -r &amp;&amp; nohup salvo-admin &amp;" />
     <option name="alreadyReset" value="true" />
     <option name="autoOpen" value="false" />
     <option name="beforeCommand" value="" />
@@ -27,8 +27,8 @@
       </list>
     </option>
     <option name="hostTagId" value="0" />
-    <option name="location" value="/root" />
-    <option name="pathOrUrl" value="D:\workspace\rust\salvo-admin" />
+    <option name="location" value="/root/salvo-admin" />
+    <option name="pathOrUrl" value="D:\workspace\rust\salvo-admin\src,D:\workspace\rust\salvo-admin\Cargo.toml" />
     <option name="tagId" value="0" />
     <option name="terminalCommand" />
     <option name="type" value="HOST" />
