@@ -2,11 +2,6 @@
 
 是基于salvo和rbatis的rbac权限管理系统
 
-# todo
-
-接下来用flutter做个一面试题APP, [salvo-admin](https://github.com/feihua/salvo-admin)
-提供接口, [salvo-admin-ui](https://github.com/feihua/salvo-admin-ui) 提供控制台管理
-
 # 前端项目
 
 ```
@@ -27,11 +22,11 @@ http://110.41.179.89/salvo 账号：18613030352 密码：123456
 
 # 分支对应orm框架说明
 
-| 分支             | orm框架  |
-|----------------|--------|
-| master         | rbatis |
-| sea-orm-dev    |   sea-orm     |
-| diesel-orm-dev |   diesel-orm     |
+| 分支             | orm框架      |
+|----------------|------------|
+| master         | rbatis     |
+| sea-orm-dev    | sea-orm    |
+| diesel-orm-dev | diesel-orm |
 
 # 本地启动
 
