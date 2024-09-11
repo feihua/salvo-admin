@@ -3,7 +3,7 @@
     <option name="accountModel" />
     <option name="accountModels" />
     <option name="address" />
-    <option name="afterCommand" value="cargo build -r &amp;&amp; nohup salvo-admin &amp;" />
+    <option name="afterCommand" value="cargo build -r &amp;&amp; nohup ./target/release/salvo-admin &amp;" />
     <option name="alreadyReset" value="true" />
     <option name="autoOpen" value="false" />
     <option name="beforeCommand" value="" />
