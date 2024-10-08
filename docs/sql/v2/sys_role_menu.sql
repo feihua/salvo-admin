@@ -1,10 +1,7 @@
-create table gozero2.sys_user_post
+create table sys_role_menu
 (
-    user_id bigint not null comment '用户ID',
-    post_id bigint not null comment '岗位ID',
-    primary key (user_id, post_id)
+    role_id bigint not null comment '角色ID',
+    menu_id bigint not null comment '菜单ID',
+    primary key (role_id, menu_id)
 )
-    comment '用户与岗位关联表';
-
-
-
+    comment '角色和菜单关联表';
