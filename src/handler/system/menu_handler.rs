@@ -3,10 +3,10 @@ use rbatis::rbdc::datetime::DateTime;
 use salvo::{Request, Response};
 use salvo::prelude::*;
 
-use crate::model::menu::SysMenu;
+use crate::model::system::menu::SysMenu;
 use crate::RB;
 use crate::vo::{err_result_msg, err_result_page, handle_result, ok_result_page};
-use crate::vo::menu_vo::{*};
+use crate::vo::system::menu_vo::{*};
 
 // 查询菜单
 #[handler]
