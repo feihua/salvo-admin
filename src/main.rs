@@ -8,12 +8,13 @@ use salvo::prelude::*;
 use crate::handler::menu_handler::{*};
 use crate::handler::role_handler::{*};
 use crate::handler::user_handler::{*};
-use crate::utils::auth::auth_token;
+use middleware::auth::auth_token;
 
 pub mod model;
 pub mod vo;
 pub mod handler;
 pub mod utils;
+pub mod middleware;
 
 pub static RB: Lazy<RBatis> = Lazy::new(RBatis::new);
 
