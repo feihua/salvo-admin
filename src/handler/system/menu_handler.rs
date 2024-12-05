@@ -9,7 +9,6 @@ use crate::model::system::menu::SysMenu;
 use crate::vo::system::menu_vo::*;
 use crate::RB;
 
-
 // 查询菜单
 #[handler]
 pub async fn menu_list(req: &mut Request, res: &mut Response) {
@@ -40,11 +39,11 @@ pub async fn menu_list(req: &mut Request, res: &mut Response) {
                     update_time: menu.update_time.unwrap().0.to_string(),
                 })
             }
-            res.render(Json(ResponsePage::<Vec<MenuListData>>::ok_result(list_data)))
+            ResponsePage::<Vec<MenuListData>>::ok_result(res, list_data)
         }
         Err(err) => {
             error!("{}", err.to_string());
-            res.render(Json(ResponsePage::<String>::err_result_page(err.to_string())))
+            ResponsePage::<String>::err_result_page(res, err.to_string())
         }
     };
 }
@@ -72,7 +71,10 @@ pub async fn menu_save(req: &mut Request, res: &mut Response) {
 
     let result = SysMenu::insert(&mut RB.clone(), &sys_menu).await;
 
-    res.render(Json(BaseResponse::<String>::handle_result(result)))
+    match result {
+        Ok(_u) => BaseResponse::<String>::ok_result(res),
+        Err(err) => BaseResponse::<String>::err_result_msg(res, err.to_string()),
+    };
 }
 
 // 更新菜单
@@ -98,7 +100,10 @@ pub async fn menu_update(req: &mut Request, res: &mut Response) {
 
     let result = SysMenu::update_by_column(&mut RB.clone(), &sys_menu, "id").await;
 
-    res.render(Json(BaseResponse::<String>::handle_result(result)))
+    match result {
+        Ok(_u) => BaseResponse::<String>::ok_result(res),
+        Err(err) => BaseResponse::<String>::err_result_msg(res, err.to_string()),
+    };
 }
 
 // 删除菜单信息
@@ -115,9 +120,14 @@ pub async fn menu_delete(req: &mut Request, res: &mut Response) {
         .unwrap_or_default();
 
     if menus.len() > 0 {
-        return res.render(Json(BaseResponse::<String>::err_result_msg("有下级菜单,不能直接删除".to_string())));
+        BaseResponse::<String>::err_result_msg(res, "有下级菜单,不能直接删除".to_string());
+        return;
     }
 
     let result = SysMenu::delete_by_column(&mut RB.clone(), "id", id).await;
-    res.render(Json(BaseResponse::<String>::handle_result(result)))
+
+    match result {
+        Ok(_u) => BaseResponse::<String>::ok_result(res),
+        Err(err) => BaseResponse::<String>::err_result_msg(res, err.to_string()),
+    };
 }

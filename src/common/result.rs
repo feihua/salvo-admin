@@ -1,5 +1,5 @@
-use rbatis::rbdc::db::ExecResult;
-use rbatis::rbdc::Error;
+use salvo::prelude::Json;
+use salvo::Response;
 use serde::Serialize;
 use std::fmt::Debug;
 
@@ -16,61 +16,53 @@ where
 
 impl<T> BaseResponse<T>
 where
-    T: Serialize + Debug,
+    T: Serialize + Debug+ Send,
 {
-    // 处理统一返回
-    pub fn handle_result(result: Result<ExecResult, Error>) -> BaseResponse<String> {
-        match result {
-            Ok(_u) => Self::ok_result(),
-            Err(err) => Self::err_result_msg(err.to_string()),
-        }
-    }
-
-    pub fn ok_result() -> BaseResponse<String> {
-        BaseResponse {
+    pub fn ok_result(res: &mut Response) {
+        res.render(Json(BaseResponse {
             msg: "操作成功".to_string(),
             code: 0,
             data: Some("None".to_string()),
-        }
+        }))
     }
 
-    pub fn ok_result_msg(msg: String) -> BaseResponse<String> {
-        BaseResponse {
+    pub fn ok_result_msg(res: &mut Response, msg: String) {
+        res.render(Json(BaseResponse {
             msg: msg.to_string(),
             code: 0,
             data: Some("None".to_string()),
-        }
+        }))
     }
 
-    pub fn ok_result_code(code: i32, msg: String) -> BaseResponse<String> {
-        BaseResponse {
+    pub fn ok_result_code(res: &mut Response, code: i32, msg: String) {
+        res.render(Json(BaseResponse {
             msg: msg.to_string(),
             code,
             data: Some("None".to_string()),
-        }
+        }))
     }
 
-    pub fn ok_result_data(data: T) -> BaseResponse<T> {
-        BaseResponse {
+    pub fn ok_result_data(res: &mut Response, data: T) {
+        res.render(Json(BaseResponse {
             msg: "操作成功".to_string(),
             code: 0,
             data: Some(data),
-        }
+        }))
     }
 
-    pub fn err_result_msg(msg: String) -> BaseResponse<String> {
-        BaseResponse {
+    pub fn err_result_msg(res: &mut Response, msg: String) {
+        res.render(Json(BaseResponse {
             msg: msg.to_string(),
             code: 1,
             data: Some("None".to_string()),
-        }
+        }))
     }
 
-    pub fn err_result_code(code: i32, msg: String) -> BaseResponse<String> {
-        BaseResponse {
+    pub fn err_result_code(res: &mut Response, code: i32, msg: String) {
+        res.render(Json(BaseResponse {
             msg: msg.to_string(),
             code,
             data: Some("None".to_string()),
-        }
+        }))
     }
 }
