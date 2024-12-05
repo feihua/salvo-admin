@@ -7,10 +7,6 @@ use serde::Serialize;
 pub mod user_vo;
 pub mod role_vo;
 pub mod menu_vo;
-pub mod banner_vo;
-pub mod member_vo;
-pub mod title_vo;
-pub mod types_vo;
 
 
 // 统一返回vo
