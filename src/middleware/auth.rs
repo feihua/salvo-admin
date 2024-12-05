@@ -4,7 +4,7 @@ use salvo::{Depot, FlowCtrl, Request, Response};
 use salvo::prelude::*;
 
 use crate::utils::jwt_util::JWTToken;
-use crate::vo::BaseResponse;
+use crate::common::result::BaseResponse;
 
 #[handler]
 pub async fn auth_token(req: &mut Request, res: &mut Response, ctrl: &mut FlowCtrl, depot: &mut Depot) {

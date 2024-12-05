@@ -15,6 +15,7 @@ pub mod vo;
 pub mod handler;
 pub mod utils;
 pub mod middleware;
+pub mod common;
 
 pub static RB: Lazy<RBatis> = Lazy::new(RBatis::new);
 

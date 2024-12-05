@@ -9,7 +9,8 @@ use crate::model::system::role::SysRole;
 use crate::model::system::role_menu::{query_menu_by_role, SysRoleMenu};
 use crate::model::system::user_role::SysUserRole;
 use crate::RB;
-use crate::vo::{err_result_msg, err_result_page, handle_result, ok_result_data, ok_result_page};
+use crate::common::result::BaseResponse;
+use crate::common::result_page::ResponsePage;
 use crate::vo::system::role_vo::*;
 
 // 查询角色列表
@@ -42,11 +43,11 @@ pub async fn role_list(req: &mut Request, res: &mut Response) {
                 })
             }
 
-            res.render(Json(ok_result_page(list_data, total)))
+            res.render(Json(ResponsePage::<Vec<RoleListData>>::ok_result_page(list_data, total)))
         }
         Err(err) => {
             error!("{}", err.to_string());
-            res.render(Json(err_result_page(err.to_string())))
+            res.render(Json(ResponsePage::<String>::err_result_page(err.to_string())))
         }
     }
 }
@@ -69,7 +70,7 @@ pub async fn role_save(req: &mut Request, res: &mut Response) {
 
     let result = SysRole::insert(&mut RB.clone(), &sys_role).await;
 
-    res.render(Json(handle_result(result)))
+    res.render(Json(BaseResponse::<String>::handle_result(result)))
 }
 
 // 更新角色信息
@@ -90,7 +91,7 @@ pub async fn role_update(req: &mut Request, res: &mut Response) {
 
     let result = SysRole::update_by_column(&mut RB.clone(), &sys_role, "id").await;
 
-    res.render(Json(handle_result(result)))
+    res.render(Json(BaseResponse::<String>::handle_result(result)))
 }
 
 // 删除角色信息
@@ -103,13 +104,13 @@ pub async fn role_delete(req: &mut Request, res: &mut Response) {
     let user_role_list = SysUserRole::select_in_column(&mut RB.clone(), "role_id", &ids).await.unwrap_or_default();
 
     if user_role_list.len() > 0 {
-        return res.render(Json(err_result_msg("角色已被使用,不能直接删除".to_string())));
+        return res.render(Json(BaseResponse::<String>::err_result_msg("角色已被使用,不能直接删除".to_string())));
     }
 
 
     let result = SysRole::delete_in_column(&mut RB.clone(), "id", &ids).await;
 
-    res.render(Json(handle_result(result)))
+    res.render(Json(BaseResponse::<String>::handle_result(result)))
 }
 
 // 查询角色关联的菜单
@@ -148,7 +149,7 @@ pub async fn query_role_menu(req: &mut Request, res: &mut Response) {
         }
     }
 
-    res.render(Json(ok_result_data(QueryRoleMenuData {
+    res.render(Json(BaseResponse::<QueryRoleMenuData>::ok_result_data(QueryRoleMenuData {
         role_menus: role_menu_ids,
         menu_list: menu_data_list,
     })))
@@ -182,11 +183,11 @@ pub async fn update_role_menu(req: &mut Request, res: &mut Response) {
 
             let result = SysRoleMenu::insert_batch(&mut RB.clone(), &menu_role, item.menu_ids.len() as u64).await;
 
-            res.render(Json(handle_result(result)))
+            res.render(Json(BaseResponse::<String>::handle_result(result)))
         }
         Err(err) => {
             error!("{}", err.to_string());
-            res.render(Json(err_result_msg(err.to_string())))
+            res.render(Json(BaseResponse::<String>::err_result_msg(err.to_string())))
         }
     }
 }

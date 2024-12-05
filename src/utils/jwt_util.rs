@@ -3,8 +3,8 @@ use std::time::{Duration, SystemTime, UNIX_EPOCH};
 use jsonwebtoken::{Algorithm, decode, DecodingKey, encode, EncodingKey, errors::ErrorKind, Header, Validation};
 use serde::{Deserialize, Serialize};
 
-use crate::utils::error::WhoUnfollowedError;
-use crate::utils::error::WhoUnfollowedError::JwtTokenError;
+use crate::common::error::WhoUnfollowedError;
+use crate::common::error::WhoUnfollowedError::JwtTokenError;
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct JWTToken {
