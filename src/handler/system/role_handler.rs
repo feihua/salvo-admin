@@ -10,7 +10,6 @@ use crate::model::system::role_menu::{query_menu_by_role, SysRoleMenu};
 use crate::model::system::user_role::SysUserRole;
 use crate::RB;
 use crate::common::result::BaseResponse;
-use crate::common::result_page::ResponsePage;
 use crate::vo::system::role_vo::*;
 
 // 查询角色列表
@@ -43,11 +42,11 @@ pub async fn role_list(req: &mut Request, res: &mut Response) {
                 })
             }
 
-            ResponsePage::<Vec<RoleListData>>::ok_result_page(res, list_data, total)
+            BaseResponse::<Vec<RoleListData>>::ok_result_page(res, list_data, total)
         }
         Err(err) => {
             error!("{}", err.to_string());
-            ResponsePage::<String>::err_result_page(res, err.to_string())
+            BaseResponse::<String>::err_result_page(res, err.to_string())
         }
     }
 }

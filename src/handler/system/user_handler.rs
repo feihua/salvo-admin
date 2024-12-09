@@ -9,7 +9,6 @@ use salvo::{Request, Response};
 
 use crate::common::error::WhoUnfollowedError;
 use crate::common::result::BaseResponse;
-use crate::common::result_page::ResponsePage;
 use crate::model::system::menu::SysMenu;
 use crate::model::system::role::SysRole;
 use crate::model::system::user::SysUser;
@@ -306,11 +305,11 @@ pub async fn user_list(req: &mut Request, res: &mut Response) {
                 })
             }
 
-            ResponsePage::<Vec<UserListData>>::ok_result_page(res, list_data, total)
+            BaseResponse::<Vec<UserListData>>::ok_result_page(res, list_data, total)
         }
         Err(err) => {
             error!("{}", err.to_string());
-            ResponsePage::<String>::err_result_page(res, err.to_string())
+            BaseResponse::<String>::err_result_page(res, err.to_string())
         }
     }
 }

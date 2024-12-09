@@ -4,7 +4,6 @@ use salvo::prelude::*;
 use salvo::{Request, Response};
 
 use crate::common::result::BaseResponse;
-use crate::common::result_page::ResponsePage;
 use crate::model::system::menu::SysMenu;
 use crate::vo::system::menu_vo::*;
 use crate::RB;
@@ -39,11 +38,11 @@ pub async fn menu_list(req: &mut Request, res: &mut Response) {
                     update_time: menu.update_time.unwrap().0.to_string(),
                 })
             }
-            ResponsePage::<Vec<MenuListData>>::ok_result(res, list_data)
+            BaseResponse::<Vec<MenuListData>>::ok_result_page(res, list_data, 0)
         }
         Err(err) => {
             error!("{}", err.to_string());
-            ResponsePage::<String>::err_result_page(res, err.to_string())
+            BaseResponse::<String>::err_result_page(res, err.to_string())
         }
     };
 }
