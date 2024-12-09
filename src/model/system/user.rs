@@ -12,7 +12,6 @@ pub struct SysUser {
     pub user_name: String,
     pub remark: Option<String>,
     pub password: String,
-
 }
 
 rbatis::crud!(SysUser {});

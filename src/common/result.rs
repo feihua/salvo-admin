@@ -28,7 +28,7 @@ where
 
 impl<T> BaseResponse<T>
 where
-    T: Serialize + Debug+ Send,
+    T: Serialize + Debug + Send,
 {
     pub fn ok_result(res: &mut Response) {
         res.render(Json(BaseResponse {

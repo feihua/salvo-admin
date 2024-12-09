@@ -10,7 +10,6 @@ pub struct SysRole {
     pub sort: i32,
     pub role_name: String,
     pub remark: Option<String>,
-
 }
 
 rbatis::crud!(SysRole {});

@@ -66,7 +66,6 @@ pub struct MenuUserList {
     pub icon: String,
 }
 
-
 #[derive(Debug, Serialize, Deserialize)]
 pub struct UserListReq {
     #[serde(rename = "current")]

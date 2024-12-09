@@ -13,7 +13,6 @@ pub struct SysRoleMenu {
     pub sort: i32,
     pub menu_id: i32,
     pub role_id: i32,
-
 }
 
 rbatis::crud!(SysRoleMenu {});
@@ -28,6 +27,9 @@ impl_select_page!(SysRoleMenu{select_page_by_name(name:&str) =>"
        where user_name != ''"});
 
 #[sql("select menu_id from sys_role_menu where role_id = ?")]
-pub async fn query_menu_by_role(rb: &RBatis, role_id: i32) -> rbatis::Result<Vec<HashMap<String, i32>>> {
+pub async fn query_menu_by_role(
+    rb: &RBatis,
+    role_id: i32,
+) -> rbatis::Result<Vec<HashMap<String, i32>>> {
     impled!()
 }

@@ -1,13 +1,18 @@
 use std::collections::HashMap;
 
-use salvo::{Depot, FlowCtrl, Request, Response};
 use salvo::prelude::*;
+use salvo::{Depot, FlowCtrl, Request, Response};
 
-use crate::utils::jwt_util::JWTToken;
 use crate::common::result::BaseResponse;
+use crate::utils::jwt_util::JWTToken;
 
 #[handler]
-pub async fn auth_token(req: &mut Request, res: &mut Response, ctrl: &mut FlowCtrl, depot: &mut Depot) {
+pub async fn auth_token(
+    req: &mut Request,
+    res: &mut Response,
+    ctrl: &mut FlowCtrl,
+    depot: &mut Depot,
+) {
     let item = req.parse_headers::<HashMap<String, String>>().unwrap();
     let authorization = item.get("authorization");
 
@@ -37,7 +42,7 @@ pub async fn auth_token(req: &mut Request, res: &mut Response, ctrl: &mut FlowCt
             let token = split_vec[1];
             let jwt_token_e = JWTToken::verify("123", &token);
             let jwt_token = match jwt_token_e {
-                Ok(data) => { data }
+                Ok(data) => data,
                 Err(err) => {
                     let resp = BaseResponse {
                         msg: err.to_string(),

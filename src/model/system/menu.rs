@@ -1,5 +1,5 @@
-use rbatis::rbdc::datetime::DateTime;
 use crate::rbatis::rbatis_codegen::IntoSql;
+use rbatis::rbdc::datetime::DateTime;
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -16,7 +16,6 @@ pub struct SysMenu {
     pub menu_icon: Option<String>,
     pub remark: Option<String>,
     pub menu_type: i32,
-
 }
 
 rbatis::crud!(SysMenu {});

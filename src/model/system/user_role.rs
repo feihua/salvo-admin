@@ -11,7 +11,6 @@ pub struct SysUserRole {
     pub sort: i32,
     pub role_id: i32,
     pub user_id: i32,
-
 }
 
 rbatis::crud!(SysUserRole {});

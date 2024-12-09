@@ -17,6 +17,157 @@ use crate::utils::jwt_util::JWTToken;
 use crate::vo::system::user_vo::*;
 use crate::RB;
 
+// 添加用户信息
+#[handler]
+pub async fn user_save(req: &mut Request, res: &mut Response) {
+    let user = req.parse_json::<UserSaveReq>().await.unwrap();
+    log::info!("user_save params: {:?}", &user);
+
+    let sys_user = SysUser {
+        id: None,
+        create_time: Some(DateTime::now()),
+        update_time: Some(DateTime::now()),
+        status_id: user.status_id,
+        sort: user.sort,
+        mobile: user.mobile,
+        user_name: user.user_name,
+        remark: user.remark,
+        password: "123456".to_string(), //默认密码为123456,暂时不加密
+    };
+
+    let result = SysUser::insert(&mut RB.clone(), &sys_user).await;
+
+    match result {
+        Ok(_u) => BaseResponse::<String>::ok_result(res),
+        Err(err) => BaseResponse::<String>::err_result_msg(res, err.to_string()),
+    };
+}
+
+// 删除用户信息
+#[handler]
+pub async fn user_delete(req: &mut Request, res: &mut Response) {
+    let item = req.parse_json::<UserDeleteReq>().await.unwrap();
+    log::info!("user_delete params: {:?}", &item);
+
+    let ids = item.ids;
+    for id in ids {
+        if id != 1 {
+            //id为1的用户为系统预留用户,不能删除
+            let _ = SysUser::delete_by_column(&mut RB.clone(), "id", &id).await;
+        }
+    }
+
+    BaseResponse::<String>::ok_result_msg(res, "删除用户信息成功".to_string())
+}
+
+// 更新用户信息
+#[handler]
+pub async fn user_update(req: &mut Request, res: &mut Response) {
+    let user = req.parse_json::<UserUpdateReq>().await.unwrap();
+    log::info!("user_update params: {:?}", &user);
+
+    let result = SysUser::select_by_id(&mut RB.clone(), user.id.clone())
+        .await
+        .unwrap();
+
+    match result {
+        None => BaseResponse::<String>::err_result_msg(res, "用户不存在".to_string()),
+        Some(sys_user) => {
+            let sys_user = SysUser {
+                id: Some(user.id),
+                create_time: sys_user.create_time,
+                update_time: Some(DateTime::now()),
+                status_id: user.status_id,
+                sort: user.sort,
+                mobile: user.mobile,
+                user_name: user.user_name,
+                remark: user.remark,
+                password: sys_user.password,
+            };
+
+            let result = SysUser::update_by_column(&mut RB.clone(), &sys_user, "id").await;
+
+            match result {
+                Ok(_u) => BaseResponse::<String>::ok_result(res),
+                Err(err) => BaseResponse::<String>::err_result_msg(res, err.to_string()),
+            };
+        }
+    }
+}
+
+// 更新用户密码
+#[handler]
+pub async fn update_user_password(req: &mut Request, res: &mut Response) {
+    let user_pwd = req.parse_json::<UpdateUserPwdReq>().await.unwrap();
+    log::info!("update_user_pwd params: {:?}", &user_pwd);
+
+    let sys_user_result = SysUser::select_by_id(&mut RB.clone(), user_pwd.id).await;
+
+    match sys_user_result {
+        Ok(user_result) => match user_result {
+            None => BaseResponse::<String>::err_result_msg(res, "用户不存在".to_string()),
+            Some(mut user) => {
+                if user.password == user_pwd.pwd {
+                    user.password = user_pwd.re_pwd;
+                    let result = SysUser::update_by_column(&mut RB.clone(), &user, "id").await;
+
+                    match result {
+                        Ok(_u) => BaseResponse::<String>::ok_result(res),
+                        Err(err) => BaseResponse::<String>::err_result_msg(res, err.to_string()),
+                    };
+                } else {
+                    BaseResponse::<String>::err_result_msg(res, "旧密码不正确".to_string())
+                }
+            }
+        },
+        Err(err) => {
+            error!("{}", err.to_string());
+            BaseResponse::<String>::err_result_msg(res, err.to_string())
+        }
+    }
+}
+
+// 查询用户列表
+#[handler]
+pub async fn user_list(req: &mut Request, res: &mut Response) {
+    let item = req.parse_json::<UserListReq>().await.unwrap();
+    log::info!("query user_list params: {:?}", &item);
+
+    let mobile = item.mobile.as_deref().unwrap_or_default();
+    //状态(1:正常，0:禁用),不传状态参数的时候,默认为2,在rbatis语句中判断
+    let status_id = item.status_id.unwrap_or(2);
+
+    let page_req = &PageRequest::new(item.page_no, item.page_size);
+    let result = SysUser::select_page_by_name(&mut RB.clone(), page_req, mobile, status_id).await;
+
+    match result {
+        Ok(page) => {
+            let total = page.total;
+
+            let mut list_data: Vec<UserListData> = Vec::new();
+
+            for user in page.records {
+                list_data.push(UserListData {
+                    id: user.id.unwrap(),
+                    sort: user.sort,
+                    status_id: user.status_id,
+                    mobile: user.mobile,
+                    user_name: user.user_name,
+                    remark: user.remark.unwrap_or_default(),
+                    create_time: user.create_time.unwrap().0.to_string(),
+                    update_time: user.update_time.unwrap().0.to_string(),
+                })
+            }
+
+            BaseResponse::<Vec<UserListData>>::ok_result_page(res, list_data, total)
+        }
+        Err(err) => {
+            error!("{}", err.to_string());
+            BaseResponse::<String>::err_result_page(res, err.to_string())
+        }
+    }
+}
+
 // 后台用户登录
 #[handler]
 pub async fn login(req: &mut Request, res: &mut Response) {
@@ -266,157 +417,6 @@ pub async fn query_user_menu(depot: &mut Depot, res: &mut Response) {
             }
         }
         // 查询用户数据库异常
-        Err(err) => {
-            error!("{}", err.to_string());
-            BaseResponse::<String>::err_result_msg(res, err.to_string())
-        }
-    }
-}
-
-// 查询用户列表
-#[handler]
-pub async fn user_list(req: &mut Request, res: &mut Response) {
-    let item = req.parse_json::<UserListReq>().await.unwrap();
-    log::info!("query user_list params: {:?}", &item);
-
-    let mobile = item.mobile.as_deref().unwrap_or_default();
-    //状态(1:正常，0:禁用),不传状态参数的时候,默认为2,在rbatis语句中判断
-    let status_id = item.status_id.unwrap_or(2);
-
-    let page_req = &PageRequest::new(item.page_no, item.page_size);
-    let result = SysUser::select_page_by_name(&mut RB.clone(), page_req, mobile, status_id).await;
-
-    match result {
-        Ok(page) => {
-            let total = page.total;
-
-            let mut list_data: Vec<UserListData> = Vec::new();
-
-            for user in page.records {
-                list_data.push(UserListData {
-                    id: user.id.unwrap(),
-                    sort: user.sort,
-                    status_id: user.status_id,
-                    mobile: user.mobile,
-                    user_name: user.user_name,
-                    remark: user.remark.unwrap_or_default(),
-                    create_time: user.create_time.unwrap().0.to_string(),
-                    update_time: user.update_time.unwrap().0.to_string(),
-                })
-            }
-
-            BaseResponse::<Vec<UserListData>>::ok_result_page(res, list_data, total)
-        }
-        Err(err) => {
-            error!("{}", err.to_string());
-            BaseResponse::<String>::err_result_page(res, err.to_string())
-        }
-    }
-}
-
-// 添加用户信息
-#[handler]
-pub async fn user_save(req: &mut Request, res: &mut Response) {
-    let user = req.parse_json::<UserSaveReq>().await.unwrap();
-    log::info!("user_save params: {:?}", &user);
-
-    let sys_user = SysUser {
-        id: None,
-        create_time: Some(DateTime::now()),
-        update_time: Some(DateTime::now()),
-        status_id: user.status_id,
-        sort: user.sort,
-        mobile: user.mobile,
-        user_name: user.user_name,
-        remark: user.remark,
-        password: "123456".to_string(), //默认密码为123456,暂时不加密
-    };
-
-    let result = SysUser::insert(&mut RB.clone(), &sys_user).await;
-
-    match result {
-        Ok(_u) => BaseResponse::<String>::ok_result(res),
-        Err(err) => BaseResponse::<String>::err_result_msg(res, err.to_string()),
-    };
-}
-
-// 更新用户信息
-#[handler]
-pub async fn user_update(req: &mut Request, res: &mut Response) {
-    let user = req.parse_json::<UserUpdateReq>().await.unwrap();
-    log::info!("user_update params: {:?}", &user);
-
-    let result = SysUser::select_by_id(&mut RB.clone(), user.id.clone())
-        .await
-        .unwrap();
-
-    match result {
-        None => BaseResponse::<String>::err_result_msg(res, "用户不存在".to_string()),
-        Some(sys_user) => {
-            let sys_user = SysUser {
-                id: Some(user.id),
-                create_time: sys_user.create_time,
-                update_time: Some(DateTime::now()),
-                status_id: user.status_id,
-                sort: user.sort,
-                mobile: user.mobile,
-                user_name: user.user_name,
-                remark: user.remark,
-                password: sys_user.password,
-            };
-
-            let result = SysUser::update_by_column(&mut RB.clone(), &sys_user, "id").await;
-
-            match result {
-                Ok(_u) => BaseResponse::<String>::ok_result(res),
-                Err(err) => BaseResponse::<String>::err_result_msg(res, err.to_string()),
-            };
-        }
-    }
-}
-
-// 删除用户信息
-#[handler]
-pub async fn user_delete(req: &mut Request, res: &mut Response) {
-    let item = req.parse_json::<UserDeleteReq>().await.unwrap();
-    log::info!("user_delete params: {:?}", &item);
-
-    let ids = item.ids;
-    for id in ids {
-        if id != 1 {
-            //id为1的用户为系统预留用户,不能删除
-            let _ = SysUser::delete_by_column(&mut RB.clone(), "id", &id).await;
-        }
-    }
-
-    BaseResponse::<String>::ok_result_msg(res, "删除用户信息成功".to_string())
-}
-
-// 更新用户密码
-#[handler]
-pub async fn update_user_password(req: &mut Request, res: &mut Response) {
-    let user_pwd = req.parse_json::<UpdateUserPwdReq>().await.unwrap();
-    log::info!("update_user_pwd params: {:?}", &user_pwd);
-
-    let sys_user_result = SysUser::select_by_id(&mut RB.clone(), user_pwd.id).await;
-
-    match sys_user_result {
-        Ok(user_result) => match user_result {
-            None => BaseResponse::<String>::err_result_msg(res, "用户不存在".to_string()),
-            Some(mut user) => {
-                if user.password == user_pwd.pwd {
-                    user.password = user_pwd.re_pwd;
-                    let result = SysUser::update_by_column(&mut RB.clone(), &user, "id").await;
-
-                    match result {
-                        Ok(_u) => BaseResponse::<String>::ok_result(res),
-                        Err(err) => BaseResponse::<String>::err_result_msg(res, err.to_string()),
-                    };
-                } else {
-                    BaseResponse::<String>::err_result_msg(res, "旧密码不正确".to_string())
-                }
-            }
-        },
         Err(err) => {
             error!("{}", err.to_string());
             BaseResponse::<String>::err_result_msg(res, err.to_string())
