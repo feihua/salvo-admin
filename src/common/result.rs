@@ -62,6 +62,14 @@ where
         }))
     }
 
+    pub fn err_result_data(res: &mut Response, data: T, msg: String) {
+        res.render(Json(BaseResponse {
+            msg: msg,
+            code: 1,
+            data: Some(data),
+        }))
+    }
+
     pub fn err_result_msg(res: &mut Response, msg: String) {
         res.render(Json(BaseResponse {
             msg: msg.to_string(),

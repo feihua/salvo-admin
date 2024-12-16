@@ -1,3 +1,3 @@
-pub mod menu_route;
-pub mod role_route;
-pub mod user_route;
+pub mod sys_menu_route;
+pub mod sys_role_route;
+pub mod sys_user_route;

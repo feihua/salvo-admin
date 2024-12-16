@@ -10,7 +10,7 @@ use crate::common::error::WhoUnfollowedError::JwtTokenError;
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct JWTToken {
-    pub id: i32,
+    pub id: i64,
     pub username: String,
     pub permissions: Vec<String>,
     aud: String,
@@ -28,7 +28,7 @@ pub struct JWTToken {
 }
 
 impl JWTToken {
-    pub fn new(id: i32, username: &str, permissions: Vec<String>) -> JWTToken {
+    pub fn new(id: i64, username: &str, permissions: Vec<String>) -> JWTToken {
         let now = SystemTime::now();
         //过期时间
         let m30 = Duration::from_secs(1800000);
