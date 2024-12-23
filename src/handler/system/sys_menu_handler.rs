@@ -24,7 +24,7 @@ pub async fn add_sys_menu(req: &mut Request, res: &mut Response) {
         id: None,                  //主键
         menu_name: item.menu_name, //菜单名称
         menu_type: item.menu_type, //菜单类型(1：目录   2：菜单   3：按钮)
-        status_id: item.status_id, //状态(1:正常，0:禁用)
+        status: item.status, //状态(1:正常，0:禁用)
         sort: item.sort,           //排序
         parent_id: item.parent_id, //父ID
         menu_url: item.menu_url,   //路由路径
@@ -86,7 +86,7 @@ pub async fn update_sys_menu(req: &mut Request, res: &mut Response) {
         id: Some(item.id),         //主键
         menu_name: item.menu_name, //菜单名称
         menu_type: item.menu_type, //菜单类型(1：目录   2：菜单   3：按钮)
-        status_id: item.status_id, //状态(1:正常，0:禁用)
+        status: item.status, //状态(1:正常，0:禁用)
         sort: item.sort,           //排序
         parent_id: item.parent_id, //父ID
         menu_url: item.menu_url,   //路由路径
@@ -116,10 +116,19 @@ pub async fn update_sys_menu_status(req: &mut Request, res: &mut Response) {
     log::info!("update sys_menu_status params: {:?}", &item);
 
     let rb = &mut RB.clone();
-    let param = vec![to_value!(item.status), to_value!(item.ids)];
-    let result = rb
-        .exec("update sys_menu set status = ? where id in ?", param)
-        .await;
+
+    let update_sql = format!(
+        "update sys_menu set status = ? where id in ({})",
+        item.ids
+            .iter()
+            .map(|_| "?")
+            .collect::<Vec<&str>>()
+            .join(", ")
+    );
+
+    let mut param = vec![to_value!(item.status)];
+    param.extend(item.ids.iter().map(|&id| to_value!(id)));
+    let result = rb.exec(&update_sql, param).await;
 
     match result {
         Ok(_u) => BaseResponse::<String>::ok_result(res),
@@ -147,7 +156,7 @@ pub async fn query_sys_menu_detail(req: &mut Request, res: &mut Response) {
                 id: x.id.unwrap(),                          //主键
                 menu_name: x.menu_name,                     //菜单名称
                 menu_type: x.menu_type,                     //菜单类型(1：目录   2：菜单   3：按钮)
-                status_id: x.status_id,                     //状态(1:正常，0:禁用)
+                status: x.status,                     //状态(1:正常，0:禁用)
                 sort: x.sort,                               //排序
                 parent_id: x.parent_id,                     //父ID
                 menu_url: x.menu_url.unwrap_or_default(),   //路由路径
@@ -189,7 +198,7 @@ pub async fn query_sys_menu_list(req: &mut Request, res: &mut Response) {
                     id: x.id.unwrap(),                                 //主键
                     menu_name: x.menu_name,                            //菜单名称
                     menu_type: x.menu_type, //菜单类型(1：目录   2：菜单   3：按钮)
-                    status_id: x.status_id, //状态(1:正常，0:禁用)
+                    status: x.status, //状态(1:正常，0:禁用)
                     sort: x.sort,           //排序
                     parent_id: x.parent_id, //父ID
                     menu_url: x.menu_url.unwrap_or_default(), //路由路径

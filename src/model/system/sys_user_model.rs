@@ -51,10 +51,12 @@ impl_select_page!(User{select_page() =>"
  *author：刘飞华
  *date：2024/12/12 14:41:44
  */
-impl_select_page!(User{select_page_by_name(mobile:&str,status_id:i8) =>"
+impl_select_page!(User{select_page_by_name(mobile:&str,user_name:&str,status_id:i8) =>"
       where 1=1
      if mobile != null && mobile != '':
        ` and mobile = #{mobile} `
+    if user_name != null && user_name != '':
+       ` and user_name = #{user_name} `
      if status_id != null && status_id != '':
        ` and status_id = #{status_id} `
      if !sql.contains('count'):

@@ -111,10 +111,19 @@ pub async fn update_sys_role_status(req: &mut Request, res: &mut Response) {
     log::info!("update sys_role_status params: {:?}", &item);
 
     let rb = &mut RB.clone();
-    let param = vec![to_value!(item.status), to_value!(item.ids)];
-    let result = rb
-        .exec("update sys_role set status = ? where id in ?", param)
-        .await;
+
+    let update_sql = format!(
+        "update sys_role set status_id = ? where id in ({})",
+        item.ids
+            .iter()
+            .map(|_| "?")
+            .collect::<Vec<&str>>()
+            .join(", ")
+    );
+
+    let mut param = vec![to_value!(item.status)];
+    param.extend(item.ids.iter().map(|&id| to_value!(id)));
+    let result = rb.exec(&update_sql, param).await;
 
     match result {
         Ok(_u) => BaseResponse::<String>::ok_result(res),

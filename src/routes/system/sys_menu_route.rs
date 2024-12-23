@@ -7,22 +7,26 @@ use salvo::Router;
  */
 pub fn build_sys_menu_route() -> Router {
     Router::new()
-        .push(Router::new().path("add_menu").post(add_sys_menu)) //添加菜单信息
-        .push(Router::new().path("delete_menu").post(delete_sys_menu)) //删除菜单信息
-        .push(Router::new().path("update_menu").post(update_sys_menu)) //更新菜单信息
+        .push(Router::new().path("system/menu/addMenu").post(add_sys_menu)) //添加菜单信息
         .push(
             Router::new()
-                .path("update_menu_status")
+                .path("system/menu/deleteMenu")
+                .post(delete_sys_menu),
+        ) //删除菜单信息
+        .push(Router::new().path("system/menu/").post(update_sys_menu)) //更新菜单信息
+        .push(
+            Router::new()
+                .path("system/menu/updateMenuStatus")
                 .post(update_sys_menu_status),
         ) //更新菜单信息状态
         .push(
             Router::new()
-                .path("query_menu_detail")
+                .path("system/menu/queryMenuDetail")
                 .post(query_sys_menu_detail),
         ) //查询菜单信息详情
         .push(
             Router::new()
-                .path("query_menu_list")
+                .path("system/menu/queryMenuList")
                 .post(query_sys_menu_list),
         ) //查询菜单信息列表
           //记得在main.rs中的route()函数中添加构建菜单信息路由build_sys_menu_route()

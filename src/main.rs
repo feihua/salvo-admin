@@ -29,7 +29,7 @@ async fn main() {
     log4rs::init_file("src/config/log4rs.yaml", Default::default()).unwrap();
     // tracing_subscriber::fmt().init();
 
-    let mysql_url = "mysql://root:oMbPi5munxCsBSsiLoPV1@110.41.179.89:3306/axum";
+    let mysql_url = "mysql://root:123456@127.0.0.1:3306/rustdb";
     RB.init(rbdc_mysql::driver::MysqlDriver {}, mysql_url)
         .unwrap();
 
@@ -41,7 +41,7 @@ fn route() -> Router {
     Router::new()
         .path("/api")
         .get(hello)
-        .push(Router::new().path("login").post(login))
+        .push(Router::new().path("/system/user/login").post(login))
         .push(
             Router::new()
                 .hoop(auth_token)

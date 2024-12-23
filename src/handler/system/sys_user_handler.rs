@@ -121,10 +121,19 @@ pub async fn update_sys_user_status(req: &mut Request, res: &mut Response) {
     log::info!("update sys_user_status params: {:?}", &item);
 
     let rb = &mut RB.clone();
-    let param = vec![to_value!(item.status), to_value!(item.ids)];
-    let result = rb
-        .exec("update sys_user set status = ? where id in ?", param)
-        .await;
+
+    let update_sql = format!(
+        "update sys_user set status_id = ? where id in ({})",
+        item.ids
+            .iter()
+            .map(|_| "?")
+            .collect::<Vec<&str>>()
+            .join(", ")
+    );
+
+    let mut param = vec![to_value!(item.status)];
+    param.extend(item.ids.iter().map(|&id| to_value!(id)));
+    let result = rb.exec(&update_sql, param).await;
 
     match result {
         Ok(_u) => BaseResponse::<String>::ok_result(res),
@@ -221,7 +230,8 @@ pub async fn query_sys_user_list(req: &mut Request, res: &mut Response) {
     let status_id = item.status_id.unwrap_or(2);
 
     let page = &PageRequest::new(item.page_no, item.page_size);
-    let result = User::select_page_by_name(&mut RB.clone(), page, mobile, status_id).await;
+    let user_name = item.user_name.as_deref().unwrap_or_default();
+    let result = User::select_page_by_name(&mut RB.clone(), page, mobile, user_name, status_id).await;
 
     match result {
         Ok(d) => {
