@@ -26,7 +26,7 @@ pub async fn add_sys_menu(req: &mut Request, res: &mut Response) {
         menu_type: item.menu_type, //菜单类型(1：目录   2：菜单   3：按钮)
         status: item.status, //状态(1:正常，0:禁用)
         sort: item.sort,           //排序
-        parent_id: item.parent_id, //父ID
+        parent_id: item.parent_id.unwrap_or(0), //父ID
         menu_url: item.menu_url,   //路由路径
         api_url: item.api_url,     //接口URL
         menu_icon: item.menu_icon, //菜单图标
