@@ -1,0 +1,35 @@
+
+
+###删除系统访问记录 deleteLoginLog
+POST {{host}}/api/system/loginLog/deleteLoginLog
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "ids": [13]
+}
+
+###清空系统登录日志 cleanLoginLog
+GET {{host}}/api/system/loginLog/cleanLoginLog
+Authorization: Bearer {{token}}
+
+###查询系统访问记录详情 queryLoginLogDetail
+POST {{host}}/api/system/loginLog/queryLoginLogDetail
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "id": 1
+}
+
+
+###查询系统访问记录列表 queryLoginLogList
+POST {{host}}/api/system/loginLog/queryLoginLogList
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "pageNo": 1,
+  "pageSize": 10
+}
+

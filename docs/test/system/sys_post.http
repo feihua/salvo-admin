@@ -1,0 +1,66 @@
+###添加岗位信息表 addPost
+POST {{host}}/api/system/post/addPost
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+    "postCode": "abc1",
+    "postName": "测试1",
+    "sort": 0,
+    "status": 1,
+    "remark": "123"
+
+}
+
+###删除岗位信息表 deletePost
+POST {{host}}/api/system/post/deletePost
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "ids": [1]
+}
+
+###更新岗位信息表 updatePost
+POST {{host}}/api/system/post/updatePost
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "id": 1,
+  "postCode": "abc1",
+  "postName": "测试2",
+  "sort": 0,
+  "status": 1,
+  "remark": "123"
+}
+
+###更新岗位信息表 updatePostStatus状态
+POST {{host}}/api/system/post/updatePostStatus
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "ids": [13],
+  "status": 1
+}
+###查询岗位信息表详情 queryPostDetail
+POST {{host}}/api/system/post/queryPostDetail
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "id": 1
+}
+
+
+###查询岗位信息表列表 queryPostList
+POST {{host}}/api/system/post/queryPostList
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "pageNo": 1,
+  "pageSize": 10
+}
+

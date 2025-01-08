@@ -1,0 +1,33 @@
+
+###删除操作日志记录 deleteOperateLog
+POST {{host}}/api/system/operateLog/deleteOperateLog
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "ids": [13]
+}
+###清空系统登录日志 cleanLoginLog
+GET {{host}}/api/system/operateLog/cleanOperateLog
+Authorization: Bearer {{token}}
+
+###查询操作日志记录详情 queryOperateLogDetail
+POST {{host}}/api/system/operateLog/queryOperateLogDetail
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "id": 1
+}
+
+
+###查询操作日志记录列表 queryOperateLogList
+POST {{host}}/api/system/operateLog/queryOperateLogList
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "pageNo": 1,
+  "pageSize": 10
+}
+

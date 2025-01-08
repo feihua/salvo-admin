@@ -1,0 +1,74 @@
+###添加通知公告表 addNotice
+POST {{host}}/api/system/notice/addNotice
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+    "noticeTitle": "123ggg",
+    "noticeType": 1,
+    "noticeContent": "sdfs",
+    "status": 1,
+    "remark": "sfdsdf"
+
+}
+
+###删除通知公告表 deleteNotice
+POST {{host}}/api/system/notice/deleteNotice
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "ids": [13]
+}
+
+###更新通知公告表 updateNotice
+POST {{host}}/api/system/notice/updateNotice
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "id": 1,
+  "noticeTitle": "123ggg",
+  "noticeType": 0,
+  "noticeContent": "sdfs",
+  "status": 0,
+  "remark": "sfdsdf"
+}
+
+###更新通知公告表 updateNoticeStatus状态
+POST {{host}}/api/system/notice/updateNoticeStatus
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "ids": [13],
+  "status": 1
+}
+###查询通知公告表详情 queryNoticeDetail
+POST {{host}}/api/system/notice/queryNoticeDetail
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "id": 1
+}
+
+
+###查询通知公告表列表 queryNoticeList
+POST {{host}}/api/system/notice/queryNoticeList
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+#{
+#  "pageNo": 1,
+#  "pageSize": 10,
+#    "noticeTitle": "",
+#    "noticeType": 0,
+#    "status": 0
+#}
+
+{
+  "pageNo": 1,
+  "pageSize": 10,
+  "noticeType": 1
+}

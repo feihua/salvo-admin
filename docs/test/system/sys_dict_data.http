@@ -1,0 +1,74 @@
+###添加字典数据表 addDictData
+POST {{host}}/api/system/dictData/addDictData
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+    "dictSort": 1,
+    "dictLabel": "1",
+    "dictValue": "1",
+    "dictType": "1",
+    "cssClass": "1",
+    "listClass": "1",
+    "isDefault": "1",
+    "status": 1,
+    "remark": ""
+
+}
+
+###删除字典数据表 deleteDictData
+POST {{host}}/api/system/dictData/deleteDictData
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "ids": [13]
+}
+
+###更新字典数据表 updateDictData
+POST {{host}}/api/system/dictData/updateDictData
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+    "dictCode": 0,
+    "dictSort": 0,
+    "dictLabel": "",
+    "dictValue": "",
+    "dictType": "",
+    "cssClass": "",
+    "listClass": "",
+    "isDefault": "",
+    "status": 0,
+    "remark": "",
+}
+
+###更新字典数据表 updateDictDataStatus状态
+POST {{host}}/api/system/dictData/updateDictDataStatus
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "ids": [13],
+  "status": 1
+}
+###查询字典数据表详情 queryDictDataDetail
+POST {{host}}/api/system/dictData/queryDictDataDetail
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "id": 1
+}
+
+
+###查询字典数据表列表 queryDictDataList
+POST {{host}}/api/system/dictData/queryDictDataList
+Content-Type: application/json
+Authorization: Bearer {{token}}
+
+{
+  "pageNo": 1,
+  "pageSize": 10
+}
+
