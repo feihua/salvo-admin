@@ -5,7 +5,7 @@
 # 前端项目
 
 ```
-https://github.com/feihua/salvo-admin-ui.git
+https://github.com/feihua/antd-admin.git
 ```
 
 # 相关rust web框架项目
