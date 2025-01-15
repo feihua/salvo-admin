@@ -102,8 +102,23 @@ pub async fn update_sys_dict_data(req: &mut Request, res: &mut Response) {
     let item = req.parse_json::<UpdateDictDataReq>().await.unwrap();
     log::info!("update sys_dict_data params: {:?}", &item);
 
+    let rb=&mut RB.clone();
+
+    let result = DictData::select_by_id(rb, &item.dict_code).await;
+    match result {
+        Ok(r) => {
+            if r.is_none() {
+                return BaseResponse::<String>::err_result_msg(
+                    res,
+                    "更新字典数据失败,字典数据不存在".to_string(),
+                );
+            }
+        }
+        Err(err) => return BaseResponse::<String>::err_result_msg(res,err.to_string()),
+    }
+
     let res_by_dict_label =
-        DictData::select_by_dict_label(&mut RB.clone(), &item.dict_type, &item.dict_label).await;
+        DictData::select_by_dict_label(rb, &item.dict_type, &item.dict_label).await;
     match res_by_dict_label {
         Ok(r) => {
             if r.is_some() && r.clone().unwrap().dict_code.unwrap_or_default() != item.dict_code {
@@ -117,7 +132,7 @@ pub async fn update_sys_dict_data(req: &mut Request, res: &mut Response) {
     }
 
     let res_by_dict_value =
-        DictData::select_by_dict_value(&mut RB.clone(), &item.dict_type, &item.dict_value).await;
+        DictData::select_by_dict_value(rb, &item.dict_type, &item.dict_value).await;
     match res_by_dict_value {
         Ok(r) => {
             if r.is_some() && r.clone().unwrap().dict_code.unwrap_or_default() != item.dict_code {
@@ -145,7 +160,7 @@ pub async fn update_sys_dict_data(req: &mut Request, res: &mut Response) {
         update_time: None,                       //修改时间
     };
 
-    let result = DictData::update_by_column(&mut RB.clone(), &sys_dict_data, "dict_code").await;
+    let result = DictData::update_by_column(rb, &sys_dict_data, "dict_code").await;
 
     match result {
         Ok(_u) => BaseResponse::<String>::ok_result(res),

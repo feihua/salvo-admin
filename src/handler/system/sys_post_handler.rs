@@ -121,7 +121,23 @@ pub async fn update_sys_post(req: &mut Request, res: &mut Response) {
     let item = req.parse_json::<UpdatePostReq>().await.unwrap();
     log::info!("update sys_post params: {:?}", &item);
 
-    let res_by_name = Post::select_by_name(&mut RB.clone(), &item.post_name).await;
+    let rb = &mut RB.clone();
+
+    let result = Post::select_by_id(rb, &item.id).await;
+
+    match result {
+        Ok(d) => {
+            if d.is_none() {
+                return BaseResponse::<String>::err_result_msg(
+                    res,
+                    "更新岗位失败,岗位不存在".to_string(),
+                );
+            }
+        }
+        Err(err) => return BaseResponse::<String>::err_result_msg(res,err.to_string()),
+    }
+
+    let res_by_name = Post::select_by_name(rb, &item.post_name).await;
     match res_by_name {
         Ok(r) => {
             if r.is_some() && r.unwrap().id.unwrap_or_default() != item.id {
@@ -134,7 +150,7 @@ pub async fn update_sys_post(req: &mut Request, res: &mut Response) {
         Err(err) => return BaseResponse::<String>::err_result_msg(res, err.to_string()),
     }
 
-    let res_by_code = Post::select_by_code(&mut RB.clone(), &item.post_code).await;
+    let res_by_code = Post::select_by_code(rb, &item.post_code).await;
     match res_by_code {
         Ok(r) => {
             if r.is_some() && r.unwrap().id.unwrap_or_default() != item.id {
@@ -158,7 +174,7 @@ pub async fn update_sys_post(req: &mut Request, res: &mut Response) {
         update_time: None,                       //更新时间
     };
 
-    let result = Post::update_by_column(&mut RB.clone(), &sys_post, "id").await;
+    let result = Post::update_by_column(rb, &sys_post, "id").await;
 
     match result {
         Ok(_u) => BaseResponse::<String>::ok_result(res),

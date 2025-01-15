@@ -80,7 +80,20 @@ pub async fn update_sys_notice(req: &mut Request, res: &mut Response) {
     let item = req.parse_json::<UpdateNoticeReq>().await.unwrap();
     log::info!("update sys_notice params: {:?}", &item);
 
-    let res_notice = Notice::select_by_title(&mut RB.clone(), &item.notice_title).await;
+    let rb = &mut RB.clone();
+
+    let result = Notice::select_by_id(rb, &item.id).await;
+
+    match result {
+        Ok(d) => {
+            if d.is_none() {
+                return BaseResponse::<String>::err_result_msg(res,"通知公告表不存在".to_string());
+            }
+        }
+        Err(err) => return BaseResponse::<String>::err_result_msg(res,err.to_string()),
+    };
+
+    let res_notice = Notice::select_by_title(rb, &item.notice_title).await;
 
     match res_notice {
         Ok(r) => {
@@ -102,7 +115,7 @@ pub async fn update_sys_notice(req: &mut Request, res: &mut Response) {
         update_time: None,                       //修改时间
     };
 
-    let result = Notice::update_by_column(&mut RB.clone(), &sys_notice, "id").await;
+    let result = Notice::update_by_column(rb, &sys_notice, "id").await;
 
     match result {
         Ok(_u) => BaseResponse::<String>::ok_result(res,),

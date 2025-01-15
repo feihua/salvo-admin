@@ -145,11 +145,25 @@ pub async fn update_sys_role(req: &mut Request, res: &mut Response) {
     let item = req.parse_json::<UpdateRoleReq>().await.unwrap();
     log::info!("update sys_role params: {:?}", &item);
 
+    let rb = &mut RB.clone();
+
     if item.id == 1 {
         return BaseResponse::<String>::err_result_msg(res, "不允许操作超级管理员角色".to_string());
     }
 
-    let role_name_result = Role::select_by_role_name(&mut RB.clone(), &item.role_name).await;
+    let result = Role::select_by_id(rb, &item.id).await;
+
+    match result {
+        Ok(opt_role) => {
+            if opt_role.is_none() {
+                return BaseResponse::<String>::err_result_msg(res,"角色不存在".to_string());
+            }
+        }
+        Err(err) => return BaseResponse::<String>::err_result_msg(res,err.to_string()),
+    }
+
+
+    let role_name_result = Role::select_by_role_name(rb, &item.role_name).await;
     match role_name_result {
         Ok(role) => {
             if role.is_some() && role.unwrap().id.unwrap_or_default() != item.id {
@@ -159,7 +173,7 @@ pub async fn update_sys_role(req: &mut Request, res: &mut Response) {
         Err(err) => return BaseResponse::<String>::err_result_msg(res, err.to_string()),
     }
 
-    let role_key_result = Role::select_by_role_key(&mut RB.clone(), &item.role_key).await;
+    let role_key_result = Role::select_by_role_key(rb, &item.role_key).await;
     match role_key_result {
         Ok(role) => {
             if role.is_some() && role.unwrap().id.unwrap_or_default() != item.id {
@@ -181,7 +195,7 @@ pub async fn update_sys_role(req: &mut Request, res: &mut Response) {
         update_time: None,           //修改时间
     };
 
-    let result = Role::update_by_column(&mut RB.clone(), &sys_role, "id").await;
+    let result = Role::update_by_column(rb, &sys_role, "id").await;
 
     match result {
         Ok(_u) => BaseResponse::<String>::ok_result(res),
