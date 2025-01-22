@@ -1,7 +1,6 @@
-use std::collections::HashMap;
-
 use salvo::prelude::*;
 use salvo::{Depot, FlowCtrl, Request, Response};
+use std::collections::HashMap;
 
 use crate::common::result::BaseResponse;
 use crate::utils::jwt_util::JWTToken;
@@ -15,6 +14,8 @@ pub async fn auth_token(
 ) {
     let item = req.parse_headers::<HashMap<String, String>>().unwrap();
     let authorization = item.get("authorization");
+    let path = req.uri().path().to_string();
+    log::info!("req url:{}", path);
 
     match authorization {
         None => {
@@ -25,7 +26,7 @@ pub async fn auth_token(
             };
             ctrl.skip_rest();
             res.status_code(StatusCode::UNAUTHORIZED);
-            return res.render(Json(resp));
+            res.render(Json(resp));
         }
         Some(token) => {
             let split_vec = token.split_whitespace().collect::<Vec<_>>();
@@ -55,7 +56,6 @@ pub async fn auth_token(
                 }
             };
 
-            let path = req.uri().path().to_string();
             let mut flag: bool = false;
             for token_permission in &jwt_token.permissions {
                 if token_permission.to_string() == path {
@@ -74,7 +74,7 @@ pub async fn auth_token(
                     data: Some(path),
                 };
                 ctrl.skip_rest();
-                return res.render(Json(resp));
+                res.render(Json(resp))
             }
         }
     }
