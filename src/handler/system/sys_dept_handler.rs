@@ -3,6 +3,8 @@
 // date：2025/01/08 13:51:14
 
 use rbatis::rbatis_codegen::ops::AsProxy;
+use rbatis::rbdc::db::ExecResult;
+use rbatis::Error;
 use rbs::to_value;
 use salvo::prelude::*;
 use salvo::{Request, Response};
@@ -219,6 +221,7 @@ pub async fn update_sys_dept(req: &mut Request, res: &mut Response) {
         return BaseResponse::<String>::err_result_msg(res, "更新部门失败".to_string());
     }
 
+    // 如果该部门是启用状态，则启用该部门的所有上级部门
     if item.status == 1 && sys_dept.ancestors != "0" {
         let ids = ancestors.split(",").map(|s| s.i64()).collect::<Vec<i64>>();
 
@@ -249,6 +252,32 @@ pub async fn update_sys_dept(req: &mut Request, res: &mut Response) {
 pub async fn update_sys_dept_status(req: &mut Request, res: &mut Response) {
     let item = req.parse_json::<UpdateDeptStatusReq>().await.unwrap();
     log::info!("update sys_dept_status params: {:?}", &item);
+
+    if item.status == 1 {
+        for id in item.ids.clone() {
+            let result = Dept::select_by_id(&mut RB.clone(), &id)
+                .await
+                .unwrap_or_default();
+            if result.is_some() {
+                let ancestors = result.unwrap().ancestors;
+                let ids = ancestors.split(",").map(|s| s.i64()).collect::<Vec<i64>>();
+
+                let update_sql = format!(
+                    "update sys_dept set status = ? where id in ({})",
+                    ids.iter().map(|_| "?").collect::<Vec<&str>>().join(", ")
+                );
+
+                let mut param = vec![to_value!(item.status)];
+                param.extend(ids.iter().map(|&id| to_value!(id)));
+                let res_dept = &mut RB.clone().exec(&update_sql, param).await;
+
+                match res_dept {
+                    Err(err) => BaseResponse::<String>::err_result_msg(res, err.to_string()),
+                    _ => {}
+                }
+            }
+        }
+    }
 
     let update_sql = format!(
         "update sys_dept set status = ? where id in ({})",

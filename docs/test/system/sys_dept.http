@@ -47,7 +47,7 @@ Content-Type: application/json
 Authorization: Bearer {{token}}
 
 {
-  "ids": [13],
+  "ids": [4],
   "status": 1
 }
 ###查询部门表详情 queryDeptDetail
