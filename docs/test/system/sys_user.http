@@ -18,11 +18,17 @@ Content-Type: application/json
 Authorization: Bearer {{token}}
 
 {
-  "mobile": "123123123",
-  "userName": "22334",
+  "mobile": "1861303021",
+  "userName": "11",
+  "nickName": "12",
+  "userType": "00",
+  "email": "xx1@qq.com",
+  "avatar": "",
   "status": 1,
-  "sort": 11,
-  "remark": "22334"
+  "deptId": 1,
+  "password": "test",
+  "remark": "test",
+  "postIds": [1]
 }
 
 ###删除用户信息 deleteUser

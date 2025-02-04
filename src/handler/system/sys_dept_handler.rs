@@ -3,8 +3,6 @@
 // date：2025/01/08 13:51:14
 
 use rbatis::rbatis_codegen::ops::AsProxy;
-use rbatis::rbdc::db::ExecResult;
-use rbatis::Error;
 use rbs::to_value;
 use salvo::prelude::*;
 use salvo::{Request, Response};
