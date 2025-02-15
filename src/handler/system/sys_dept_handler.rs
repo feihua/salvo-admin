@@ -26,8 +26,8 @@ pub async fn add_sys_dept(req: &mut Request, res: &mut Response) {
         Ok(item) => {
             log::info!("add sys_dept params: {:?}", &item);
 
-            let res_dept =
-                Dept::select_by_dept_name(&mut RB.clone(), &item.dept_name, item.parent_id).await;
+            let rb = &mut RB.clone();
+            let res_dept = Dept::select_by_dept_name(rb, &item.dept_name, item.parent_id).await;
             match res_dept {
                 Ok(r) => {
                     if r.is_some() {
@@ -40,7 +40,7 @@ pub async fn add_sys_dept(req: &mut Request, res: &mut Response) {
                 Err(err) => return BaseResponse::<String>::err_result_msg(res, err.to_string()),
             }
 
-            let res_dept = Dept::select_by_id(&mut RB.clone(), &item.parent_id).await;
+            let res_dept = Dept::select_by_id(rb, &item.parent_id).await;
             let ancestors = match res_dept {
                 Ok(r) => match r {
                     None => {
@@ -77,7 +77,7 @@ pub async fn add_sys_dept(req: &mut Request, res: &mut Response) {
                 update_time: None,         //修改时间
             };
 
-            let result = Dept::insert(&mut RB.clone(), &sys_dept).await;
+            let result = Dept::insert(rb, &sys_dept).await;
 
             match result {
                 Ok(_u) => BaseResponse::<String>::ok_result(res),
@@ -101,9 +101,8 @@ pub async fn delete_sys_dept(req: &mut Request, res: &mut Response) {
         Ok(item) => {
             log::info!("delete sys_dept params: {:?}", &item);
 
-            let res_dept = select_dept_count(&mut RB.clone(), &item.id)
-                .await
-                .unwrap_or_default();
+            let rb = &mut RB.clone();
+            let res_dept = select_dept_count(rb, &item.id).await.unwrap_or_default();
             if res_dept > 0 {
                 return BaseResponse::<String>::err_result_msg(
                     res,
@@ -111,7 +110,7 @@ pub async fn delete_sys_dept(req: &mut Request, res: &mut Response) {
                 );
             }
 
-            let res_dept = check_dept_exist_user(&mut RB.clone(), &item.id)
+            let res_dept = check_dept_exist_user(rb, &item.id)
                 .await
                 .unwrap_or_default();
             if res_dept > 0 {
@@ -121,7 +120,7 @@ pub async fn delete_sys_dept(req: &mut Request, res: &mut Response) {
                 );
             }
 
-            let result = Dept::delete_by_column(&mut RB.clone(), "id", &item.id).await;
+            let result = Dept::delete_by_column(rb, "id", &item.id).await;
 
             match result {
                 Ok(_u) => BaseResponse::<String>::ok_result(res),
@@ -152,7 +151,8 @@ pub async fn update_sys_dept(req: &mut Request, res: &mut Response) {
                 );
             }
 
-            let res_dept = Dept::select_by_id(&mut RB.clone(), &item.id).await;
+            let rb = &mut RB.clone();
+            let res_dept = Dept::select_by_id(rb, &item.id).await;
             let old_ancestors = match res_dept {
                 Ok(r) => match r {
                     None => {
@@ -166,7 +166,7 @@ pub async fn update_sys_dept(req: &mut Request, res: &mut Response) {
                 Err(err) => return BaseResponse::<String>::err_result_msg(res, err.to_string()),
             };
 
-            let res_dept = Dept::select_by_id(&mut RB.clone(), &item.parent_id).await;
+            let res_dept = Dept::select_by_id(rb, &item.parent_id).await;
             let ancestors = match res_dept {
                 Ok(r) => match r {
                     None => {
@@ -182,8 +182,7 @@ pub async fn update_sys_dept(req: &mut Request, res: &mut Response) {
                 Err(err) => return BaseResponse::<String>::err_result_msg(res, err.to_string()),
             };
 
-            let res_dept =
-                Dept::select_by_dept_name(&mut RB.clone(), &item.dept_name, item.parent_id).await;
+            let res_dept = Dept::select_by_dept_name(rb, &item.dept_name, item.parent_id).await;
             match res_dept {
                 Ok(r) => {
                     if r.is_some() && r.unwrap().id.unwrap_or_default() != item.id {
@@ -196,7 +195,7 @@ pub async fn update_sys_dept(req: &mut Request, res: &mut Response) {
                 Err(err) => return BaseResponse::<String>::err_result_msg(res, err.to_string()),
             }
 
-            let count = select_normal_children_dept_by_id(&mut RB.clone(), &item.id)
+            let count = select_normal_children_dept_by_id(rb, &item.id)
                 .await
                 .unwrap_or_default();
             if count > 0 && item.status == 0 {
@@ -206,7 +205,7 @@ pub async fn update_sys_dept(req: &mut Request, res: &mut Response) {
                 );
             }
 
-            let res_dept = select_children_dept_by_id(&mut RB.clone(), &item.id).await;
+            let res_dept = select_children_dept_by_id(rb, &item.id).await;
             match res_dept {
                 Ok(list) => {
                     let mut depts = vec![];
@@ -216,13 +215,8 @@ pub async fn update_sys_dept(req: &mut Request, res: &mut Response) {
                             .replace(old_ancestors.as_str(), ancestors.as_str());
                         depts.push(x)
                     }
-                    let result = Dept::update_by_column_batch(
-                        &mut RB.clone(),
-                        &depts,
-                        "id",
-                        depts.len() as u64,
-                    )
-                    .await;
+                    let result =
+                        Dept::update_by_column_batch(rb, &depts, "id", depts.len() as u64).await;
                     if result.is_err() {
                         return BaseResponse::<String>::err_result_msg(
                             res,
@@ -248,7 +242,7 @@ pub async fn update_sys_dept(req: &mut Request, res: &mut Response) {
                 update_time: None,            //修改时间
             };
 
-            let result = Dept::update_by_column(&mut RB.clone(), &sys_dept, "id").await;
+            let result = Dept::update_by_column(rb, &sys_dept, "id").await;
 
             if result.is_err() {
                 return BaseResponse::<String>::err_result_msg(res, "更新部门失败".to_string());
@@ -292,11 +286,10 @@ pub async fn update_sys_dept_status(req: &mut Request, res: &mut Response) {
         Ok(item) => {
             log::info!("update sys_dept_status params: {:?}", &item);
 
+            let rb = &mut RB.clone();
             if item.status == 1 {
                 for id in item.ids.clone() {
-                    let result = Dept::select_by_id(&mut RB.clone(), &id)
-                        .await
-                        .unwrap_or_default();
+                    let result = Dept::select_by_id(rb, &id).await.unwrap_or_default();
                     if result.is_some() {
                         let ancestors = result.unwrap().ancestors;
                         let ids = ancestors.split(",").map(|s| s.i64()).collect::<Vec<i64>>();
@@ -308,7 +301,7 @@ pub async fn update_sys_dept_status(req: &mut Request, res: &mut Response) {
 
                         let mut param = vec![to_value!(item.status)];
                         param.extend(ids.iter().map(|&id| to_value!(id)));
-                        let res_dept = &mut RB.clone().exec(&update_sql, param).await;
+                        let res_dept = rb.exec(&update_sql, param).await;
 
                         match res_dept {
                             Err(err) => {
@@ -331,7 +324,7 @@ pub async fn update_sys_dept_status(req: &mut Request, res: &mut Response) {
 
             let mut param = vec![to_value!(item.status)];
             param.extend(item.ids.iter().map(|&id| to_value!(id)));
-            let result = &mut RB.clone().exec(&update_sql, param).await;
+            let result = rb.exec(&update_sql, param).await;
             match result {
                 Ok(_u) => BaseResponse::<String>::ok_result(res),
                 Err(err) => BaseResponse::<String>::err_result_msg(res, err.to_string()),
@@ -354,7 +347,8 @@ pub async fn query_sys_dept_detail(req: &mut Request, res: &mut Response) {
         Ok(item) => {
             log::info!("query sys_dept_detail params: {:?}", &item);
 
-            let result = Dept::select_by_id(&mut RB.clone(), &item.id).await;
+            let rb = &mut RB.clone();
+            let result = Dept::select_by_id(rb, &item.id).await;
 
             match result {
                 Ok(d) => {
@@ -410,7 +404,8 @@ pub async fn query_sys_dept_list(req: &mut Request, res: &mut Response) {
             let dept_name = item.dept_name.as_deref().unwrap_or_default(); //部门名称
             let status = item.status.unwrap_or(2); //部状态（0：停用，1:正常）
 
-            let result = Dept::select_page_dept_list(&mut RB.clone(), dept_name, status).await;
+            let rb = &mut RB.clone();
+            let result = Dept::select_page_dept_list(rb, dept_name, status).await;
 
             match result {
                 Ok(page) => {

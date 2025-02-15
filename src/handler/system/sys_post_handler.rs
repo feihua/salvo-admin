@@ -25,7 +25,8 @@ pub async fn add_sys_post(req: &mut Request, res: &mut Response) {
         Ok(item) => {
             log::info!("add sys_post params: {:?}", &item);
 
-            let res_by_name = Post::select_by_name(&mut RB.clone(), &item.post_name).await;
+            let rb = &mut RB.clone();
+            let res_by_name = Post::select_by_name(rb, &item.post_name).await;
             match res_by_name {
                 Ok(r) => {
                     if r.is_some() {
@@ -38,7 +39,7 @@ pub async fn add_sys_post(req: &mut Request, res: &mut Response) {
                 Err(err) => return BaseResponse::<String>::err_result_msg(res, err.to_string()),
             }
 
-            let res_by_code = Post::select_by_code(&mut RB.clone(), &item.post_code).await;
+            let res_by_code = Post::select_by_code(rb, &item.post_code).await;
             match res_by_code {
                 Ok(r) => {
                     if r.is_some() {
@@ -62,7 +63,7 @@ pub async fn add_sys_post(req: &mut Request, res: &mut Response) {
                 update_time: None,                       //更新时间
             };
 
-            let result = Post::insert(&mut RB.clone(), &sys_post).await;
+            let result = Post::insert(rb, &sys_post).await;
 
             match result {
                 Ok(_u) => BaseResponse::<String>::ok_result(res),
@@ -87,8 +88,9 @@ pub async fn delete_sys_post(req: &mut Request, res: &mut Response) {
             log::info!("delete sys_post params: {:?}", &item);
 
             let ids = item.ids.clone();
+            let rb = &mut RB.clone();
             for id in ids {
-                let post_by_id = Post::select_by_id(&mut RB.clone(), &id).await;
+                let post_by_id = Post::select_by_id(rb, &id).await;
                 let p = match post_by_id {
                     Ok(p) => {
                         if p.is_none() {
@@ -105,14 +107,14 @@ pub async fn delete_sys_post(req: &mut Request, res: &mut Response) {
                     }
                 };
 
-                let count = count_user_post_by_id(&mut RB.clone(), id).await;
+                let count = count_user_post_by_id(rb, id).await;
                 if count.unwrap_or_default() > 0 {
                     let msg = format!("{}已分配,不能删除", p.post_name);
                     return BaseResponse::<String>::err_result_msg(res, msg);
                 }
             }
 
-            let result = Post::delete_in_column(&mut RB.clone(), "id", &item.ids).await;
+            let result = Post::delete_in_column(rb, "id", &item.ids).await;
 
             match result {
                 Ok(_u) => BaseResponse::<String>::ok_result(res),
@@ -248,7 +250,8 @@ pub async fn query_sys_post_detail(req: &mut Request, res: &mut Response) {
         Ok(item) => {
             log::info!("query sys_post_detail params: {:?}", &item);
 
-            let result = Post::select_by_id(&mut RB.clone(), &item.id).await;
+            let rb = &mut RB.clone();
+            let result = Post::select_by_id(rb, &item.id).await;
 
             match result {
                 Ok(d) => {
@@ -303,8 +306,8 @@ pub async fn query_sys_post_list(req: &mut Request, res: &mut Response) {
             let status = item.status.unwrap_or(2); //部状态（0：停用，1:正常）
 
             let page = &PageRequest::new(item.page_no, item.page_size);
-            let result =
-                Post::select_post_list(&mut RB.clone(), page, post_code, post_name, status).await;
+            let rb = &mut RB.clone();
+            let result = Post::select_post_list(rb, page, post_code, post_name, status).await;
 
             let mut sys_post_list_data: Vec<PostListDataResp> = Vec::new();
             match result {

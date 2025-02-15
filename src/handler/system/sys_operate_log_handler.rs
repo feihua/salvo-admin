@@ -23,7 +23,8 @@ pub async fn delete_sys_operate_log(req: &mut Request, res: &mut Response) {
         Ok(item) => {
             log::info!("delete sys_operate_log params: {:?}", &item);
 
-            let result = OperateLog::delete_in_column(&mut RB.clone(), "id", &item.ids).await;
+            let rb = &mut RB.clone();
+            let result = OperateLog::delete_in_column(rb, "id", &item.ids).await;
 
             match result {
                 Ok(_u) => BaseResponse::<String>::ok_result(res),
@@ -47,7 +48,8 @@ pub async fn query_sys_operate_log_detail(req: &mut Request, res: &mut Response)
         Ok(item) => {
             log::info!("query sys_operate_log_detail params: {:?}", &item);
 
-            let result = OperateLog::select_by_id(&mut RB.clone(), &item.id).await;
+            let rb = &mut RB.clone();
+            let result = OperateLog::select_by_id(rb, &item.id).await;
 
             match result {
                 Ok(d) => {

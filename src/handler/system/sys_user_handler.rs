@@ -37,8 +37,8 @@ pub async fn add_sys_user(req: &mut Request, res: &mut Response) {
         Ok(item) => {
             log::info!("add sys_user params: {:?}", &item);
 
-            let user_name_result =
-                User::select_by_user_name(&mut RB.clone(), &item.user_name).await;
+            let rb = &mut RB.clone();
+            let user_name_result = User::select_by_user_name(rb, &item.user_name).await;
             match user_name_result {
                 Ok(r) => {
                     if r.is_some() {
@@ -51,7 +51,7 @@ pub async fn add_sys_user(req: &mut Request, res: &mut Response) {
                 Err(err) => return BaseResponse::<String>::err_result_msg(res, err.to_string()),
             }
 
-            let mobile_result = User::select_by_mobile(&mut RB.clone(), &item.mobile).await;
+            let mobile_result = User::select_by_mobile(rb, &item.mobile).await;
             match mobile_result {
                 Ok(r) => {
                     if r.is_some() {
@@ -64,7 +64,7 @@ pub async fn add_sys_user(req: &mut Request, res: &mut Response) {
                 Err(err) => return BaseResponse::<String>::err_result_msg(res, err.to_string()),
             }
 
-            let email_result = User::select_by_email(&mut RB.clone(), &item.email).await;
+            let email_result = User::select_by_email(rb, &item.email).await;
             match email_result {
                 Ok(r) => {
                     if r.is_some() {
@@ -103,7 +103,7 @@ pub async fn add_sys_user(req: &mut Request, res: &mut Response) {
                 update_time: None,                 //修改时间
             };
 
-            let result = User::insert(&mut RB.clone(), &sys_user).await;
+            let result = User::insert(rb, &sys_user).await;
 
             match result {
                 Ok(u) => {
@@ -114,12 +114,8 @@ pub async fn add_sys_user(req: &mut Request, res: &mut Response) {
                             post_id,
                         })
                     }
-                    match UserPost::insert_batch(
-                        &mut RB.clone(),
-                        &user_post_list,
-                        user_post_list.len() as u64,
-                    )
-                    .await
+                    match UserPost::insert_batch(rb, &user_post_list, user_post_list.len() as u64)
+                        .await
                     {
                         Ok(_u) => BaseResponse::<String>::ok_result(res),
                         Err(err) => BaseResponse::<String>::err_result_msg(res, err.to_string()),
@@ -158,21 +154,20 @@ pub async fn delete_sys_user(depot: &mut Depot, req: &mut Request, res: &mut Res
                 );
             }
 
-            let delete_user_role_result =
-                UserRole::delete_in_column(&mut RB.clone(), "user_id", &ids).await;
+            let rb = &mut RB.clone();
+            let delete_user_role_result = UserRole::delete_in_column(rb, "user_id", &ids).await;
             match delete_user_role_result {
                 Err(err) => return BaseResponse::<String>::err_result_msg(res, err.to_string()),
                 _ => {}
             }
 
-            let delete_user_post_result =
-                UserPost::delete_in_column(&mut RB.clone(), "user_id", &ids).await;
+            let delete_user_post_result = UserPost::delete_in_column(rb, "user_id", &ids).await;
             match delete_user_post_result {
                 Err(err) => return BaseResponse::<String>::err_result_msg(res, err.to_string()),
                 _ => {}
             }
 
-            let result = User::delete_in_column(&mut RB.clone(), "id", &item.ids).await;
+            let result = User::delete_in_column(rb, "id", &item.ids).await;
 
             match result {
                 Ok(_u) => BaseResponse::<String>::ok_result(res),
@@ -204,7 +199,8 @@ pub async fn update_sys_user(req: &mut Request, res: &mut Response) {
                 );
             }
 
-            let sys_user_result = User::select_by_id(&mut RB.clone(), item.id).await;
+            let rb = &mut RB.clone();
+            let sys_user_result = User::select_by_id(rb, item.id).await;
             let u = match sys_user_result {
                 Ok(user) => {
                     if user.is_none() {
@@ -218,8 +214,7 @@ pub async fn update_sys_user(req: &mut Request, res: &mut Response) {
                 Err(err) => return BaseResponse::<String>::err_result_msg(res, err.to_string()),
             };
 
-            let user_name_result =
-                User::select_by_user_name(&mut RB.clone(), &item.user_name).await;
+            let user_name_result = User::select_by_user_name(rb, &item.user_name).await;
             match user_name_result {
                 Ok(r) => {
                     if r.is_some() && r.unwrap().id.unwrap_or_default() != item.id {
@@ -232,7 +227,7 @@ pub async fn update_sys_user(req: &mut Request, res: &mut Response) {
                 Err(err) => return BaseResponse::<String>::err_result_msg(res, err.to_string()),
             }
 
-            let mobile_result = User::select_by_mobile(&mut RB.clone(), &item.mobile).await;
+            let mobile_result = User::select_by_mobile(rb, &item.mobile).await;
             match mobile_result {
                 Ok(r) => {
                     if r.is_some() && r.unwrap().id.unwrap_or_default() != item.id {
@@ -245,7 +240,7 @@ pub async fn update_sys_user(req: &mut Request, res: &mut Response) {
                 Err(err) => return BaseResponse::<String>::err_result_msg(res, err.to_string()),
             }
 
-            let email_result = User::select_by_email(&mut RB.clone(), &item.email).await;
+            let email_result = User::select_by_email(rb, &item.email).await;
             match email_result {
                 Ok(r) => {
                     if r.is_some() && r.unwrap().id.unwrap_or_default() != item.id {
@@ -284,11 +279,11 @@ pub async fn update_sys_user(req: &mut Request, res: &mut Response) {
                 update_time: None,                  //修改时间
             };
 
-            let result = User::update_by_column(&mut RB.clone(), &sys_user, "id").await;
+            let result = User::update_by_column(rb, &sys_user, "id").await;
 
             match result {
                 Ok(_u) => {
-                    let _ = UserPost::delete_by_column(&mut RB.clone(), "user_id", &item.id).await;
+                    let _ = UserPost::delete_by_column(rb, "user_id", &item.id).await;
                     let mut user_post_list: Vec<UserPost> = Vec::new();
                     for post_id in item.post_ids {
                         user_post_list.push(UserPost {
@@ -296,12 +291,8 @@ pub async fn update_sys_user(req: &mut Request, res: &mut Response) {
                             post_id,
                         })
                     }
-                    match UserPost::insert_batch(
-                        &mut RB.clone(),
-                        &user_post_list,
-                        user_post_list.len() as u64,
-                    )
-                    .await
+                    match UserPost::insert_batch(rb, &user_post_list, user_post_list.len() as u64)
+                        .await
                     {
                         Ok(_u) => BaseResponse::<String>::ok_result(res),
                         Err(err) => BaseResponse::<String>::err_result_msg(res, err.to_string()),
@@ -369,7 +360,8 @@ pub async fn reset_sys_user_password(req: &mut Request, res: &mut Response) {
                 );
             }
 
-            let sys_user_result = User::select_by_id(&mut RB.clone(), item.id).await;
+            let rb = &mut RB.clone();
+            let sys_user_result = User::select_by_id(rb, item.id).await;
 
             match sys_user_result {
                 Ok(opt_user) => {
@@ -381,7 +373,7 @@ pub async fn reset_sys_user_password(req: &mut Request, res: &mut Response) {
                     }
                     let mut user = opt_user.unwrap();
                     user.password = item.password;
-                    let result = User::update_by_column(&mut RB.clone(), &user, "id").await;
+                    let result = User::update_by_column(rb, &user, "id").await;
                     match result {
                         Ok(_u) => BaseResponse::<String>::ok_result(res),
                         Err(err) => BaseResponse::<String>::err_result_msg(res, err.to_string()),
@@ -408,7 +400,8 @@ pub async fn update_sys_user_password(req: &mut Request, depot: &mut Depot, res:
             log::info!("update sys_user_password params: {:?}", &item);
             let user_id = depot.get::<i64>("userId").copied().unwrap();
 
-            let sys_user_result = User::select_by_id(&mut RB.clone(), user_id).await;
+            let rb = &mut RB.clone();
+            let sys_user_result = User::select_by_id(rb, user_id).await;
 
             match sys_user_result {
                 Ok(opt_user) => {
@@ -426,7 +419,7 @@ pub async fn update_sys_user_password(req: &mut Request, depot: &mut Depot, res:
                         );
                     }
                     user.password = item.re_pwd;
-                    let result = User::update_by_column(&mut RB.clone(), &user, "id").await;
+                    let result = User::update_by_column(rb, &user, "id").await;
 
                     match result {
                         Ok(_u) => BaseResponse::<String>::ok_result(res),
@@ -453,7 +446,8 @@ pub async fn query_sys_user_detail(req: &mut Request, res: &mut Response) {
         Ok(item) => {
             log::info!("query sys_user_detail params: {:?}", &item);
 
-            let result = User::select_by_id(&mut RB.clone(), item.id).await;
+            let rb = &mut RB.clone();
+            let result = User::select_by_id(rb, item.id).await;
 
             match result {
                 Ok(d) => {
@@ -466,7 +460,7 @@ pub async fn query_sys_user_detail(req: &mut Request, res: &mut Response) {
                     }
                     let x = d.unwrap();
 
-                    let dept_result = Dept::select_by_id(&mut RB.clone(), &x.dept_id).await;
+                    let dept_result = Dept::select_by_id(rb, &x.dept_id).await;
                     let dept = match dept_result {
                         Ok(opt_dept) => {
                             if opt_dept.is_none() {
@@ -501,7 +495,7 @@ pub async fn query_sys_user_detail(req: &mut Request, res: &mut Response) {
                         }
                     };
 
-                    let result = UserPost::select_by_column(&mut RB.clone(), "user_id", item.id)
+                    let result = UserPost::select_by_column(rb, "user_id", item.id)
                         .await
                         .unwrap_or_default();
                     let post_ids = result.iter().map(|x| x.post_id).collect::<Vec<i64>>();
@@ -561,15 +555,9 @@ pub async fn query_sys_user_list(req: &mut Request, res: &mut Response) {
             let dept_id = item.dept_id.unwrap_or_default();
 
             let page = &PageRequest::new(item.page_no, item.page_size);
-            let result = User::select_sys_user_list(
-                &mut RB.clone(),
-                page,
-                mobile,
-                user_name,
-                status,
-                dept_id,
-            )
-            .await;
+            let rb = &mut RB.clone();
+            let result =
+                User::select_sys_user_list(rb, page, mobile, user_name, status, dept_id).await;
 
             match result {
                 Ok(d) => {
@@ -630,7 +618,8 @@ pub async fn login(req: &mut Request, res: &mut Response) {
             log::info!("user agent: {:?}", user_agent);
             let agent = UserAgentUtil::new(user_agent);
 
-            let user_result = User::select_by_mobile(&mut RB.clone(), &item.mobile).await;
+            let rb = &mut RB.clone();
+            let user_result = User::select_by_mobile(rb, &item.mobile).await;
             log::info!("query user by mobile: {:?}", user_result);
 
             match user_result {
@@ -681,8 +670,7 @@ pub async fn login(req: &mut Request, res: &mut Response) {
                                 s_user.login_os = agent.os;
                                 s_user.login_browser = agent.browser;
                                 s_user.login_date = Some(DateTime::now());
-                                let result =
-                                    User::update_by_column(&mut RB.clone(), &s_user, "id").await;
+                                let result = User::update_by_column(rb, &s_user, "id").await;
                                 if result.is_err() {
                                     return BaseResponse::<String>::err_result_msg(
                                         res,
@@ -758,9 +746,10 @@ async fn add_login_log(name: String, status: i8, msg: String, agent: UserAgentUt
  */
 async fn query_btn_menu(id: &i64) -> Vec<String> {
     let mut btn_menu: Vec<String> = Vec::new();
-    let count = is_admin(&mut RB.clone(), id).await.unwrap_or_default();
+    let rb = &mut RB.clone();
+    let count = is_admin(rb, id).await.unwrap_or_default();
     if count == 1 {
-        let data = Menu::select_all(&mut RB.clone()).await;
+        let data = Menu::select_all(rb).await;
 
         for x in data.unwrap_or_default() {
             btn_menu.push(x.api_url.unwrap_or_default());
@@ -769,8 +758,7 @@ async fn query_btn_menu(id: &i64) -> Vec<String> {
         btn_menu
     } else {
         let sql_str = "select distinct u.api_url from sys_user_role t left join sys_role usr on t.role_id = usr.id left join sys_role_menu srm on usr.id = srm.role_id left join sys_menu u on srm.menu_id = u.id where t.user_id = ?";
-        let btn_menu_map = &mut RB
-            .clone()
+        let btn_menu_map = rb
             .query_decode::<Vec<HashMap<String, String>>>(sql_str, vec![to_value!(id)])
             .await
             .unwrap_or_default();
@@ -793,15 +781,15 @@ pub async fn query_user_role(req: &mut Request, res: &mut Response) {
         Ok(item) => {
             log::info!("query_user_role params: {:?}", item);
 
-            let user_role =
-                UserRole::select_by_column(&mut RB.clone(), "user_id", item.user_id).await;
+            let rb = &mut RB.clone();
+            let user_role = UserRole::select_by_column(rb, "user_id", item.user_id).await;
             let mut user_role_ids: Vec<i64> = Vec::new();
 
             for x in user_role.unwrap_or_default() {
                 user_role_ids.push(x.role_id);
             }
 
-            let sys_role = Role::select_all(&mut RB.clone()).await;
+            let sys_role = Role::select_all(rb).await;
 
             let mut sys_role_list: Vec<RoleList> = Vec::new();
 
@@ -853,8 +841,8 @@ pub async fn update_user_role(req: &mut Request, res: &mut Response) {
                 return;
             }
 
-            let sys_result =
-                UserRole::delete_by_column(&mut RB.clone(), "user_id", user_id.clone()).await;
+            let rb = &mut RB.clone();
+            let sys_result = UserRole::delete_by_column(rb, "user_id", user_id.clone()).await;
 
             if sys_result.is_err() {
                 BaseResponse::<String>::err_result_msg(res, "更新用户角色异常".to_string());
@@ -872,8 +860,7 @@ pub async fn update_user_role(req: &mut Request, res: &mut Response) {
                 })
             }
 
-            let result =
-                UserRole::insert_batch(&mut RB.clone(), &sys_role_user_list, len as u64).await;
+            let result = UserRole::insert_batch(rb, &sys_role_user_list, len as u64).await;
 
             match result {
                 Ok(_u) => BaseResponse::<String>::ok_result(res),
@@ -900,7 +887,8 @@ pub async fn query_user_menu(depot: &mut Depot, res: &mut Response) {
     log::info!("query user menu params {:?}", username);
 
     //根据id查询用户
-    let result = User::select_by_id(&mut RB.clone(), user_id).await;
+    let rb = &mut RB.clone();
+    let result = User::select_by_id(rb, user_id).await;
 
     match result {
         Ok(sys_user) => {
@@ -909,15 +897,13 @@ pub async fn query_user_menu(depot: &mut Depot, res: &mut Response) {
                 None => BaseResponse::<String>::err_result_msg(res, "用户不存在".to_string()),
                 Some(user) => {
                     //role_id为1是超级管理员--判断是不是超级管理员
-                    let count = is_admin(&mut RB.clone(), &user_id)
-                        .await
-                        .unwrap_or_default();
+                    let count = is_admin(rb, &user_id).await.unwrap_or_default();
 
                     let sys_menu_list: Vec<Menu>;
 
                     if count == 1 {
                         log::info!("The current user is a super administrator");
-                        sys_menu_list = Menu::select_all(&mut RB.clone()).await.unwrap_or_default();
+                        sys_menu_list = Menu::select_all(rb).await.unwrap_or_default();
                     } else {
                         log::info!("The current user is not a super administrator");
                         let sql_str = "select u.* from sys_user_role t left join sys_role usr on t.role_id = usr.id left join sys_role_menu srm on usr.id = srm.role_id left join sys_menu u on srm.menu_id = u.id where t.user_id = ?";
@@ -945,9 +931,7 @@ pub async fn query_user_menu(depot: &mut Depot, res: &mut Response) {
                     for id in sys_menu_ids {
                         menu_ids.push(id)
                     }
-                    let menu_result = Menu::select_by_ids(&mut RB.clone(), &menu_ids)
-                        .await
-                        .unwrap_or_default();
+                    let menu_result = Menu::select_by_ids(rb, &menu_ids).await.unwrap_or_default();
                     for menu in menu_result {
                         let api_url = menu.api_url.unwrap_or_default();
                         sys_menu.push(MenuList {

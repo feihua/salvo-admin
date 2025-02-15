@@ -24,7 +24,8 @@ pub async fn add_sys_notice(req: &mut Request, res: &mut Response) {
         Ok(item) => {
             log::info!("add sys_notice params: {:?}", &item);
 
-            let res_notice = Notice::select_by_title(&mut RB.clone(), &item.notice_title).await;
+            let rb = &mut RB.clone();
+            let res_notice = Notice::select_by_title(rb, &item.notice_title).await;
             match res_notice {
                 Ok(r) => {
                     if r.is_some() {
@@ -48,7 +49,7 @@ pub async fn add_sys_notice(req: &mut Request, res: &mut Response) {
                 update_time: None,                       //修改时间
             };
 
-            let result = Notice::insert(&mut RB.clone(), &sys_notice).await;
+            let result = Notice::insert(rb, &sys_notice).await;
 
             match result {
                 Ok(_u) => BaseResponse::<String>::ok_result(res),
@@ -72,7 +73,8 @@ pub async fn delete_sys_notice(req: &mut Request, res: &mut Response) {
         Ok(item) => {
             log::info!("delete sys_notice params: {:?}", &item);
 
-            let result = Notice::delete_in_column(&mut RB.clone(), "id", &item.ids).await;
+            let rb = &mut RB.clone();
+            let result = Notice::delete_in_column(rb, "id", &item.ids).await;
 
             match result {
                 Ok(_u) => BaseResponse::<String>::ok_result(res),

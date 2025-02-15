@@ -24,9 +24,9 @@ pub async fn add_sys_dict_data(req: &mut Request, res: &mut Response) {
         Ok(item) => {
             log::info!("add sys_dict_data params: {:?}", &item);
 
+            let rb = &mut RB.clone();
             let res_by_dict_label =
-                DictData::select_by_dict_label(&mut RB.clone(), &item.dict_type, &item.dict_label)
-                    .await;
+                DictData::select_by_dict_label(rb, &item.dict_type, &item.dict_label).await;
             match res_by_dict_label {
                 Ok(r) => {
                     if r.is_some() {
@@ -40,8 +40,7 @@ pub async fn add_sys_dict_data(req: &mut Request, res: &mut Response) {
             }
 
             let res_by_dict_value =
-                DictData::select_by_dict_value(&mut RB.clone(), &item.dict_type, &item.dict_value)
-                    .await;
+                DictData::select_by_dict_value(rb, &item.dict_type, &item.dict_value).await;
             match res_by_dict_value {
                 Ok(r) => {
                     if r.is_some() {
@@ -69,7 +68,7 @@ pub async fn add_sys_dict_data(req: &mut Request, res: &mut Response) {
                 update_time: None,                       //修改时间
             };
 
-            let result = DictData::insert(&mut RB.clone(), &sys_dict_data).await;
+            let result = DictData::insert(rb, &sys_dict_data).await;
 
             match result {
                 Ok(_u) => BaseResponse::<String>::ok_result(res),
@@ -93,9 +92,9 @@ pub async fn delete_sys_dict_data(req: &mut Request, res: &mut Response) {
         Ok(item) => {
             log::info!("delete sys_dict_data params: {:?}", &item);
 
-            let result = DictData::delete_in_column(&mut RB.clone(), "dict_code", &item.ids).await;
+            let rb = &mut RB.clone();
 
-            match result {
+            match DictData::delete_in_column(rb, "dict_code", &item.ids).await {
                 Ok(_u) => BaseResponse::<String>::ok_result(res),
                 Err(err) => BaseResponse::<String>::err_result_msg(res, err.to_string()),
             }
@@ -214,9 +213,8 @@ pub async fn update_sys_dict_data_status(req: &mut Request, res: &mut Response) 
 
             let mut param = vec![to_value!(item.status)];
             param.extend(item.ids.iter().map(|&id| to_value!(id)));
-            let result = &mut RB.clone().exec(&update_sql, param).await;
 
-            match result {
+            match &mut RB.clone().exec(&update_sql, param).await {
                 Ok(_u) => BaseResponse::<String>::ok_result(res),
                 Err(err) => BaseResponse::<String>::err_result_msg(res, err.to_string()),
             }
@@ -238,9 +236,9 @@ pub async fn query_sys_dict_data_detail(req: &mut Request, res: &mut Response) {
         Ok(item) => {
             log::info!("query sys_dict_data_detail params: {:?}", &item);
 
-            let result = DictData::select_by_id(&mut RB.clone(), &item.id).await;
+            let rb = &mut RB.clone();
 
-            match result {
+            match DictData::select_by_id(rb, &item.id).await {
                 Ok(d) => {
                     if d.is_none() {
                         return BaseResponse::<QueryDictDataDetailResp>::err_result_data(
@@ -298,16 +296,9 @@ pub async fn query_sys_dict_data_list(req: &mut Request, res: &mut Response) {
             let status = item.status.unwrap_or(2); //状态（0：停用，1:正常）
 
             let page = &PageRequest::new(item.page_no, item.page_size);
-            let result = DictData::select_dict_data_list(
-                &mut RB.clone(),
-                page,
-                dict_label,
-                dict_type,
-                status,
-            )
-            .await;
+            let rb = &mut RB.clone();
 
-            match result {
+            match DictData::select_dict_data_list(rb, page, dict_label, dict_type, status).await {
                 Ok(page) => {
                     let total = page.total;
 

@@ -34,8 +34,8 @@ pub async fn add_sys_role(req: &mut Request, res: &mut Response) {
         Ok(item) => {
             log::info!("add sys_role params: {:?}", &item);
 
-            let role_name_result =
-                Role::select_by_role_name(&mut RB.clone(), &item.role_name).await;
+            let rb = &mut RB.clone();
+            let role_name_result = Role::select_by_role_name(rb, &item.role_name).await;
             match role_name_result {
                 Ok(role) => {
                     if role.is_some() {
@@ -48,7 +48,7 @@ pub async fn add_sys_role(req: &mut Request, res: &mut Response) {
                 Err(err) => return BaseResponse::<String>::err_result_msg(res, err.to_string()),
             }
 
-            let role_key_result = Role::select_by_role_key(&mut RB.clone(), &item.role_key).await;
+            let role_key_result = Role::select_by_role_key(rb, &item.role_key).await;
             match role_key_result {
                 Ok(role) => {
                     if role.is_some() {
@@ -73,7 +73,7 @@ pub async fn add_sys_role(req: &mut Request, res: &mut Response) {
                 update_time: None,           //修改时间
             };
 
-            let result = Role::insert(&mut RB.clone(), &sys_role).await;
+            let result = Role::insert(rb, &sys_role).await;
 
             match result {
                 Ok(_u) => BaseResponse::<String>::ok_result(res),
@@ -106,8 +106,9 @@ pub async fn delete_sys_role(req: &mut Request, res: &mut Response) {
                 );
             }
 
+            let rb = &mut RB.clone();
             for id in ids {
-                let role_result = Role::select_by_id(&mut RB.clone(), &id).await;
+                let role_result = Role::select_by_id(rb, &id).await;
                 let role = match role_result {
                     Ok(opt_role) => {
                         if opt_role.is_none() {
@@ -124,7 +125,7 @@ pub async fn delete_sys_role(req: &mut Request, res: &mut Response) {
                     }
                 };
 
-                let count_user_role_result = count_user_role_by_role_id(&mut RB.clone(), id).await;
+                let count_user_role_result = count_user_role_by_role_id(rb, id).await;
                 if count_user_role_result.unwrap_or_default() > 0 {
                     let msg = format!("{}已分配,不能删除", role.role_name);
                     return BaseResponse::<String>::err_result_msg(res, msg);
@@ -132,21 +133,21 @@ pub async fn delete_sys_role(req: &mut Request, res: &mut Response) {
             }
 
             let delete_role_menu_result =
-                RoleMenu::delete_in_column(&mut RB.clone(), "role_id", &item.ids).await;
+                RoleMenu::delete_in_column(rb, "role_id", &item.ids).await;
 
             match delete_role_menu_result {
                 Err(err) => return BaseResponse::<String>::err_result_msg(res, err.to_string()),
                 _ => {}
             }
             let delete_role_dept_result =
-                RoleDept::delete_in_column(&mut RB.clone(), "role_id", &item.ids).await;
+                RoleDept::delete_in_column(rb, "role_id", &item.ids).await;
 
             match delete_role_dept_result {
                 Err(err) => return BaseResponse::<String>::err_result_msg(res, err.to_string()),
                 _ => {}
             }
 
-            let delete_role_result = Role::delete_in_column(&mut RB.clone(), "id", &item.ids).await;
+            let delete_role_result = Role::delete_in_column(rb, "id", &item.ids).await;
 
             match delete_role_result {
                 Ok(_u) => BaseResponse::<String>::ok_result(res),
@@ -297,7 +298,8 @@ pub async fn query_sys_role_detail(req: &mut Request, res: &mut Response) {
         Ok(item) => {
             log::info!("query sys_role_detail params: {:?}", &item);
 
-            let result = Role::select_by_id(&mut RB.clone(), &item.id).await;
+            let rb = &mut RB.clone();
+            let result = Role::select_by_id(rb, &item.id).await;
 
             match result {
                 Ok(opt_role) => {
@@ -352,9 +354,8 @@ pub async fn query_sys_role_list(req: &mut Request, res: &mut Response) {
             let status = item.status_id.unwrap_or(2);
 
             let page = &PageRequest::new(item.page_no, item.page_size);
-            let result =
-                Role::select_sys_role_list(&mut RB.clone(), page, role_name, role_key, status)
-                    .await;
+            let rb = &mut RB.clone();
+            let result = Role::select_sys_role_list(rb, page, role_name, role_key, status).await;
 
             match result {
                 Ok(d) => {
@@ -404,7 +405,8 @@ pub async fn query_role_menu(req: &mut Request, res: &mut Response) {
             log::info!("query role_menu params: {:?}", &item);
 
             // 查询所有菜单
-            let menu_list_all = Menu::select_all(&mut RB.clone()).await.unwrap_or_default();
+            let rb = &mut RB.clone();
+            let menu_list_all = Menu::select_all(rb).await.unwrap_or_default();
 
             let mut menu_list: Vec<MenuDataList> = Vec::new();
             let mut menu_ids: Vec<i64> = Vec::new();
@@ -425,7 +427,7 @@ pub async fn query_role_menu(req: &mut Request, res: &mut Response) {
             //不是超级管理员的时候,就要查询角色和菜单的关联
             if item.role_id != 1 {
                 menu_ids.clear();
-                let role_menu_list = query_menu_by_role(&mut RB.clone(), item.role_id)
+                let role_menu_list = query_menu_by_role(rb, item.role_id)
                     .await
                     .unwrap_or_default();
 
@@ -468,8 +470,8 @@ pub async fn update_role_menu(req: &mut Request, res: &mut Response) {
                 );
             }
 
-            let role_menu_result =
-                RoleMenu::delete_by_column(&mut RB.clone(), "role_id", &role_id).await;
+            let rb = &mut RB.clone();
+            let role_menu_result = RoleMenu::delete_by_column(rb, "role_id", &role_id).await;
 
             match role_menu_result {
                 Ok(_) => {
@@ -485,12 +487,8 @@ pub async fn update_role_menu(req: &mut Request, res: &mut Response) {
                         })
                     }
 
-                    let result = RoleMenu::insert_batch(
-                        &mut RB.clone(),
-                        &role_menu,
-                        item.menu_ids.len() as u64,
-                    )
-                    .await;
+                    let result =
+                        RoleMenu::insert_batch(rb, &role_menu, item.menu_ids.len() as u64).await;
 
                     match result {
                         Ok(_u) => BaseResponse::<String>::ok_result(res),
@@ -524,15 +522,9 @@ pub async fn query_allocated_list(req: &mut Request, res: &mut Response) {
             let user_name = item.user_name.as_deref().unwrap_or_default();
 
             let page_no = (page_no - 1) * page_size;
-            let result = select_allocated_list(
-                &mut RB.clone(),
-                role_id,
-                user_name,
-                mobile,
-                page_no,
-                page_size,
-            )
-            .await;
+            let rb = &mut RB.clone();
+            let result =
+                select_allocated_list(rb, role_id, user_name, mobile, page_no, page_size).await;
 
             match result {
                 Ok(d) => {
@@ -560,7 +552,7 @@ pub async fn query_allocated_list(req: &mut Request, res: &mut Response) {
                         })
                     }
 
-                    let total = count_allocated_list(&mut RB.clone(), role_id, user_name, mobile)
+                    let total = count_allocated_list(rb, role_id, user_name, mobile)
                         .await
                         .unwrap_or_default();
                     BaseResponse::<Vec<UserListDataResp>>::ok_result_page(
@@ -599,15 +591,8 @@ pub async fn query_unallocated_list(req: &mut Request, res: &mut Response) {
 
             let page_no = (page_no - 1) * page_size;
 
-            match select_unallocated_list(
-                &mut RB.clone(),
-                role_id,
-                user_name,
-                mobile,
-                page_no,
-                page_size,
-            )
-            .await
+            let rb = &mut RB.clone();
+            match select_unallocated_list(rb, role_id, user_name, mobile, page_no, page_size).await
             {
                 Ok(d) => {
                     let mut sys_user_list_data: Vec<UserListDataResp> = Vec::new();
@@ -634,7 +619,7 @@ pub async fn query_unallocated_list(req: &mut Request, res: &mut Response) {
                         })
                     }
 
-                    let total = count_unallocated_list(&mut RB.clone(), role_id, user_name, mobile)
+                    let total = count_unallocated_list(rb, role_id, user_name, mobile)
                         .await
                         .unwrap_or_default();
                     BaseResponse::<Vec<UserListDataResp>>::ok_result_page(
@@ -665,9 +650,8 @@ pub async fn cancel_auth_user(req: &mut Request, res: &mut Response) {
         Ok(item) => {
             log::info!("update role_menu params: {:?}", &item);
 
-            let result =
-                delete_user_role_by_role_id_user_id(&mut RB.clone(), item.role_id, item.user_id)
-                    .await;
+            let rb = &mut RB.clone();
+            let result = delete_user_role_by_role_id_user_id(rb, item.role_id, item.user_id).await;
 
             match result {
                 Ok(_u) => BaseResponse::<String>::ok_result(res),
@@ -739,9 +723,8 @@ pub async fn batch_auth_user(req: &mut Request, res: &mut Response) {
                 })
             }
 
-            let result =
-                UserRole::insert_batch(&mut RB.clone(), &user_role, item.user_ids.len() as u64)
-                    .await;
+            let rb = &mut RB.clone();
+            let result = UserRole::insert_batch(rb, &user_role, item.user_ids.len() as u64).await;
 
             match result {
                 Ok(_u) => BaseResponse::<String>::ok_result(res),

@@ -25,8 +25,8 @@ pub async fn add_sys_dict_type(req: &mut Request, res: &mut Response) {
         Ok(item) => {
             log::info!("add sys_dict_type params: {:?}", &item);
 
-            let res_by_type = DictType::select_by_dict_type(&mut RB.clone(), &item.dict_type).await;
-            match res_by_type {
+            let rb = &mut RB.clone();
+            match DictType::select_by_dict_type(rb, &item.dict_type).await {
                 Ok(r) => {
                     if r.is_some() {
                         return BaseResponse::<String>::err_result_msg(
@@ -48,9 +48,7 @@ pub async fn add_sys_dict_type(req: &mut Request, res: &mut Response) {
                 update_time: None,                       //修改时间
             };
 
-            let result = DictType::insert(&mut RB.clone(), &sys_dict_type).await;
-
-            match result {
+            match DictType::insert(rb, &sys_dict_type).await {
                 Ok(_u) => BaseResponse::<String>::ok_result(res),
                 Err(err) => BaseResponse::<String>::err_result_msg(res, err.to_string()),
             }
@@ -72,9 +70,10 @@ pub async fn delete_sys_dict_type(req: &mut Request, res: &mut Response) {
         Ok(item) => {
             log::info!("delete sys_dict_type params: {:?}", &item);
 
+            let rb = &mut RB.clone();
             let ids = item.ids.clone();
             for id in ids {
-                let dict_by_id = DictType::select_by_id(&mut RB.clone(), &id).await;
+                let dict_by_id = DictType::select_by_id(rb, &id).await;
                 let p = match dict_by_id {
                     Ok(p) => {
                         if p.is_none() {
@@ -91,7 +90,7 @@ pub async fn delete_sys_dict_type(req: &mut Request, res: &mut Response) {
                     }
                 };
 
-                let res_count = count_dict_data_by_type(&mut RB.clone(), &p.dict_type)
+                let res_count = count_dict_data_by_type(rb, &p.dict_type)
                     .await
                     .unwrap_or_default();
                 if res_count > 0 {
@@ -100,7 +99,7 @@ pub async fn delete_sys_dict_type(req: &mut Request, res: &mut Response) {
                 }
             }
 
-            let result = DictType::delete_in_column(&mut RB.clone(), "id", &item.ids).await;
+            let result = DictType::delete_in_column(rb, "id", &item.ids).await;
 
             match result {
                 Ok(_u) => BaseResponse::<String>::ok_result(res),
@@ -224,7 +223,8 @@ pub async fn query_sys_dict_type_detail(req: &mut Request, res: &mut Response) {
         Ok(item) => {
             log::info!("query sys_dict_type_detail params: {:?}", &item);
 
-            let result = DictType::select_by_id(&mut RB.clone(), &item.id).await;
+            let rb = &mut RB.clone();
+            let result = DictType::select_by_id(rb, &item.id).await;
 
             match result {
                 Ok(d) => {
@@ -278,17 +278,10 @@ pub async fn query_sys_dict_type_list(req: &mut Request, res: &mut Response) {
             let status = item.status.unwrap_or(2); //状态（0：停用，1:正常）
 
             let page = &PageRequest::new(item.page_no, item.page_size);
-            let result = DictType::select_dict_type_list(
-                &mut RB.clone(),
-                page,
-                dict_name,
-                dict_type,
-                status,
-            )
-            .await;
+            let rb = &mut RB.clone();
 
             let mut sys_dict_type_list_data: Vec<DictTypeListDataResp> = Vec::new();
-            match result {
+            match DictType::select_dict_type_list(rb, page, dict_name, dict_type, status).await {
                 Ok(d) => {
                     let total = d.total;
 

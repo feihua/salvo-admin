@@ -24,7 +24,8 @@ pub async fn add_sys_menu(req: &mut Request, res: &mut Response) {
         Ok(item) => {
             log::info!("add sys_menu params: {:?}", &item);
 
-            let res_menu = Menu::select_by_menu_name(&mut RB.clone(), &item.menu_name).await;
+            let rb = &mut RB.clone();
+            let res_menu = Menu::select_by_menu_name(rb, &item.menu_name).await;
             match res_menu {
                 Ok(opt_menu) => {
                     if opt_menu.is_some() {
@@ -39,7 +40,7 @@ pub async fn add_sys_menu(req: &mut Request, res: &mut Response) {
 
             let menu_url = item.menu_url.clone();
             if menu_url.is_some() {
-                let res_menu = Menu::select_by_menu_url(&mut RB.clone(), &menu_url.unwrap()).await;
+                let res_menu = Menu::select_by_menu_url(rb, &menu_url.unwrap()).await;
                 match res_menu {
                     Ok(opt_menu) => {
                         if opt_menu.is_some() {
@@ -71,7 +72,7 @@ pub async fn add_sys_menu(req: &mut Request, res: &mut Response) {
                 update_time: None,         //修改时间
             };
 
-            let result = Menu::insert(&mut RB.clone(), &sys_menu).await;
+            let result = Menu::insert(rb, &sys_menu).await;
 
             match result {
                 Ok(_u) => BaseResponse::<String>::ok_result(res),
@@ -96,7 +97,8 @@ pub async fn delete_sys_menu(req: &mut Request, res: &mut Response) {
             log::info!("delete sys_menu params: {:?}", &item);
 
             //有下级的时候 不能直接删除
-            let count = select_count_menu_by_parent_id(&mut RB.clone(), &item.id)
+            let rb = &mut RB.clone();
+            let count = select_count_menu_by_parent_id(rb, &item.id)
                 .await
                 .unwrap_or_default();
 
@@ -106,7 +108,7 @@ pub async fn delete_sys_menu(req: &mut Request, res: &mut Response) {
                     "存在子菜单,不允许删除".to_string(),
                 );
             }
-            let count1 = select_count_menu_by_menu_id(&mut RB.clone(), &item.id)
+            let count1 = select_count_menu_by_menu_id(rb, &item.id)
                 .await
                 .unwrap_or_default();
 
@@ -117,7 +119,7 @@ pub async fn delete_sys_menu(req: &mut Request, res: &mut Response) {
                 );
             }
 
-            let result = Menu::delete_by_column(&mut RB.clone(), "id", &item.id).await;
+            let result = Menu::delete_by_column(rb, "id", &item.id).await;
 
             match result {
                 Ok(_u) => BaseResponse::<String>::ok_result(res),
@@ -158,7 +160,7 @@ pub async fn update_sys_menu(req: &mut Request, res: &mut Response) {
                 Err(err) => return BaseResponse::<String>::err_result_msg(res, err.to_string()),
             };
 
-            let res_menu = Menu::select_by_menu_name(&mut RB.clone(), &item.menu_name).await;
+            let res_menu = Menu::select_by_menu_name(rb, &item.menu_name).await;
             match res_menu {
                 Ok(opt_menu) => {
                     if opt_menu.is_some() && opt_menu.unwrap().id.unwrap_or_default() != item.id {
@@ -173,7 +175,7 @@ pub async fn update_sys_menu(req: &mut Request, res: &mut Response) {
 
             let menu_url = item.menu_url.clone();
             if menu_url.is_some() {
-                let result = Menu::select_by_menu_url(&mut RB.clone(), &menu_url.unwrap()).await;
+                let result = Menu::select_by_menu_url(rb, &menu_url.unwrap()).await;
                 match result {
                     Ok(opt_menu) => {
                         if opt_menu.is_some() && opt_menu.unwrap().id.unwrap_or_default() != item.id
@@ -206,7 +208,7 @@ pub async fn update_sys_menu(req: &mut Request, res: &mut Response) {
                 update_time: None,         //修改时间
             };
 
-            let result = Menu::update_by_column(&mut RB.clone(), &sys_menu, "id").await;
+            let result = Menu::update_by_column(rb, &sys_menu, "id").await;
 
             match result {
                 Ok(_u) => BaseResponse::<String>::ok_result(res),
@@ -265,7 +267,8 @@ pub async fn query_sys_menu_detail(req: &mut Request, res: &mut Response) {
         Ok(item) => {
             log::info!("query sys_menu_detail params: {:?}", &item);
 
-            let result = Menu::select_by_id(&mut RB.clone(), &item.id).await;
+            let rb = &mut RB.clone();
+            let result = Menu::select_by_id(rb, &item.id).await;
 
             match result {
                 Ok(opt_menu) => {
