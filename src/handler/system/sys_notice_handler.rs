@@ -25,35 +25,28 @@ pub async fn add_sys_notice(req: &mut Request, res: &mut Response) {
             log::info!("add sys_notice params: {:?}", &item);
 
             let rb = &mut RB.clone();
-            let res_notice = Notice::select_by_title(rb, &item.notice_title).await;
-            match res_notice {
-                Ok(r) => {
-                    if r.is_some() {
-                        return BaseResponse::<String>::err_result_msg(
-                            res,
-                            "公告标题已存在".to_string(),
-                        );
+            match Notice::exists_by_title(rb, &item.notice_title).await {
+                Ok(true) => {
+                    BaseResponse::<String>::err_result_msg(res, "公告标题已存在".to_string())
+                }
+                Ok(false) => {
+                    let sys_notice = Notice {
+                        id: None,                                //公告ID
+                        notice_title: item.notice_title,         //公告标题
+                        notice_type: item.notice_type,           //公告类型（1:通知,2:公告）
+                        notice_content: item.notice_content,     //公告内容
+                        status: item.status,                     //公告状态（0:关闭,1:正常 ）
+                        remark: item.remark.unwrap_or_default(), //备注
+                        create_time: None,                       //创建时间
+                        update_time: None,                       //修改时间
+                    };
+
+                    match Notice::insert(rb, &sys_notice).await {
+                        Ok(_u) => BaseResponse::<String>::ok_result(res),
+                        Err(err) => BaseResponse::<String>::err_result_msg(res, err.to_string()),
                     }
                 }
-                Err(err) => return BaseResponse::<String>::err_result_msg(res, err.to_string()),
-            }
-
-            let sys_notice = Notice {
-                id: None,                                //公告ID
-                notice_title: item.notice_title,         //公告标题
-                notice_type: item.notice_type,           //公告类型（1:通知,2:公告）
-                notice_content: item.notice_content,     //公告内容
-                status: item.status,                     //公告状态（0:关闭,1:正常 ）
-                remark: item.remark.unwrap_or_default(), //备注
-                create_time: None,                       //创建时间
-                update_time: None,                       //修改时间
-            };
-
-            let result = Notice::insert(rb, &sys_notice).await;
-
-            match result {
-                Ok(_u) => BaseResponse::<String>::ok_result(res),
-                Err(err) => BaseResponse::<String>::err_result_msg(res, err.to_string()),
+                Err(err) => BaseResponse::<String>::err_result_msg(res, format!("数据库错误: {}", err)),
             }
         }
         Err(err) => {

@@ -3,8 +3,8 @@
 // createTime：2024/12/25 10:01:11
 
 use rbatis::rbdc::datetime::DateTime;
+use rbatis::{Error, RBatis};
 use serde::{Deserialize, Serialize};
-
 /*
  *通知公告表
  *author：刘飞华
@@ -59,3 +59,37 @@ impl_select_page!(Notice{select_sys_notice_list(title:&str, notice_type:i8, stat
      if !sql.contains('count'):
        ` order by create_time desc `"
 },"sys_notice");
+
+impl Notice {
+    pub async fn exists_by_title(rb: &mut RBatis, title: &str) -> Result<bool, Error> {
+        let sql = "SELECT COUNT(*) FROM sys_notice WHERE notice_title = ?";
+        let count: i64 = rb.query_decode(sql, vec![title.into()]).await?;
+        Ok(count > 0)
+    }
+
+    // pub async fn exists_by_title_except_id(
+    //     rb: &mut RBatis,
+    //     title: &str,
+    //     id: &i32,
+    // ) -> Result<bool, Error> {
+    //     let sql = "SELECT COUNT(*) FROM sys_notice WHERE notice_title = ?";
+    //     let count: i64 = rb.query_decode(sql, vec![title.into()]).await?;
+    //     Ok(count > 0)
+    // }
+    //
+    // pub async fn exists_by_id(rb: &mut RBatis, id: &i32) -> Result<bool, Error> {
+    //     let sql = "SELECT COUNT(*) FROM sys_notice WHERE notice_title = ?";
+    //     let count: i64 = rb.query_decode(sql, vec![title.into()]).await?;
+    //     Ok(count > 0)
+    // }
+    //
+    // pub async fn update_status_by_ids(
+    //     rb: &mut RBatis,
+    //     ids: &[i32],
+    //     status: i32,
+    // ) -> Result<(), Error> {
+    //     let sql = "SELECT COUNT(*) FROM sys_notice WHERE notice_title = ?";
+    //     let count: i64 = rb.query_decode(sql, vec![title.into()]).await?;
+    //     Ok(count > 0)
+    // }
+}
