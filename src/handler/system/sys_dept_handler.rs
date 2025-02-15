@@ -357,27 +357,29 @@ pub async fn query_sys_dept_list(req: &mut Request, res: &mut Response) {
 
     let result = Dept::select_page_dept_list(&mut RB.clone(), dept_name, status).await;
 
-    let mut sys_dept_list_data: Vec<DeptListDataResp> = Vec::new();
     match result {
-        Ok(d) => {
-            for x in d {
-                sys_dept_list_data.push(DeptListDataResp {
-                    id: x.id.unwrap_or_default(),               //部门id
-                    parent_id: x.parent_id,                     //父部门id
-                    ancestors: x.ancestors,                     //祖级列表
-                    dept_name: x.dept_name,                     //部门名称
-                    sort: x.sort,                               //显示顺序
-                    leader: x.leader,                           //负责人
-                    phone: x.phone,                             //联系电话
-                    email: x.email,                             //邮箱
-                    status: x.status,                           //部状态（0：停用，1:正常）
-                    del_flag: x.del_flag.unwrap_or_default(),   //删除标志（0代表删除 1代表存在）
-                    create_time: time_to_string(x.create_time), //创建时间
-                    update_time: time_to_string(x.update_time), //修改时间
+        Ok(page) => {
+            let list = page
+                .into_iter()
+                .map(|x| {
+                    DeptListDataResp {
+                        id: x.id.unwrap_or_default(),               //部门id
+                        parent_id: x.parent_id,                     //父部门id
+                        ancestors: x.ancestors,                     //祖级列表
+                        dept_name: x.dept_name,                     //部门名称
+                        sort: x.sort,                               //显示顺序
+                        leader: x.leader,                           //负责人
+                        phone: x.phone,                             //联系电话
+                        email: x.email,                             //邮箱
+                        status: x.status,                           //部状态（0：停用，1:正常）
+                        del_flag: x.del_flag.unwrap_or_default(), //删除标志（0代表删除 1代表存在）
+                        create_time: time_to_string(x.create_time), //创建时间
+                        update_time: time_to_string(x.update_time), //修改时间
+                    }
                 })
-            }
+                .collect();
 
-            BaseResponse::ok_result_data(res, sys_dept_list_data)
+            BaseResponse::ok_result_data(res, list)
         }
         Err(err) => BaseResponse::err_result_data(res, DeptListDataResp::new(), err.to_string()),
     }

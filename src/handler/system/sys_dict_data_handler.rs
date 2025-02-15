@@ -102,7 +102,7 @@ pub async fn update_sys_dict_data(req: &mut Request, res: &mut Response) {
     let item = req.parse_json::<UpdateDictDataReq>().await.unwrap();
     log::info!("update sys_dict_data params: {:?}", &item);
 
-    let rb=&mut RB.clone();
+    let rb = &mut RB.clone();
 
     let result = DictData::select_by_id(rb, &item.dict_code).await;
     match result {
@@ -114,7 +114,7 @@ pub async fn update_sys_dict_data(req: &mut Request, res: &mut Response) {
                 );
             }
         }
-        Err(err) => return BaseResponse::<String>::err_result_msg(res,err.to_string()),
+        Err(err) => return BaseResponse::<String>::err_result_msg(res, err.to_string()),
     }
 
     let res_by_dict_label =
@@ -264,30 +264,35 @@ pub async fn query_sys_dict_data_list(req: &mut Request, res: &mut Response) {
     let result =
         DictData::select_dict_data_list(&mut RB.clone(), page, dict_label, dict_type, status).await;
 
-    let mut sys_dict_data_list: Vec<DictDataListDataResp> = Vec::new();
     match result {
-        Ok(d) => {
-            let total = d.total;
+        Ok(page) => {
+            let total = page.total;
 
-            for x in d.records {
-                sys_dict_data_list.push(DictDataListDataResp {
-                    dict_code: x.dict_code.unwrap_or_default(), //字典编码
-                    dict_sort: x.dict_sort,                     //字典排序
-                    dict_label: x.dict_label,                   //字典标签
-                    dict_value: x.dict_value,                   //字典键值
-                    dict_type: x.dict_type,                     //字典类型
-                    css_class: x.css_class,                     //样式属性（其他样式扩展）
-                    list_class: x.list_class,                   //格回显样式
-                    is_default: x.is_default,                   //是否默认（Y是 N否）
-                    status: x.status,                           //状态（0：停用，1:正常）
-                    remark: x.remark,                           //备注
-                    create_time: time_to_string(x.create_time), //创建时间
-                    update_time: time_to_string(x.update_time), //修改时间
+            let list = page
+                .records
+                .into_iter()
+                .map(|x| {
+                    DictDataListDataResp {
+                        dict_code: x.dict_code.unwrap_or_default(), //字典编码
+                        dict_sort: x.dict_sort,                     //字典排序
+                        dict_label: x.dict_label,                   //字典标签
+                        dict_value: x.dict_value,                   //字典键值
+                        dict_type: x.dict_type,                     //字典类型
+                        css_class: x.css_class,                     //样式属性（其他样式扩展）
+                        list_class: x.list_class,                   //格回显样式
+                        is_default: x.is_default,                   //是否默认（Y是 N否）
+                        status: x.status,                           //状态（0：停用，1:正常）
+                        remark: x.remark,                           //备注
+                        create_time: time_to_string(x.create_time), //创建时间
+                        update_time: time_to_string(x.update_time), //修改时间
+                    }
                 })
-            }
+                .collect::<Vec<DictDataListDataResp>>();
 
-            BaseResponse::<Vec<DictDataListDataResp>>::ok_result_page(res, sys_dict_data_list, total)
+            BaseResponse::<Vec<DictDataListDataResp>>::ok_result_page(res, list, total)
         }
-        Err(err) => BaseResponse::<Vec<DictDataListDataResp>>::err_result_page(res, err.to_string()),
+        Err(err) => {
+            BaseResponse::<Vec<DictDataListDataResp>>::err_result_page(res, err.to_string())
+        }
     }
 }
