@@ -67,15 +67,15 @@ impl Notice {
         Ok(count > 0)
     }
 
-    // pub async fn exists_by_title_except_id(
-    //     rb: &mut RBatis,
-    //     title: &str,
-    //     id: &i32,
-    // ) -> Result<bool, Error> {
-    //     let sql = "SELECT COUNT(*) FROM sys_notice WHERE notice_title = ?";
-    //     let count: i64 = rb.query_decode(sql, vec![title.into()]).await?;
-    //     Ok(count > 0)
-    // }
+    pub async fn exists_by_title_except_id(
+        rb: &mut RBatis,
+        title: &str,
+        id: i64,
+    ) -> Result<bool, Error> {
+        let sql = "SELECT COUNT(*) FROM sys_notice WHERE notice_title = ? and id != ?";
+        let count: i64 = rb.query_decode(sql, vec![title.into(), id.into()]).await?;
+        Ok(count > 0)
+    }
     //
     // pub async fn exists_by_id(rb: &mut RBatis, id: &i32) -> Result<bool, Error> {
     //     let sql = "SELECT COUNT(*) FROM sys_notice WHERE notice_title = ?";

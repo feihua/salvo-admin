@@ -116,40 +116,30 @@ pub async fn update_sys_notice(req: &mut Request, res: &mut Response) {
                 }
             };
 
-            let res_notice = Notice::select_by_title(rb, &item.notice_title).await;
+            match Notice::exists_by_title_except_id(rb, &item.notice_title, item.id).await {
+                Ok(true) => {
+                    BaseResponse::<String>::err_result_msg(res, "公告标题已存在".to_string())
+                }
+                Ok(false) => {
+                    let sys_notice = Notice {
+                        id: Some(item.id),                       //公告ID
+                        notice_title: item.notice_title,         //公告标题
+                        notice_type: item.notice_type,           //公告类型（1:通知,2:公告）
+                        notice_content: item.notice_content,     //公告内容
+                        status: item.status,                     //公告状态（0:关闭,1:正常 ）
+                        remark: item.remark.unwrap_or_default(), //备注
+                        create_time: None,                       //创建时间
+                        update_time: None,                       //修改时间
+                    };
 
-            match res_notice {
-                Ok(r) => {
-                    if r.is_some() && r.unwrap().id.unwrap_or_default() != item.id {
-                        return BaseResponse::<String>::err_result_msg(
+                    match Notice::update_by_column(rb, &sys_notice, "id").await {
+                        Ok(_u) => BaseResponse::<String>::ok_result(res),
+                        Err(err) => BaseResponse::<String>::err_result_msg(
                             res,
-                            "公告标题已存在".to_string(),
-                        );
+                            format!("数据库错误: {}", err),
+                        ),
                     }
                 }
-                Err(err) => {
-                    return BaseResponse::<String>::err_result_msg(
-                        res,
-                        format!("数据库错误: {}", err),
-                    )
-                }
-            }
-
-            let sys_notice = Notice {
-                id: Some(item.id),                       //公告ID
-                notice_title: item.notice_title,         //公告标题
-                notice_type: item.notice_type,           //公告类型（1:通知,2:公告）
-                notice_content: item.notice_content,     //公告内容
-                status: item.status,                     //公告状态（0:关闭,1:正常 ）
-                remark: item.remark.unwrap_or_default(), //备注
-                create_time: None,                       //创建时间
-                update_time: None,                       //修改时间
-            };
-
-            let result = Notice::update_by_column(rb, &sys_notice, "id").await;
-
-            match result {
-                Ok(_u) => BaseResponse::<String>::ok_result(res),
                 Err(err) => {
                     BaseResponse::<String>::err_result_msg(res, format!("数据库错误: {}", err))
                 }
@@ -235,7 +225,9 @@ pub async fn query_sys_notice_detail(req: &mut Request, res: &mut Response) {
 
                     BaseResponse::<QueryNoticeDetailResp>::ok_result_data(res, sys_notice)
                 }
-                Err(err) => BaseResponse::<String>::err_result_msg(res, format!("数据库错误: {}", err)),
+                Err(err) => {
+                    BaseResponse::<String>::err_result_msg(res, format!("数据库错误: {}", err))
+                }
             }
         }
         Err(err) => {
