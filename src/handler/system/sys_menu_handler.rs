@@ -349,7 +349,7 @@ pub async fn query_sys_menu_list(req: &mut Request, res: &mut Response) {
                     BaseResponse::ok_result_data(res, menu_list)
                 }
                 Err(err) => {
-                    BaseResponse::err_result_data(res, MenuListDataResp::new(), err.to_string())
+                    BaseResponse::<String>::err_result_msg(res, format!("数据库错误: {}", err))
                 }
             }
         }

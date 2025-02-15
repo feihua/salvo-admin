@@ -169,10 +169,7 @@ pub async fn query_sys_operate_log_list(req: &mut Request, res: &mut Response) {
                         total,
                     )
                 }
-                Err(err) => BaseResponse::<Vec<OperateLogListDataResp>>::err_result_page(
-                    res,
-                    err.to_string(),
-                ),
+                Err(err) => BaseResponse::<String>::err_result_msg(res, format!("数据库错误: {}", err)),
             }
         }
         Err(err) => {

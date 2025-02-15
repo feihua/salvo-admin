@@ -46,7 +46,9 @@ pub async fn add_sys_notice(req: &mut Request, res: &mut Response) {
                         Err(err) => BaseResponse::<String>::err_result_msg(res, err.to_string()),
                     }
                 }
-                Err(err) => BaseResponse::<String>::err_result_msg(res, format!("数据库错误: {}", err)),
+                Err(err) => {
+                    BaseResponse::<String>::err_result_msg(res, format!("数据库错误: {}", err))
+                }
             }
         }
         Err(err) => {
@@ -71,7 +73,9 @@ pub async fn delete_sys_notice(req: &mut Request, res: &mut Response) {
 
             match result {
                 Ok(_u) => BaseResponse::<String>::ok_result(res),
-                Err(err) => BaseResponse::<String>::err_result_msg(res, err.to_string()),
+                Err(err) => {
+                    BaseResponse::<String>::err_result_msg(res, format!("数据库错误: {}", err))
+                }
             }
         }
         Err(err) => {
@@ -104,7 +108,12 @@ pub async fn update_sys_notice(req: &mut Request, res: &mut Response) {
                         );
                     }
                 }
-                Err(err) => return BaseResponse::<String>::err_result_msg(res, err.to_string()),
+                Err(err) => {
+                    return BaseResponse::<String>::err_result_msg(
+                        res,
+                        format!("数据库错误: {}", err),
+                    )
+                }
             };
 
             let res_notice = Notice::select_by_title(rb, &item.notice_title).await;
@@ -118,7 +127,12 @@ pub async fn update_sys_notice(req: &mut Request, res: &mut Response) {
                         );
                     }
                 }
-                Err(err) => return BaseResponse::<String>::err_result_msg(res, err.to_string()),
+                Err(err) => {
+                    return BaseResponse::<String>::err_result_msg(
+                        res,
+                        format!("数据库错误: {}", err),
+                    )
+                }
             }
 
             let sys_notice = Notice {
@@ -136,7 +150,9 @@ pub async fn update_sys_notice(req: &mut Request, res: &mut Response) {
 
             match result {
                 Ok(_u) => BaseResponse::<String>::ok_result(res),
-                Err(err) => BaseResponse::<String>::err_result_msg(res, err.to_string()),
+                Err(err) => {
+                    BaseResponse::<String>::err_result_msg(res, format!("数据库错误: {}", err))
+                }
             }
         }
         Err(err) => {
@@ -171,7 +187,9 @@ pub async fn update_sys_notice_status(req: &mut Request, res: &mut Response) {
 
             match result {
                 Ok(_u) => BaseResponse::<String>::ok_result(res),
-                Err(err) => BaseResponse::<String>::err_result_msg(res, err.to_string()),
+                Err(err) => {
+                    BaseResponse::<String>::err_result_msg(res, format!("数据库错误: {}", err))
+                }
             }
         }
         Err(err) => {
@@ -217,11 +235,7 @@ pub async fn query_sys_notice_detail(req: &mut Request, res: &mut Response) {
 
                     BaseResponse::<QueryNoticeDetailResp>::ok_result_data(res, sys_notice)
                 }
-                Err(err) => BaseResponse::<QueryNoticeDetailResp>::err_result_data(
-                    res,
-                    QueryNoticeDetailResp::new(),
-                    err.to_string(),
-                ),
+                Err(err) => BaseResponse::<String>::err_result_msg(res, format!("数据库错误: {}", err)),
             }
         }
         Err(err) => {
@@ -246,14 +260,9 @@ pub async fn query_sys_notice_list(req: &mut Request, res: &mut Response) {
             let status = item.status.unwrap_or(2); //公告状态（0:关闭,1:正常 ）
 
             let page = &PageRequest::new(item.page_no, item.page_size);
-            let result = Notice::select_sys_notice_list(
-                &mut RB.clone(),
-                page,
-                notice_title,
-                notice_type,
-                status,
-            )
-            .await;
+            let rb = &mut RB.clone();
+            let result =
+                Notice::select_sys_notice_list(rb, page, notice_title, notice_type, status).await;
 
             let mut data: Vec<NoticeListDataResp> = Vec::new();
             match result {
@@ -276,7 +285,7 @@ pub async fn query_sys_notice_list(req: &mut Request, res: &mut Response) {
                     BaseResponse::<Vec<NoticeListDataResp>>::ok_result_page(res, data, total)
                 }
                 Err(err) => {
-                    BaseResponse::<Vec<NoticeListDataResp>>::err_result_page(res, err.to_string())
+                    BaseResponse::<String>::err_result_msg(res, format!("数据库错误: {}", err))
                 }
             }
         }

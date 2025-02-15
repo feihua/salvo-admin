@@ -326,7 +326,7 @@ pub async fn query_sys_dict_data_list(req: &mut Request, res: &mut Response) {
                     BaseResponse::<Vec<DictDataListDataResp>>::ok_result_page(res, list, total)
                 }
                 Err(err) => {
-                    BaseResponse::<Vec<DictDataListDataResp>>::err_result_page(res, err.to_string())
+                    BaseResponse::<String>::err_result_msg(res, format!("数据库错误: {}", err))
                 }
             }
         }

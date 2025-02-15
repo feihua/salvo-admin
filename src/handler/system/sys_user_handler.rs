@@ -593,7 +593,7 @@ pub async fn query_sys_user_list(req: &mut Request, res: &mut Response) {
                     )
                 }
                 Err(err) => {
-                    BaseResponse::<Vec<UserListDataResp>>::err_result_page(res, err.to_string())
+                    BaseResponse::<String>::err_result_msg(res, format!("数据库错误: {}", err))
                 }
             }
         }
