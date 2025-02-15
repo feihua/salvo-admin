@@ -20,57 +20,65 @@ use crate::RB;
  */
 #[handler]
 pub async fn add_sys_dict_data(req: &mut Request, res: &mut Response) {
-    let item = req.parse_json::<AddDictDataReq>().await.unwrap();
-    log::info!("add sys_dict_data params: {:?}", &item);
+    match req.parse_json::<AddDictDataReq>().await {
+        Ok(item) => {
+            log::info!("add sys_dict_data params: {:?}", &item);
 
-    let res_by_dict_label =
-        DictData::select_by_dict_label(&mut RB.clone(), &item.dict_type, &item.dict_label).await;
-    match res_by_dict_label {
-        Ok(r) => {
-            if r.is_some() {
-                return BaseResponse::<String>::err_result_msg(
-                    res,
-                    "新增字典数据失败,字典标签已存在".to_string(),
-                );
+            let res_by_dict_label =
+                DictData::select_by_dict_label(&mut RB.clone(), &item.dict_type, &item.dict_label)
+                    .await;
+            match res_by_dict_label {
+                Ok(r) => {
+                    if r.is_some() {
+                        return BaseResponse::<String>::err_result_msg(
+                            res,
+                            "新增字典数据失败,字典标签已存在".to_string(),
+                        );
+                    }
+                }
+                Err(err) => return BaseResponse::<String>::err_result_msg(res, err.to_string()),
+            }
+
+            let res_by_dict_value =
+                DictData::select_by_dict_value(&mut RB.clone(), &item.dict_type, &item.dict_value)
+                    .await;
+            match res_by_dict_value {
+                Ok(r) => {
+                    if r.is_some() {
+                        return BaseResponse::<String>::err_result_msg(
+                            res,
+                            "新增字典数据失败,字典键值已存在".to_string(),
+                        );
+                    }
+                }
+                Err(err) => return BaseResponse::<String>::err_result_msg(res, err.to_string()),
+            }
+
+            let sys_dict_data = DictData {
+                dict_code: None,                         //字典编码
+                dict_sort: item.dict_sort,               //字典排序
+                dict_label: item.dict_label,             //字典标签
+                dict_value: item.dict_value,             //字典键值
+                dict_type: item.dict_type,               //字典类型
+                css_class: item.css_class,               //样式属性（其他样式扩展）
+                list_class: item.list_class,             //格回显样式
+                is_default: item.is_default,             //是否默认（Y是 N否）
+                status: item.status,                     //状态（0：停用，1:正常）
+                remark: item.remark.unwrap_or_default(), //备注
+                create_time: None,                       //创建时间
+                update_time: None,                       //修改时间
+            };
+
+            let result = DictData::insert(&mut RB.clone(), &sys_dict_data).await;
+
+            match result {
+                Ok(_u) => BaseResponse::<String>::ok_result(res),
+                Err(err) => BaseResponse::<String>::err_result_msg(res, err.to_string()),
             }
         }
-        Err(err) => return BaseResponse::<String>::err_result_msg(res, err.to_string()),
-    }
-
-    let res_by_dict_value =
-        DictData::select_by_dict_value(&mut RB.clone(), &item.dict_type, &item.dict_value).await;
-    match res_by_dict_value {
-        Ok(r) => {
-            if r.is_some() {
-                return BaseResponse::<String>::err_result_msg(
-                    res,
-                    "新增字典数据失败,字典键值已存在".to_string(),
-                );
-            }
+        Err(err) => {
+            BaseResponse::<String>::err_result_msg(res, format!("解析请求参数失败: {}", err))
         }
-        Err(err) => return BaseResponse::<String>::err_result_msg(res, err.to_string()),
-    }
-
-    let sys_dict_data = DictData {
-        dict_code: None,                         //字典编码
-        dict_sort: item.dict_sort,               //字典排序
-        dict_label: item.dict_label,             //字典标签
-        dict_value: item.dict_value,             //字典键值
-        dict_type: item.dict_type,               //字典类型
-        css_class: item.css_class,               //样式属性（其他样式扩展）
-        list_class: item.list_class,             //格回显样式
-        is_default: item.is_default,             //是否默认（Y是 N否）
-        status: item.status,                     //状态（0：停用，1:正常）
-        remark: item.remark.unwrap_or_default(), //备注
-        create_time: None,                       //创建时间
-        update_time: None,                       //修改时间
-    };
-
-    let result = DictData::insert(&mut RB.clone(), &sys_dict_data).await;
-
-    match result {
-        Ok(_u) => BaseResponse::<String>::ok_result(res),
-        Err(err) => BaseResponse::<String>::err_result_msg(res, err.to_string()),
     }
 }
 
@@ -81,14 +89,20 @@ pub async fn add_sys_dict_data(req: &mut Request, res: &mut Response) {
  */
 #[handler]
 pub async fn delete_sys_dict_data(req: &mut Request, res: &mut Response) {
-    let item = req.parse_json::<DeleteDictDataReq>().await.unwrap();
-    log::info!("delete sys_dict_data params: {:?}", &item);
+    match req.parse_json::<DeleteDictDataReq>().await {
+        Ok(item) => {
+            log::info!("delete sys_dict_data params: {:?}", &item);
 
-    let result = DictData::delete_in_column(&mut RB.clone(), "dict_code", &item.ids).await;
+            let result = DictData::delete_in_column(&mut RB.clone(), "dict_code", &item.ids).await;
 
-    match result {
-        Ok(_u) => BaseResponse::<String>::ok_result(res),
-        Err(err) => BaseResponse::<String>::err_result_msg(res, err.to_string()),
+            match result {
+                Ok(_u) => BaseResponse::<String>::ok_result(res),
+                Err(err) => BaseResponse::<String>::err_result_msg(res, err.to_string()),
+            }
+        }
+        Err(err) => {
+            BaseResponse::<String>::err_result_msg(res, format!("解析请求参数失败: {}", err))
+        }
     }
 }
 
@@ -99,72 +113,82 @@ pub async fn delete_sys_dict_data(req: &mut Request, res: &mut Response) {
  */
 #[handler]
 pub async fn update_sys_dict_data(req: &mut Request, res: &mut Response) {
-    let item = req.parse_json::<UpdateDictDataReq>().await.unwrap();
-    log::info!("update sys_dict_data params: {:?}", &item);
+    match req.parse_json::<UpdateDictDataReq>().await {
+        Ok(item) => {
+            log::info!("update sys_dict_data params: {:?}", &item);
 
-    let rb = &mut RB.clone();
+            let rb = &mut RB.clone();
 
-    let result = DictData::select_by_id(rb, &item.dict_code).await;
-    match result {
-        Ok(r) => {
-            if r.is_none() {
-                return BaseResponse::<String>::err_result_msg(
-                    res,
-                    "更新字典数据失败,字典数据不存在".to_string(),
-                );
+            let result = DictData::select_by_id(rb, &item.dict_code).await;
+            match result {
+                Ok(r) => {
+                    if r.is_none() {
+                        return BaseResponse::<String>::err_result_msg(
+                            res,
+                            "更新字典数据失败,字典数据不存在".to_string(),
+                        );
+                    }
+                }
+                Err(err) => return BaseResponse::<String>::err_result_msg(res, err.to_string()),
+            }
+
+            let res_by_dict_label =
+                DictData::select_by_dict_label(rb, &item.dict_type, &item.dict_label).await;
+            match res_by_dict_label {
+                Ok(r) => {
+                    if r.is_some()
+                        && r.clone().unwrap().dict_code.unwrap_or_default() != item.dict_code
+                    {
+                        return BaseResponse::<String>::err_result_msg(
+                            res,
+                            "新增字典数据失败,字典标签已存在".to_string(),
+                        );
+                    }
+                }
+                Err(err) => return BaseResponse::<String>::err_result_msg(res, err.to_string()),
+            }
+
+            let res_by_dict_value =
+                DictData::select_by_dict_value(rb, &item.dict_type, &item.dict_value).await;
+            match res_by_dict_value {
+                Ok(r) => {
+                    if r.is_some()
+                        && r.clone().unwrap().dict_code.unwrap_or_default() != item.dict_code
+                    {
+                        return BaseResponse::<String>::err_result_msg(
+                            res,
+                            "新增字典数据失败,字典键值已存在".to_string(),
+                        );
+                    }
+                }
+                Err(err) => return BaseResponse::<String>::err_result_msg(res, err.to_string()),
+            }
+
+            let sys_dict_data = DictData {
+                dict_code: Some(item.dict_code),         //字典编码
+                dict_sort: item.dict_sort,               //字典排序
+                dict_label: item.dict_label,             //字典标签
+                dict_value: item.dict_value,             //字典键值
+                dict_type: item.dict_type,               //字典类型
+                css_class: item.css_class,               //样式属性（其他样式扩展）
+                list_class: item.list_class,             //格回显样式
+                is_default: item.is_default,             //是否默认（Y是 N否）
+                status: item.status,                     //状态（0：停用，1:正常）
+                remark: item.remark.unwrap_or_default(), //备注
+                create_time: None,                       //创建时间
+                update_time: None,                       //修改时间
+            };
+
+            let result = DictData::update_by_column(rb, &sys_dict_data, "dict_code").await;
+
+            match result {
+                Ok(_u) => BaseResponse::<String>::ok_result(res),
+                Err(err) => BaseResponse::<String>::err_result_msg(res, err.to_string()),
             }
         }
-        Err(err) => return BaseResponse::<String>::err_result_msg(res, err.to_string()),
-    }
-
-    let res_by_dict_label =
-        DictData::select_by_dict_label(rb, &item.dict_type, &item.dict_label).await;
-    match res_by_dict_label {
-        Ok(r) => {
-            if r.is_some() && r.clone().unwrap().dict_code.unwrap_or_default() != item.dict_code {
-                return BaseResponse::<String>::err_result_msg(
-                    res,
-                    "新增字典数据失败,字典标签已存在".to_string(),
-                );
-            }
+        Err(err) => {
+            BaseResponse::<String>::err_result_msg(res, format!("解析请求参数失败: {}", err))
         }
-        Err(err) => return BaseResponse::<String>::err_result_msg(res, err.to_string()),
-    }
-
-    let res_by_dict_value =
-        DictData::select_by_dict_value(rb, &item.dict_type, &item.dict_value).await;
-    match res_by_dict_value {
-        Ok(r) => {
-            if r.is_some() && r.clone().unwrap().dict_code.unwrap_or_default() != item.dict_code {
-                return BaseResponse::<String>::err_result_msg(
-                    res,
-                    "新增字典数据失败,字典键值已存在".to_string(),
-                );
-            }
-        }
-        Err(err) => return BaseResponse::<String>::err_result_msg(res, err.to_string()),
-    }
-
-    let sys_dict_data = DictData {
-        dict_code: Some(item.dict_code),         //字典编码
-        dict_sort: item.dict_sort,               //字典排序
-        dict_label: item.dict_label,             //字典标签
-        dict_value: item.dict_value,             //字典键值
-        dict_type: item.dict_type,               //字典类型
-        css_class: item.css_class,               //样式属性（其他样式扩展）
-        list_class: item.list_class,             //格回显样式
-        is_default: item.is_default,             //是否默认（Y是 N否）
-        status: item.status,                     //状态（0：停用，1:正常）
-        remark: item.remark.unwrap_or_default(), //备注
-        create_time: None,                       //创建时间
-        update_time: None,                       //修改时间
-    };
-
-    let result = DictData::update_by_column(rb, &sys_dict_data, "dict_code").await;
-
-    match result {
-        Ok(_u) => BaseResponse::<String>::ok_result(res),
-        Err(err) => BaseResponse::<String>::err_result_msg(res, err.to_string()),
     }
 }
 
@@ -175,25 +199,31 @@ pub async fn update_sys_dict_data(req: &mut Request, res: &mut Response) {
  */
 #[handler]
 pub async fn update_sys_dict_data_status(req: &mut Request, res: &mut Response) {
-    let item = req.parse_json::<UpdateDictDataStatusReq>().await.unwrap();
-    log::info!("update sys_dict_data_status params: {:?}", &item);
+    match req.parse_json::<UpdateDictDataStatusReq>().await {
+        Ok(item) => {
+            log::info!("update sys_dict_data_status params: {:?}", &item);
 
-    let update_sql = format!(
-        "update sys_dict_data set status = ? where dict_code in ({})",
-        item.ids
-            .iter()
-            .map(|_| "?")
-            .collect::<Vec<&str>>()
-            .join(", ")
-    );
+            let update_sql = format!(
+                "update sys_dict_data set status = ? where dict_code in ({})",
+                item.ids
+                    .iter()
+                    .map(|_| "?")
+                    .collect::<Vec<&str>>()
+                    .join(", ")
+            );
 
-    let mut param = vec![to_value!(item.status)];
-    param.extend(item.ids.iter().map(|&id| to_value!(id)));
-    let result = &mut RB.clone().exec(&update_sql, param).await;
+            let mut param = vec![to_value!(item.status)];
+            param.extend(item.ids.iter().map(|&id| to_value!(id)));
+            let result = &mut RB.clone().exec(&update_sql, param).await;
 
-    match result {
-        Ok(_u) => BaseResponse::<String>::ok_result(res),
-        Err(err) => BaseResponse::<String>::err_result_msg(res, err.to_string()),
+            match result {
+                Ok(_u) => BaseResponse::<String>::ok_result(res),
+                Err(err) => BaseResponse::<String>::err_result_msg(res, err.to_string()),
+            }
+        }
+        Err(err) => {
+            BaseResponse::<String>::err_result_msg(res, format!("解析请求参数失败: {}", err))
+        }
     }
 }
 
@@ -204,75 +234,25 @@ pub async fn update_sys_dict_data_status(req: &mut Request, res: &mut Response) 
  */
 #[handler]
 pub async fn query_sys_dict_data_detail(req: &mut Request, res: &mut Response) {
-    let item = req.parse_json::<QueryDictDataDetailReq>().await.unwrap();
-    log::info!("query sys_dict_data_detail params: {:?}", &item);
+    match req.parse_json::<QueryDictDataDetailReq>().await {
+        Ok(item) => {
+            log::info!("query sys_dict_data_detail params: {:?}", &item);
 
-    let result = DictData::select_by_id(&mut RB.clone(), &item.id).await;
+            let result = DictData::select_by_id(&mut RB.clone(), &item.id).await;
 
-    match result {
-        Ok(d) => {
-            if d.is_none() {
-                return BaseResponse::<QueryDictDataDetailResp>::err_result_data(
-                    res,
-                    QueryDictDataDetailResp::new(),
-                    "字典数据不存在".to_string(),
-                );
-            }
+            match result {
+                Ok(d) => {
+                    if d.is_none() {
+                        return BaseResponse::<QueryDictDataDetailResp>::err_result_data(
+                            res,
+                            QueryDictDataDetailResp::new(),
+                            "字典数据不存在".to_string(),
+                        );
+                    }
 
-            let x = d.unwrap();
+                    let x = d.unwrap();
 
-            let sys_dict_data = QueryDictDataDetailResp {
-                dict_code: x.dict_code.unwrap_or_default(), //字典编码
-                dict_sort: x.dict_sort,                     //字典排序
-                dict_label: x.dict_label,                   //字典标签
-                dict_value: x.dict_value,                   //字典键值
-                dict_type: x.dict_type,                     //字典类型
-                css_class: x.css_class,                     //样式属性（其他样式扩展）
-                list_class: x.list_class,                   //格回显样式
-                is_default: x.is_default,                   //是否默认（Y是 N否）
-                status: x.status,                           //状态（0：停用，1:正常）
-                remark: x.remark,                           //备注
-                create_time: time_to_string(x.create_time), //创建时间
-                update_time: time_to_string(x.update_time), //修改时间
-            };
-
-            BaseResponse::<QueryDictDataDetailResp>::ok_result_data(res, sys_dict_data)
-        }
-        Err(err) => BaseResponse::<QueryDictDataDetailResp>::err_result_data(
-            res,
-            QueryDictDataDetailResp::new(),
-            err.to_string(),
-        ),
-    }
-}
-
-/*
- *查询字典数据表列表
- *author：刘飞华
- *date：2025/01/08 13:51:14
- */
-#[handler]
-pub async fn query_sys_dict_data_list(req: &mut Request, res: &mut Response) {
-    let item = req.parse_json::<QueryDictDataListReq>().await.unwrap();
-    log::info!("query sys_dict_data_list params: {:?}", &item);
-
-    let dict_label = item.dict_label.as_deref().unwrap_or_default(); //字典标签
-    let dict_type = item.dict_type.as_deref().unwrap_or_default(); //字典类型
-    let status = item.status.unwrap_or(2); //状态（0：停用，1:正常）
-
-    let page = &PageRequest::new(item.page_no, item.page_size);
-    let result =
-        DictData::select_dict_data_list(&mut RB.clone(), page, dict_label, dict_type, status).await;
-
-    match result {
-        Ok(page) => {
-            let total = page.total;
-
-            let list = page
-                .records
-                .into_iter()
-                .map(|x| {
-                    DictDataListDataResp {
+                    let sys_dict_data = QueryDictDataDetailResp {
                         dict_code: x.dict_code.unwrap_or_default(), //字典编码
                         dict_sort: x.dict_sort,                     //字典排序
                         dict_label: x.dict_label,                   //字典标签
@@ -285,14 +265,82 @@ pub async fn query_sys_dict_data_list(req: &mut Request, res: &mut Response) {
                         remark: x.remark,                           //备注
                         create_time: time_to_string(x.create_time), //创建时间
                         update_time: time_to_string(x.update_time), //修改时间
-                    }
-                })
-                .collect::<Vec<DictDataListDataResp>>();
+                    };
 
-            BaseResponse::<Vec<DictDataListDataResp>>::ok_result_page(res, list, total)
+                    BaseResponse::<QueryDictDataDetailResp>::ok_result_data(res, sys_dict_data)
+                }
+                Err(err) => BaseResponse::<QueryDictDataDetailResp>::err_result_data(
+                    res,
+                    QueryDictDataDetailResp::new(),
+                    err.to_string(),
+                ),
+            }
         }
         Err(err) => {
-            BaseResponse::<Vec<DictDataListDataResp>>::err_result_page(res, err.to_string())
+            BaseResponse::<String>::err_result_msg(res, format!("解析请求参数失败: {}", err))
+        }
+    }
+}
+
+/*
+ *查询字典数据表列表
+ *author：刘飞华
+ *date：2025/01/08 13:51:14
+ */
+#[handler]
+pub async fn query_sys_dict_data_list(req: &mut Request, res: &mut Response) {
+    match req.parse_json::<QueryDictDataListReq>().await {
+        Ok(item) => {
+            log::info!("query sys_dict_data_list params: {:?}", &item);
+
+            let dict_label = item.dict_label.as_deref().unwrap_or_default(); //字典标签
+            let dict_type = item.dict_type.as_deref().unwrap_or_default(); //字典类型
+            let status = item.status.unwrap_or(2); //状态（0：停用，1:正常）
+
+            let page = &PageRequest::new(item.page_no, item.page_size);
+            let result = DictData::select_dict_data_list(
+                &mut RB.clone(),
+                page,
+                dict_label,
+                dict_type,
+                status,
+            )
+            .await;
+
+            match result {
+                Ok(page) => {
+                    let total = page.total;
+
+                    let list = page
+                        .records
+                        .into_iter()
+                        .map(|x| {
+                            DictDataListDataResp {
+                                dict_code: x.dict_code.unwrap_or_default(), //字典编码
+                                dict_sort: x.dict_sort,                     //字典排序
+                                dict_label: x.dict_label,                   //字典标签
+                                dict_value: x.dict_value,                   //字典键值
+                                dict_type: x.dict_type,                     //字典类型
+                                css_class: x.css_class, //样式属性（其他样式扩展）
+                                list_class: x.list_class, //格回显样式
+                                is_default: x.is_default, //是否默认（Y是 N否）
+                                status: x.status,       //状态（0：停用，1:正常）
+                                remark: x.remark,       //备注
+                                create_time: time_to_string(x.create_time), //创建时间
+                                update_time: time_to_string(x.update_time), //修改时间
+                            }
+                        })
+                        .collect::<Vec<DictDataListDataResp>>();
+
+                    BaseResponse::<Vec<DictDataListDataResp>>::ok_result_page(res, list, total)
+                }
+                Err(err) => {
+                    BaseResponse::<Vec<DictDataListDataResp>>::err_result_page(res, err.to_string())
+                }
+            }
+        }
+        Err(err) => {
+            BaseResponse::<String>::err_result_msg(res, format!("解析请求参数失败: {}", err))
         }
     }
 }

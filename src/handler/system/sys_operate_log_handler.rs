@@ -19,14 +19,20 @@ use crate::RB;
  */
 #[handler]
 pub async fn delete_sys_operate_log(req: &mut Request, res: &mut Response) {
-    let item = req.parse_json::<DeleteOperateLogReq>().await.unwrap();
-    log::info!("delete sys_operate_log params: {:?}", &item);
+    match req.parse_json::<DeleteOperateLogReq>().await {
+        Ok(item) => {
+            log::info!("delete sys_operate_log params: {:?}", &item);
 
-    let result = OperateLog::delete_in_column(&mut RB.clone(), "id", &item.ids).await;
+            let result = OperateLog::delete_in_column(&mut RB.clone(), "id", &item.ids).await;
 
-    match result {
-        Ok(_u) => BaseResponse::<String>::ok_result(res),
-        Err(err) => BaseResponse::<String>::err_result_msg(res, err.to_string()),
+            match result {
+                Ok(_u) => BaseResponse::<String>::ok_result(res),
+                Err(err) => BaseResponse::<String>::err_result_msg(res, err.to_string()),
+            }
+        }
+        Err(err) => {
+            BaseResponse::<String>::err_result_msg(res, format!("解析请求参数失败: {}", err))
+        }
     }
 }
 
@@ -37,49 +43,55 @@ pub async fn delete_sys_operate_log(req: &mut Request, res: &mut Response) {
  */
 #[handler]
 pub async fn query_sys_operate_log_detail(req: &mut Request, res: &mut Response) {
-    let item = req.parse_json::<QueryOperateLogDetailReq>().await.unwrap();
-    log::info!("query sys_operate_log_detail params: {:?}", &item);
+    match req.parse_json::<QueryOperateLogDetailReq>().await {
+        Ok(item) => {
+            log::info!("query sys_operate_log_detail params: {:?}", &item);
 
-    let result = OperateLog::select_by_id(&mut RB.clone(), &item.id).await;
+            let result = OperateLog::select_by_id(&mut RB.clone(), &item.id).await;
 
-    match result {
-        Ok(d) => {
-            if d.is_none() {
-                return BaseResponse::<QueryOperateLogDetailResp>::err_result_data(
+            match result {
+                Ok(d) => {
+                    if d.is_none() {
+                        return BaseResponse::<QueryOperateLogDetailResp>::err_result_data(
+                            res,
+                            QueryOperateLogDetailResp::new(),
+                            "操作日志不存在".to_string(),
+                        );
+                    }
+                    let x = d.unwrap();
+
+                    let sys_operate_log = QueryOperateLogDetailResp {
+                        id: x.id,                                     //日志主键
+                        title: x.title,                               //模块标题
+                        business_type: x.business_type, //业务类型（0其它 1新增 2修改 3删除）
+                        method: x.method,               //方法名称
+                        request_method: x.request_method, //请求方式
+                        operator_type: x.operator_type, //操作类别（0其它 1后台用户 2手机端用户）
+                        operate_name: x.operate_name,   //操作人员
+                        dept_name: x.dept_name,         //部门名称
+                        operate_url: x.operate_url,     //请求URL
+                        operate_ip: x.operate_ip,       //主机地址
+                        operate_location: x.operate_location, //操作地点
+                        operate_param: x.operate_param, //请求参数
+                        json_result: x.json_result,     //返回参数
+                        status: x.status,               //操作状态(0:异常,正常)
+                        error_msg: x.error_msg,         //错误消息
+                        operate_time: time_to_string(x.operate_time), //操作时间
+                        cost_time: x.cost_time,         //消耗时间
+                    };
+
+                    BaseResponse::<QueryOperateLogDetailResp>::ok_result_data(res, sys_operate_log)
+                }
+                Err(err) => BaseResponse::<QueryOperateLogDetailResp>::err_result_data(
                     res,
                     QueryOperateLogDetailResp::new(),
-                    "操作日志不存在".to_string(),
-                );
+                    err.to_string(),
+                ),
             }
-            let x = d.unwrap();
-
-            let sys_operate_log = QueryOperateLogDetailResp {
-                id: x.id,                                     //日志主键
-                title: x.title,                               //模块标题
-                business_type: x.business_type,               //业务类型（0其它 1新增 2修改 3删除）
-                method: x.method,                             //方法名称
-                request_method: x.request_method,             //请求方式
-                operator_type: x.operator_type, //操作类别（0其它 1后台用户 2手机端用户）
-                operate_name: x.operate_name,   //操作人员
-                dept_name: x.dept_name,         //部门名称
-                operate_url: x.operate_url,     //请求URL
-                operate_ip: x.operate_ip,       //主机地址
-                operate_location: x.operate_location, //操作地点
-                operate_param: x.operate_param, //请求参数
-                json_result: x.json_result,     //返回参数
-                status: x.status,               //操作状态(0:异常,正常)
-                error_msg: x.error_msg,         //错误消息
-                operate_time: time_to_string(x.operate_time), //操作时间
-                cost_time: x.cost_time,         //消耗时间
-            };
-
-            BaseResponse::<QueryOperateLogDetailResp>::ok_result_data(res, sys_operate_log)
         }
-        Err(err) => BaseResponse::<QueryOperateLogDetailResp>::err_result_data(
-            res,
-            QueryOperateLogDetailResp::new(),
-            err.to_string(),
-        ),
+        Err(err) => {
+            BaseResponse::<String>::err_result_msg(res, format!("解析请求参数失败: {}", err))
+        }
     }
 }
 
@@ -90,66 +102,79 @@ pub async fn query_sys_operate_log_detail(req: &mut Request, res: &mut Response)
  */
 #[handler]
 pub async fn query_sys_operate_log_list(req: &mut Request, res: &mut Response) {
-    let item = req.parse_json::<QueryOperateLogListReq>().await.unwrap();
-    log::info!("query sys_operate_log_list params: {:?}", &item);
+    match req.parse_json::<QueryOperateLogListReq>().await {
+        Ok(item) => {
+            log::info!("query sys_operate_log_list params: {:?}", &item);
 
-    let title = item.title.as_deref().unwrap_or_default(); //模块标题
-    let business_type = item.business_type.unwrap_or(4); //业务类型（0其它 1新增 2修改 3删除）
-    let method = item.method.as_deref().unwrap_or_default(); //方法名称
-    let request_method = item.request_method.as_deref().unwrap_or_default(); //请求方式
-    let operator_type = item.operator_type.unwrap_or(3); //操作类别（0其它 1后台用户 2手机端用户）
-    let operate_name = item.operate_name.as_deref().unwrap_or_default(); //操作人员
-    let dept_name = item.dept_name.as_deref().unwrap_or_default(); //部门名称
-    let operate_url = item.operate_url.as_deref().unwrap_or_default(); //请求URL
-    let operate_ip = item.operate_ip.as_deref().unwrap_or_default(); //主机地址
-    let status = item.status.unwrap_or(2); //操作状态(0:异常,正常)
+            let title = item.title.as_deref().unwrap_or_default(); //模块标题
+            let business_type = item.business_type.unwrap_or(4); //业务类型（0其它 1新增 2修改 3删除）
+            let method = item.method.as_deref().unwrap_or_default(); //方法名称
+            let request_method = item.request_method.as_deref().unwrap_or_default(); //请求方式
+            let operator_type = item.operator_type.unwrap_or(3); //操作类别（0其它 1后台用户 2手机端用户）
+            let operate_name = item.operate_name.as_deref().unwrap_or_default(); //操作人员
+            let dept_name = item.dept_name.as_deref().unwrap_or_default(); //部门名称
+            let operate_url = item.operate_url.as_deref().unwrap_or_default(); //请求URL
+            let operate_ip = item.operate_ip.as_deref().unwrap_or_default(); //主机地址
+            let status = item.status.unwrap_or(2); //操作状态(0:异常,正常)
 
-    let page = &PageRequest::new(item.page_no, item.page_size);
-    let result = OperateLog::select_page_by_name(
-        &mut RB.clone(),
-        page,
-        title,
-        &business_type,
-        method,
-        request_method,
-        &operator_type,
-        operate_name,
-        dept_name,
-        operate_url,
-        operate_ip,
-        &status,
-    )
-    .await;
+            let page = &PageRequest::new(item.page_no, item.page_size);
 
-    let mut sys_operate_log_list_data: Vec<OperateLogListDataResp> = Vec::new();
-    match result {
-        Ok(d) => {
-            let total = d.total;
+            let mut sys_operate_log_list_data: Vec<OperateLogListDataResp> = Vec::new();
+            match OperateLog::select_page_by_name(
+                &mut RB.clone(),
+                page,
+                title,
+                &business_type,
+                method,
+                request_method,
+                &operator_type,
+                operate_name,
+                dept_name,
+                operate_url,
+                operate_ip,
+                &status,
+            )
+            .await
+            {
+                Ok(d) => {
+                    let total = d.total;
 
-            for x in d.records {
-                sys_operate_log_list_data.push(OperateLogListDataResp {
-                    id: x.id,                                     //日志主键
-                    title: x.title,                               //模块标题
-                    business_type: x.business_type, //业务类型（0其它 1新增 2修改 3删除）
-                    method: x.method,               //方法名称
-                    request_method: x.request_method, //请求方式
-                    operator_type: x.operator_type, //操作类别（0其它 1后台用户 2手机端用户）
-                    operate_name: x.operate_name,   //操作人员
-                    dept_name: x.dept_name,         //部门名称
-                    operate_url: x.operate_url,     //请求URL
-                    operate_ip: x.operate_ip,       //主机地址
-                    operate_location: x.operate_location, //操作地点
-                    operate_param: x.operate_param, //请求参数
-                    json_result: x.json_result,     //返回参数
-                    status: x.status,               //操作状态(0:异常,正常)
-                    error_msg: x.error_msg,         //错误消息
-                    operate_time: time_to_string(x.operate_time), //操作时间
-                    cost_time: x.cost_time,         //消耗时间
-                })
+                    for x in d.records {
+                        sys_operate_log_list_data.push(OperateLogListDataResp {
+                            id: x.id,                                     //日志主键
+                            title: x.title,                               //模块标题
+                            business_type: x.business_type, //业务类型（0其它 1新增 2修改 3删除）
+                            method: x.method,               //方法名称
+                            request_method: x.request_method, //请求方式
+                            operator_type: x.operator_type, //操作类别（0其它 1后台用户 2手机端用户）
+                            operate_name: x.operate_name,   //操作人员
+                            dept_name: x.dept_name,         //部门名称
+                            operate_url: x.operate_url,     //请求URL
+                            operate_ip: x.operate_ip,       //主机地址
+                            operate_location: x.operate_location, //操作地点
+                            operate_param: x.operate_param, //请求参数
+                            json_result: x.json_result,     //返回参数
+                            status: x.status,               //操作状态(0:异常,正常)
+                            error_msg: x.error_msg,         //错误消息
+                            operate_time: time_to_string(x.operate_time), //操作时间
+                            cost_time: x.cost_time,         //消耗时间
+                        })
+                    }
+
+                    BaseResponse::<Vec<OperateLogListDataResp>>::ok_result_page(
+                        res,
+                        sys_operate_log_list_data,
+                        total,
+                    )
+                }
+                Err(err) => BaseResponse::<Vec<OperateLogListDataResp>>::err_result_page(
+                    res,
+                    err.to_string(),
+                ),
             }
-
-            BaseResponse::<Vec<OperateLogListDataResp>>::ok_result_page(res, sys_operate_log_list_data, total)
         }
-        Err(err) => BaseResponse::<Vec<OperateLogListDataResp>>::err_result_page(res, err.to_string()),
+        Err(err) => {
+            BaseResponse::<String>::err_result_msg(res, format!("解析请求参数失败: {}", err))
+        }
     }
 }
