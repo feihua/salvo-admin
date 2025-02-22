@@ -26,28 +26,24 @@ pub async fn add_sys_post(req: &mut Request, res: &mut Response) {
             log::info!("add sys_post params: {:?}", &item);
 
             let rb = &mut RB.clone();
-            let res_by_name = Post::select_by_name(rb, &item.post_name).await;
-            match res_by_name {
-                Ok(r) => {
-                    if r.is_some() {
-                        return BaseResponse::<String>::err_result_msg(
-                            res,
-                            "新增岗位失败,岗位名称已存在".to_string(),
-                        );
-                    }
+            match Post::select_by_name(rb, &item.post_name).await {
+                Ok(None) => {}
+                Ok(Some(_x)) => {
+                    return BaseResponse::<String>::err_result_msg(
+                        res,
+                        "新增岗位失败,岗位名称已存在".to_string(),
+                    );
                 }
                 Err(err) => return BaseResponse::<String>::err_result_msg(res, err.to_string()),
             }
 
-            let res_by_code = Post::select_by_code(rb, &item.post_code).await;
-            match res_by_code {
-                Ok(r) => {
-                    if r.is_some() {
-                        return BaseResponse::<String>::err_result_msg(
-                            res,
-                            "新增岗位失败,岗位编码已存在".to_string(),
-                        );
-                    }
+            match Post::select_by_code(rb, &item.post_code).await {
+                Ok(None) => {}
+                Ok(Some(_x)) => {
+                    return BaseResponse::<String>::err_result_msg(
+                        res,
+                        "新增岗位失败,岗位编码已存在".to_string(),
+                    );
                 }
                 Err(err) => return BaseResponse::<String>::err_result_msg(res, err.to_string()),
             }
@@ -63,9 +59,7 @@ pub async fn add_sys_post(req: &mut Request, res: &mut Response) {
                 update_time: None,                       //更新时间
             };
 
-            let result = Post::insert(rb, &sys_post).await;
-
-            match result {
+            match Post::insert(rb, &sys_post).await {
                 Ok(_u) => BaseResponse::<String>::ok_result(res),
                 Err(err) => BaseResponse::<String>::err_result_msg(res, err.to_string()),
             }
@@ -90,33 +84,26 @@ pub async fn delete_sys_post(req: &mut Request, res: &mut Response) {
             let ids = item.ids.clone();
             let rb = &mut RB.clone();
             for id in ids {
-                let post_by_id = Post::select_by_id(rb, &id).await;
-                let p = match post_by_id {
-                    Ok(p) => {
-                        if p.is_none() {
-                            return BaseResponse::<String>::err_result_msg(
-                                res,
-                                "岗位不存在,不能删除".to_string(),
-                            );
-                        } else {
-                            p.unwrap()
+                match Post::select_by_id(rb, &id).await {
+                    Ok(None) => {
+                        return BaseResponse::<String>::err_result_msg(
+                            res,
+                            "岗位不存在,不能删除".to_string(),
+                        )
+                    }
+                    Ok(Some(x)) => {
+                        if count_user_post_by_id(rb, id).await.unwrap_or_default() > 0 {
+                            let msg = format!("{}已分配,不能删除", x.post_name);
+                            return BaseResponse::<String>::err_result_msg(res, msg);
                         }
                     }
                     Err(err) => {
                         return BaseResponse::<String>::err_result_msg(res, err.to_string())
                     }
                 };
-
-                let count = count_user_post_by_id(rb, id).await;
-                if count.unwrap_or_default() > 0 {
-                    let msg = format!("{}已分配,不能删除", p.post_name);
-                    return BaseResponse::<String>::err_result_msg(res, msg);
-                }
             }
 
-            let result = Post::delete_in_column(rb, "id", &item.ids).await;
-
-            match result {
+            match Post::delete_in_column(rb, "id", &item.ids).await {
                 Ok(_u) => BaseResponse::<String>::ok_result(res),
                 Err(err) => BaseResponse::<String>::err_result_msg(res, err.to_string()),
             }
@@ -140,24 +127,21 @@ pub async fn update_sys_post(req: &mut Request, res: &mut Response) {
 
             let rb = &mut RB.clone();
 
-            let result = Post::select_by_id(rb, &item.id).await;
-
-            match result {
-                Ok(d) => {
-                    if d.is_none() {
-                        return BaseResponse::<String>::err_result_msg(
-                            res,
-                            "更新岗位失败,岗位不存在".to_string(),
-                        );
-                    }
+            match Post::select_by_id(rb, &item.id).await {
+                Ok(None) => {
+                    return BaseResponse::<String>::err_result_msg(
+                        res,
+                        "更新岗位失败,岗位不存在".to_string(),
+                    )
                 }
+                Ok(_d) => {}
                 Err(err) => return BaseResponse::<String>::err_result_msg(res, err.to_string()),
             }
 
-            let res_by_name = Post::select_by_name(rb, &item.post_name).await;
-            match res_by_name {
-                Ok(r) => {
-                    if r.is_some() && r.unwrap().id.unwrap_or_default() != item.id {
+            match Post::select_by_name(rb, &item.post_name).await {
+                Ok(None) => {}
+                Ok(Some(x)) => {
+                    if x.id.unwrap_or_default() != item.id {
                         return BaseResponse::<String>::err_result_msg(
                             res,
                             "更新岗位失败,岗位名称已存在".to_string(),
@@ -167,10 +151,10 @@ pub async fn update_sys_post(req: &mut Request, res: &mut Response) {
                 Err(err) => return BaseResponse::<String>::err_result_msg(res, err.to_string()),
             }
 
-            let res_by_code = Post::select_by_code(rb, &item.post_code).await;
-            match res_by_code {
-                Ok(r) => {
-                    if r.is_some() && r.unwrap().id.unwrap_or_default() != item.id {
+            match Post::select_by_code(rb, &item.post_code).await {
+                Ok(None) => {}
+                Ok(Some(x)) => {
+                    if x.id.unwrap_or_default() != item.id {
                         return BaseResponse::<String>::err_result_msg(
                             res,
                             "更新岗位失败,岗位编码已存在".to_string(),
@@ -191,9 +175,7 @@ pub async fn update_sys_post(req: &mut Request, res: &mut Response) {
                 update_time: None,                       //更新时间
             };
 
-            let result = Post::update_by_column(rb, &sys_post, "id").await;
-
-            match result {
+            match Post::update_by_column(rb, &sys_post, "id").await {
                 Ok(_u) => BaseResponse::<String>::ok_result(res),
                 Err(err) => BaseResponse::<String>::err_result_msg(res, err.to_string()),
             }
@@ -226,9 +208,8 @@ pub async fn update_sys_post_status(req: &mut Request, res: &mut Response) {
 
             let mut param = vec![to_value!(item.status)];
             param.extend(item.ids.iter().map(|&id| to_value!(id)));
-            let result = &mut RB.clone().exec(&update_sql, param).await;
 
-            match result {
+            match &mut RB.clone().exec(&update_sql, param).await {
                 Ok(_u) => BaseResponse::<String>::ok_result(res),
                 Err(err) => BaseResponse::<String>::err_result_msg(res, err.to_string()),
             }

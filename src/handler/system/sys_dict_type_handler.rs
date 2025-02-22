@@ -27,13 +27,12 @@ pub async fn add_sys_dict_type(req: &mut Request, res: &mut Response) {
 
             let rb = &mut RB.clone();
             match DictType::select_by_dict_type(rb, &item.dict_type).await {
-                Ok(r) => {
-                    if r.is_some() {
-                        return BaseResponse::<String>::err_result_msg(
-                            res,
-                            "新增字典失败,字典类型已存在".to_string(),
-                        );
-                    }
+                Ok(None) => {}
+                Ok(Some(_x)) => {
+                    return BaseResponse::<String>::err_result_msg(
+                        res,
+                        "新增字典失败,字典类型已存在".to_string(),
+                    )
                 }
                 Err(err) => return BaseResponse::<String>::err_result_msg(res, err.to_string()),
             }
@@ -73,18 +72,14 @@ pub async fn delete_sys_dict_type(req: &mut Request, res: &mut Response) {
             let rb = &mut RB.clone();
             let ids = item.ids.clone();
             for id in ids {
-                let dict_by_id = DictType::select_by_id(rb, &id).await;
-                let p = match dict_by_id {
-                    Ok(p) => {
-                        if p.is_none() {
-                            return BaseResponse::<String>::err_result_msg(
-                                res,
-                                "字典类型不存在,不能删除".to_string(),
-                            );
-                        } else {
-                            p.unwrap()
-                        }
+                let p = match DictType::select_by_id(rb, &id).await {
+                    Ok(None) => {
+                        return BaseResponse::<String>::err_result_msg(
+                            res,
+                            "字典类型不存在,不能删除".to_string(),
+                        )
                     }
+                    Ok(Some(x)) => x,
                     Err(err) => {
                         return BaseResponse::<String>::err_result_msg(res, err.to_string())
                     }
@@ -99,9 +94,7 @@ pub async fn delete_sys_dict_type(req: &mut Request, res: &mut Response) {
                 }
             }
 
-            let result = DictType::delete_in_column(rb, "id", &item.ids).await;
-
-            match result {
+            match DictType::delete_in_column(rb, "id", &item.ids).await {
                 Ok(_u) => BaseResponse::<String>::ok_result(res),
                 Err(err) => BaseResponse::<String>::err_result_msg(res, err.to_string()),
             }
@@ -126,29 +119,27 @@ pub async fn update_sys_dict_type(req: &mut Request, res: &mut Response) {
             let rb = &mut RB.clone();
             let dict_by_id = DictType::select_by_id(rb, &item.dict_id).await;
             match dict_by_id {
-                Ok(p) => {
-                    if p.is_none() {
-                        return BaseResponse::<String>::err_result_msg(
-                            res,
-                            "更新字典失败,字典类型不存在".to_string(),
-                        );
-                    }
+                Ok(None) => {
+                    return BaseResponse::<String>::err_result_msg(
+                        res,
+                        "更新字典失败,字典类型不存在".to_string(),
+                    )
                 }
+                Ok(Some(x)) => x,
                 Err(err) => return BaseResponse::<String>::err_result_msg(res, err.to_string()),
             };
 
-            let res_by_type = DictType::select_by_dict_type(rb, &item.dict_type).await;
-            match res_by_type {
-                Ok(r) => {
-                    if r.is_some() && r.clone().unwrap().dict_id.unwrap_or_default() != item.dict_id
-                    {
+            match DictType::select_by_dict_type(rb, &item.dict_type).await {
+                Ok(None) => {}
+                Ok(Some(x)) => {
+                    if x.dict_id.unwrap_or_default() != item.dict_id {
                         return BaseResponse::<String>::err_result_msg(
                             res,
                             "更新字典失败,字典类型已存在".to_string(),
                         );
                     }
 
-                    let dict_type = r.unwrap().dict_type;
+                    let dict_type = x.dict_type;
                     let _ = update_dict_data_type(rb, &*item.dict_type, &dict_type).await;
                 }
                 Err(err) => return BaseResponse::<String>::err_result_msg(res, err.to_string()),
@@ -164,9 +155,7 @@ pub async fn update_sys_dict_type(req: &mut Request, res: &mut Response) {
                 update_time: None,                       //修改时间
             };
 
-            let result = DictType::update_by_column(rb, &sys_dict_type, "dict_id").await;
-
-            match result {
+            match DictType::update_by_column(rb, &sys_dict_type, "dict_id").await {
                 Ok(_u) => BaseResponse::<String>::ok_result(res),
                 Err(err) => BaseResponse::<String>::err_result_msg(res, err.to_string()),
             }
@@ -184,6 +173,7 @@ pub async fn update_sys_dict_type(req: &mut Request, res: &mut Response) {
  */
 #[handler]
 pub async fn update_sys_dict_type_status(req: &mut Request, res: &mut Response) {
+    let rb = &mut RB.clone();
     match req.parse_json::<UpdateDictTypeStatusReq>().await {
         Ok(item) => {
             log::info!("update sys_dict_type_status params: {:?}", &item);
@@ -199,9 +189,8 @@ pub async fn update_sys_dict_type_status(req: &mut Request, res: &mut Response) 
 
             let mut param = vec![to_value!(item.status)];
             param.extend(item.ids.iter().map(|&id| to_value!(id)));
-            let result = &mut RB.clone().exec(&update_sql, param).await;
 
-            match result {
+            match rb.exec(&update_sql, param).await {
                 Ok(_u) => BaseResponse::<String>::ok_result(res),
                 Err(err) => BaseResponse::<String>::err_result_msg(res, err.to_string()),
             }

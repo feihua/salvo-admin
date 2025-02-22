@@ -27,38 +27,34 @@ pub async fn add_sys_dept(req: &mut Request, res: &mut Response) {
             log::info!("add sys_dept params: {:?}", &item);
 
             let rb = &mut RB.clone();
-            let res_dept = Dept::select_by_dept_name(rb, &item.dept_name, item.parent_id).await;
-            match res_dept {
-                Ok(r) => {
-                    if r.is_some() {
-                        return BaseResponse::<String>::err_result_msg(
-                            res,
-                            "部门名称已存在".to_string(),
-                        );
-                    }
+
+            match Dept::select_by_dept_name(rb, &item.dept_name, item.parent_id).await {
+                Ok(Some(_u)) => {
+                    return BaseResponse::<String>::err_result_msg(
+                        res,
+                        "部门名称已存在".to_string(),
+                    );
                 }
                 Err(err) => return BaseResponse::<String>::err_result_msg(res, err.to_string()),
+                _ => {}
             }
 
-            let res_dept = Dept::select_by_id(rb, &item.parent_id).await;
-            let ancestors = match res_dept {
-                Ok(r) => match r {
-                    None => {
+            let ancestors = match Dept::select_by_id(rb, &item.parent_id).await {
+                Ok(None) => {
+                    return BaseResponse::<String>::err_result_msg(
+                        res,
+                        "添加失败,上级部门不存在".to_string(),
+                    )
+                }
+                Ok(Some(dept)) => {
+                    if dept.status == 0 {
                         return BaseResponse::<String>::err_result_msg(
                             res,
-                            "添加失败,上级部门不存在".to_string(),
-                        )
+                            "部门停用，不允许添加".to_string(),
+                        );
                     }
-                    Some(dept) => {
-                        if dept.status == 0 {
-                            return BaseResponse::<String>::err_result_msg(
-                                res,
-                                "部门停用，不允许添加".to_string(),
-                            );
-                        }
-                        format!("{},{}", dept.ancestors, &item.parent_id)
-                    }
-                },
+                    format!("{},{}", dept.ancestors, &item.parent_id)
+                }
                 Err(err) => return BaseResponse::<String>::err_result_msg(res, err.to_string()),
             };
 
@@ -77,9 +73,7 @@ pub async fn add_sys_dept(req: &mut Request, res: &mut Response) {
                 update_time: None,         //修改时间
             };
 
-            let result = Dept::insert(rb, &sys_dept).await;
-
-            match result {
+            match Dept::insert(rb, &sys_dept).await {
                 Ok(_u) => BaseResponse::<String>::ok_result(res),
                 Err(err) => BaseResponse::<String>::err_result_msg(res, err.to_string()),
             }
@@ -120,9 +114,7 @@ pub async fn delete_sys_dept(req: &mut Request, res: &mut Response) {
                 );
             }
 
-            let result = Dept::delete_by_column(rb, "id", &item.id).await;
-
-            match result {
+            match Dept::delete_by_column(rb, "id", &item.id).await {
                 Ok(_u) => BaseResponse::<String>::ok_result(res),
                 Err(err) => BaseResponse::<String>::err_result_msg(res, err.to_string()),
             }
@@ -140,6 +132,7 @@ pub async fn delete_sys_dept(req: &mut Request, res: &mut Response) {
  */
 #[handler]
 pub async fn update_sys_dept(req: &mut Request, res: &mut Response) {
+    let rb = &mut RB.clone();
     match req.parse_json::<UpdateDeptReq>().await {
         Ok(item) => {
             log::info!("update sys_dept params: {:?}", &item);
@@ -151,39 +144,31 @@ pub async fn update_sys_dept(req: &mut Request, res: &mut Response) {
                 );
             }
 
-            let rb = &mut RB.clone();
-            let res_dept = Dept::select_by_id(rb, &item.id).await;
-            let old_ancestors = match res_dept {
-                Ok(r) => match r {
-                    None => {
-                        return BaseResponse::<String>::err_result_msg(
-                            res,
-                            "更新失败,部门不存在".to_string(),
-                        )
-                    }
-                    Some(dept) => dept.ancestors,
-                },
+            let old_ancestors = match Dept::select_by_id(rb, &item.id).await {
+                Ok(None) => {
+                    return BaseResponse::<String>::err_result_msg(
+                        res,
+                        "更新失败,部门不存在".to_string(),
+                    )
+                }
+                Ok(Some(dept)) => dept.ancestors,
                 Err(err) => return BaseResponse::<String>::err_result_msg(res, err.to_string()),
             };
 
-            let res_dept = Dept::select_by_id(rb, &item.parent_id).await;
-            let ancestors = match res_dept {
-                Ok(r) => match r {
-                    None => {
-                        return BaseResponse::<String>::err_result_msg(
-                            res,
-                            "更新失败,上级部门不存在".to_string(),
-                        )
-                    }
-                    Some(dept) => {
-                        format!("{},{}", dept.ancestors, &item.parent_id)
-                    }
-                },
+            let ancestors = match Dept::select_by_id(rb, &item.parent_id).await {
+                Ok(None) => {
+                    return BaseResponse::<String>::err_result_msg(
+                        res,
+                        "更新失败,上级部门不存在".to_string(),
+                    )
+                }
+                Ok(Some(dept)) => {
+                    format!("{},{}", dept.ancestors, &item.parent_id)
+                }
                 Err(err) => return BaseResponse::<String>::err_result_msg(res, err.to_string()),
             };
 
-            let res_dept = Dept::select_by_dept_name(rb, &item.dept_name, item.parent_id).await;
-            match res_dept {
+            match Dept::select_by_dept_name(rb, &item.dept_name, item.parent_id).await {
                 Ok(r) => {
                     if r.is_some() && r.unwrap().id.unwrap_or_default() != item.id {
                         return BaseResponse::<String>::err_result_msg(
@@ -205,8 +190,7 @@ pub async fn update_sys_dept(req: &mut Request, res: &mut Response) {
                 );
             }
 
-            let res_dept = select_children_dept_by_id(rb, &item.id).await;
-            match res_dept {
+            match select_children_dept_by_id(rb, &item.id).await {
                 Ok(list) => {
                     let mut depts = vec![];
                     for mut x in list {
@@ -215,9 +199,10 @@ pub async fn update_sys_dept(req: &mut Request, res: &mut Response) {
                             .replace(old_ancestors.as_str(), ancestors.as_str());
                         depts.push(x)
                     }
-                    let result =
-                        Dept::update_by_column_batch(rb, &depts, "id", depts.len() as u64).await;
-                    if result.is_err() {
+                    if Dept::update_by_column_batch(rb, &depts, "id", depts.len() as u64)
+                        .await
+                        .is_err()
+                    {
                         return BaseResponse::<String>::err_result_msg(
                             res,
                             "修改下级部门祖级列失败".to_string(),
@@ -242,9 +227,7 @@ pub async fn update_sys_dept(req: &mut Request, res: &mut Response) {
                 update_time: None,            //修改时间
             };
 
-            let result = Dept::update_by_column(rb, &sys_dept, "id").await;
-
-            if result.is_err() {
+            if Dept::update_by_column(rb, &sys_dept, "id").await.is_err() {
                 return BaseResponse::<String>::err_result_msg(res, "更新部门失败".to_string());
             }
 
@@ -259,9 +242,8 @@ pub async fn update_sys_dept(req: &mut Request, res: &mut Response) {
 
                 let mut param = vec![to_value!(item.status)];
                 param.extend(ids.iter().map(|&id| to_value!(id)));
-                let res_dept = &mut RB.clone().exec(&update_sql, param).await;
 
-                match res_dept {
+                match rb.exec(&update_sql, param).await {
                     Ok(_u) => BaseResponse::<String>::ok_result(res),
                     Err(err) => BaseResponse::<String>::err_result_msg(res, err.to_string()),
                 }

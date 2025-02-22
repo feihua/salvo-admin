@@ -24,9 +24,8 @@ pub async fn delete_sys_login_log(req: &mut Request, res: &mut Response) {
             log::info!("delete sys_login_log params: {:?}", &item);
 
             let rb = &mut RB.clone();
-            let result = LoginLog::delete_in_column(rb, "id", &item.ids).await;
 
-            match result {
+            match LoginLog::delete_in_column(rb, "id", &item.ids).await {
                 Ok(_u) => BaseResponse::<String>::ok_result(res),
                 Err(err) => BaseResponse::<String>::err_result_msg(res, err.to_string()),
             }

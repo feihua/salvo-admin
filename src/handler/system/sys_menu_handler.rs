@@ -25,15 +25,13 @@ pub async fn add_sys_menu(req: &mut Request, res: &mut Response) {
             log::info!("add sys_menu params: {:?}", &item);
 
             let rb = &mut RB.clone();
-            let res_menu = Menu::select_by_menu_name(rb, &item.menu_name).await;
-            match res_menu {
-                Ok(opt_menu) => {
-                    if opt_menu.is_some() {
-                        return BaseResponse::<String>::err_result_msg(
-                            res,
-                            "菜单名称已存在".to_string(),
-                        );
-                    }
+            match Menu::select_by_menu_name(rb, &item.menu_name).await {
+                Ok(None) => {}
+                Ok(Some(_x)) => {
+                    return BaseResponse::<String>::err_result_msg(
+                        res,
+                        "菜单名称已存在".to_string(),
+                    )
                 }
                 Err(err) => return BaseResponse::<String>::err_result_msg(res, err.to_string()),
             }
@@ -42,13 +40,12 @@ pub async fn add_sys_menu(req: &mut Request, res: &mut Response) {
             if menu_url.is_some() {
                 let res_menu = Menu::select_by_menu_url(rb, &menu_url.unwrap()).await;
                 match res_menu {
-                    Ok(opt_menu) => {
-                        if opt_menu.is_some() {
-                            return BaseResponse::<String>::err_result_msg(
-                                res,
-                                "路由路径已存在".to_string(),
-                            );
-                        }
+                    Ok(None) => {}
+                    Ok(Some(_x)) => {
+                        return BaseResponse::<String>::err_result_msg(
+                            res,
+                            "路由路径已存在".to_string(),
+                        )
                     }
                     Err(err) => {
                         return BaseResponse::<String>::err_result_msg(res, err.to_string())
@@ -72,9 +69,7 @@ pub async fn add_sys_menu(req: &mut Request, res: &mut Response) {
                 update_time: None,         //修改时间
             };
 
-            let result = Menu::insert(rb, &sys_menu).await;
-
-            match result {
+            match Menu::insert(rb, &sys_menu).await {
                 Ok(_u) => BaseResponse::<String>::ok_result(res),
                 Err(err) => BaseResponse::<String>::err_result_msg(res, err.to_string()),
             }
@@ -119,9 +114,7 @@ pub async fn delete_sys_menu(req: &mut Request, res: &mut Response) {
                 );
             }
 
-            let result = Menu::delete_by_column(rb, "id", &item.id).await;
-
-            match result {
+            match Menu::delete_by_column(rb, "id", &item.id).await {
                 Ok(_u) => BaseResponse::<String>::ok_result(res),
                 Err(err) => BaseResponse::<String>::err_result_msg(res, err.to_string()),
             }
@@ -145,25 +138,21 @@ pub async fn update_sys_menu(req: &mut Request, res: &mut Response) {
 
             let rb = &mut RB.clone();
 
-            let result = Menu::select_by_id(rb, &item.id).await;
-            match result {
-                Ok(p) => {
-                    if p.is_none() {
-                        return BaseResponse::<String>::err_result_msg(
-                            res,
-                            "更新菜单失败,菜单信息不存在".to_string(),
-                        );
-                    } else {
-                        p.unwrap()
-                    }
+            match Menu::select_by_id(rb, &item.id).await {
+                Ok(None) => {
+                    return BaseResponse::<String>::err_result_msg(
+                        res,
+                        "更新菜单失败,菜单信息不存在".to_string(),
+                    )
                 }
+                Ok(Some(_x)) => {}
                 Err(err) => return BaseResponse::<String>::err_result_msg(res, err.to_string()),
             };
 
-            let res_menu = Menu::select_by_menu_name(rb, &item.menu_name).await;
-            match res_menu {
-                Ok(opt_menu) => {
-                    if opt_menu.is_some() && opt_menu.unwrap().id.unwrap_or_default() != item.id {
+            match Menu::select_by_menu_name(rb, &item.menu_name).await {
+                Ok(None) => {}
+                Ok(Some(x)) => {
+                    if x.id.unwrap_or_default() != item.id {
                         return BaseResponse::<String>::err_result_msg(
                             res,
                             "菜单名称已存在".to_string(),
@@ -175,11 +164,10 @@ pub async fn update_sys_menu(req: &mut Request, res: &mut Response) {
 
             let menu_url = item.menu_url.clone();
             if menu_url.is_some() {
-                let result = Menu::select_by_menu_url(rb, &menu_url.unwrap()).await;
-                match result {
-                    Ok(opt_menu) => {
-                        if opt_menu.is_some() && opt_menu.unwrap().id.unwrap_or_default() != item.id
-                        {
+                match Menu::select_by_menu_url(rb, &menu_url.unwrap()).await {
+                    Ok(None) => {}
+                    Ok(Some(x)) => {
+                        if x.id.unwrap_or_default() != item.id {
                             return BaseResponse::<String>::err_result_msg(
                                 res,
                                 "路由路径已存在".to_string(),
@@ -208,9 +196,7 @@ pub async fn update_sys_menu(req: &mut Request, res: &mut Response) {
                 update_time: None,         //修改时间
             };
 
-            let result = Menu::update_by_column(rb, &sys_menu, "id").await;
-
-            match result {
+            match Menu::update_by_column(rb, &sys_menu, "id").await {
                 Ok(_u) => BaseResponse::<String>::ok_result(res),
                 Err(err) => BaseResponse::<String>::err_result_msg(res, err.to_string()),
             }
@@ -243,9 +229,8 @@ pub async fn update_sys_menu_status(req: &mut Request, res: &mut Response) {
 
             let mut param = vec![to_value!(item.status)];
             param.extend(item.ids.iter().map(|&id| to_value!(id)));
-            let result = &mut RB.clone().exec(&update_sql, param).await;
 
-            match result {
+            match &mut RB.clone().exec(&update_sql, param).await {
                 Ok(_u) => BaseResponse::<String>::ok_result(res),
                 Err(err) => BaseResponse::<String>::err_result_msg(res, err.to_string()),
             }

@@ -69,9 +69,8 @@ pub async fn delete_sys_notice(req: &mut Request, res: &mut Response) {
             log::info!("delete sys_notice params: {:?}", &item);
 
             let rb = &mut RB.clone();
-            let result = Notice::delete_in_column(rb, "id", &item.ids).await;
 
-            match result {
+            match Notice::delete_in_column(rb, "id", &item.ids).await {
                 Ok(_u) => BaseResponse::<String>::ok_result(res),
                 Err(err) => {
                     BaseResponse::<String>::err_result_msg(res, format!("数据库错误: {}", err))
@@ -97,17 +96,14 @@ pub async fn update_sys_notice(req: &mut Request, res: &mut Response) {
 
             let rb = &mut RB.clone();
 
-            let result = Notice::select_by_id(rb, &item.id).await;
-
-            match result {
-                Ok(d) => {
-                    if d.is_none() {
-                        return BaseResponse::<String>::err_result_msg(
-                            res,
-                            "通知公告表不存在".to_string(),
-                        );
-                    }
+            match Notice::select_by_id(rb, &item.id).await {
+                Ok(None) => {
+                    return BaseResponse::<String>::err_result_msg(
+                        res,
+                        "通知公告表不存在".to_string(),
+                    )
                 }
+                Ok(Some(_x)) => {}
                 Err(err) => {
                     return BaseResponse::<String>::err_result_msg(
                         res,
@@ -173,9 +169,8 @@ pub async fn update_sys_notice_status(req: &mut Request, res: &mut Response) {
 
             let mut param = vec![to_value!(item.status)];
             param.extend(item.ids.iter().map(|&id| to_value!(id)));
-            let result = &mut RB.clone().exec(&update_sql, param).await;
 
-            match result {
+            match &mut RB.clone().exec(&update_sql, param).await {
                 Ok(_u) => BaseResponse::<String>::ok_result(res),
                 Err(err) => {
                     BaseResponse::<String>::err_result_msg(res, format!("数据库错误: {}", err))
@@ -247,11 +242,9 @@ pub async fn query_sys_notice_list(req: &mut Request, res: &mut Response) {
 
             let page = &PageRequest::new(item.page_no, item.page_size);
             let rb = &mut RB.clone();
-            let result =
-                Notice::select_sys_notice_list(rb, page, notice_title, notice_type, status).await;
 
             let mut data: Vec<NoticeListDataResp> = Vec::new();
-            match result {
+            match Notice::select_sys_notice_list(rb, page, notice_title, notice_type, status).await {
                 Ok(d) => {
                     let total = d.total;
 

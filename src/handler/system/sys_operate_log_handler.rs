@@ -24,9 +24,8 @@ pub async fn delete_sys_operate_log(req: &mut Request, res: &mut Response) {
             log::info!("delete sys_operate_log params: {:?}", &item);
 
             let rb = &mut RB.clone();
-            let result = OperateLog::delete_in_column(rb, "id", &item.ids).await;
 
-            match result {
+            match OperateLog::delete_in_column(rb, "id", &item.ids).await {
                 Ok(_u) => BaseResponse::<String>::ok_result(res),
                 Err(err) => BaseResponse::<String>::err_result_msg(res, err.to_string()),
             }
