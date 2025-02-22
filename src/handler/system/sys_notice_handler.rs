@@ -2,7 +2,7 @@
 // author：刘飞华
 // date：2025/01/08 13:51:14
 
-use crate::common::error::{AppResult};
+use crate::common::error::AppResult;
 use crate::common::result::BaseResponse;
 use crate::model::system::sys_notice_model::Notice;
 use crate::utils::time_util::time_to_string;
@@ -25,13 +25,14 @@ pub async fn add_sys_notice(req: &mut Request, res: &mut Response) -> AppResult<
     log::info!("add sys_notice params: {:?}", &item);
 
     let rb = &mut RB.clone();
-    if Notice::exists_by_title(rb, &item.notice_title).await? {
+    let title = item.notice_title;
+    if Notice::exists_by_title(rb, &title).await? {
         return BaseResponse::<String>::err_result_msg(res, "公告标题已存在");
     }
 
     let sys_notice = Notice {
         id: None,                                //公告ID
-        notice_title: item.notice_title,         //公告标题
+        notice_title: title,                     //公告标题
         notice_type: item.notice_type,           //公告类型（1:通知,2:公告）
         notice_content: item.notice_content,     //公告内容
         status: item.status,                     //公告状态（0:关闭,1:正常 ）

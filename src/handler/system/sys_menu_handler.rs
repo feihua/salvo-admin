@@ -24,10 +24,8 @@ pub async fn add_sys_menu(req: &mut Request, res: &mut Response) -> AppResult<()
     log::info!("add sys_menu params: {:?}", &item);
 
     let rb = &mut RB.clone();
-    if Menu::select_by_menu_name(rb, &item.menu_name)
-        .await?
-        .is_some()
-    {
+    let name = item.menu_name;
+    if Menu::select_by_menu_name(rb, &name).await?.is_some() {
         return BaseResponse::<String>::err_result_msg(res, "菜单名称已存在");
     }
 
@@ -39,7 +37,7 @@ pub async fn add_sys_menu(req: &mut Request, res: &mut Response) -> AppResult<()
 
     let sys_menu = Menu {
         id: None,                                      //主键
-        menu_name: item.menu_name,                     //菜单名称
+        menu_name: name,                               //菜单名称
         menu_type: item.menu_type,                     //菜单类型(1：目录   2：菜单   3：按钮)
         visible: item.visible,                         //菜单状态（0:隐藏, 显示:1）
         status: item.status,                           //状态(1:正常，0:禁用)

@@ -25,18 +25,20 @@ pub async fn add_sys_post(req: &mut Request, res: &mut Response) -> AppResult<()
     log::info!("add sys_post params: {:?}", &item);
 
     let rb = &mut RB.clone();
-    if Post::select_by_name(rb, &item.post_name).await?.is_some() {
+    let name = item.post_name;
+    if Post::select_by_name(rb, &name).await?.is_some() {
         return BaseResponse::<String>::err_result_msg(res, "新增岗位失败,岗位名称已存在");
     }
 
-    if Post::select_by_code(rb, &item.post_code).await?.is_some() {
+    let code = item.post_code;
+    if Post::select_by_code(rb, &code).await?.is_some() {
         return BaseResponse::<String>::err_result_msg(res, "新增岗位失败,岗位编码已存在");
     }
 
     let sys_post = Post {
         id: None,                                //岗位id
-        post_code: item.post_code,               //岗位编码
-        post_name: item.post_name,               //岗位名称
+        post_code: code,                         //岗位编码
+        post_name: name,                         //岗位名称
         sort: item.sort,                         //显示顺序
         status: item.status,                     //部状态（0：停用，1:正常）
         remark: item.remark.unwrap_or_default(), //备注
