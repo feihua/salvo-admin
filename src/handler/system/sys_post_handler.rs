@@ -197,13 +197,13 @@ pub async fn query_sys_post_list(req: &mut Request, res: &mut Response) -> AppRe
 
     let page = &PageRequest::new(item.page_no, item.page_size);
     let rb = &mut RB.clone();
-    let d = Post::select_post_list(rb, page, post_code, post_name, status).await?;
+    let p = Post::select_post_list(rb, page, post_code, post_name, status).await?;
 
     let mut list: Vec<PostListDataResp> = Vec::new();
 
-    let total = d.total;
+    let total = p.total;
 
-    for x in d.records {
+    for x in p.records {
         list.push(PostListDataResp {
             id: x.id.unwrap_or_default(),               //岗位id
             post_code: x.post_code,                     //岗位编码

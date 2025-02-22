@@ -2,7 +2,7 @@
 // author：刘飞华
 // date：2025/01/08 13:51:14
 
-use crate::common::error::{AppError, AppResult};
+use crate::common::error::AppResult;
 use crate::common::result::BaseResponse;
 use crate::model::system::sys_dept_model::Dept;
 use crate::model::system::sys_login_log_model::LoginLog;
@@ -11,7 +11,7 @@ use crate::model::system::sys_role_model::Role;
 use crate::model::system::sys_user_model::User;
 use crate::model::system::sys_user_post_model::UserPost;
 use crate::model::system::sys_user_role_model::{is_admin, UserRole};
-use crate::utils::jwt_util::JWTToken;
+use crate::utils::jwt_util::JwtToken;
 use crate::utils::time_util::time_to_string;
 use crate::utils::user_agent_util::UserAgentUtil;
 use crate::vo::system::sys_dept_vo::QueryDeptDetailResp;
@@ -76,6 +76,7 @@ pub async fn add_sys_user(req: &mut Request, res: &mut Response) -> AppResult<()
     };
 
     let id = User::insert(rb, &sys_user).await?.last_insert_id;
+
     let mut user_post_list: Vec<UserPost> = Vec::new();
     for post_id in item.post_ids {
         user_post_list.push(UserPost {
@@ -83,6 +84,7 @@ pub async fn add_sys_user(req: &mut Request, res: &mut Response) -> AppResult<()
             post_id,
         })
     }
+
     let size = user_post_list.len() as u64;
     UserPost::insert_batch(rb, &user_post_list, size).await?;
     BaseResponse::<String>::ok_result(res)
@@ -137,7 +139,7 @@ pub async fn update_sys_user(req: &mut Request, res: &mut Response) -> AppResult
     }
 
     let rb = &mut RB.clone();
-    let u = match User::select_by_id(rb, item.id).await? {
+    let user = match User::select_by_id(rb, item.id).await? {
         None => return BaseResponse::<String>::err_result_msg(res, "用户不存在"),
         Some(x) => x,
     };
@@ -165,25 +167,25 @@ pub async fn update_sys_user(req: &mut Request, res: &mut Response) -> AppResult
             .to_string(),
     );
     let sys_user = User {
-        id: Some(item.id),                  //主键
-        mobile: item.mobile,                //手机
-        user_name: item.user_name,          //用户账号
-        nick_name: item.nick_name,          //用户昵称
-        user_type: None,                    //用户类型（00系统用户）
-        email: item.email,                  //用户邮箱
-        avatar,                             //头像路径
-        password: u.password,               //密码
-        status: item.status,                //状态(1:正常，0:禁用)
-        dept_id: item.dept_id,              //部门ID
-        login_ip: u.login_ip,               //最后登录IP
-        login_date: u.login_date,           //最后登录时间
-        login_browser: u.login_browser,     //浏览器类型
-        login_os: u.login_os,               //操作系统
-        pwd_update_date: u.pwd_update_date, //密码最后更新时间
-        remark: item.remark,                //备注
-        del_flag: u.del_flag,               //删除标志（0代表删除 1代表存在）
-        create_time: None,                  //创建时间
-        update_time: None,                  //修改时间
+        id: Some(item.id),                     //主键
+        mobile: item.mobile,                   //手机
+        user_name: item.user_name,             //用户账号
+        nick_name: item.nick_name,             //用户昵称
+        user_type: None,                       //用户类型（00系统用户）
+        email: item.email,                     //用户邮箱
+        avatar,                                //头像路径
+        password: user.password,               //密码
+        status: item.status,                   //状态(1:正常，0:禁用)
+        dept_id: item.dept_id,                 //部门ID
+        login_ip: user.login_ip,               //最后登录IP
+        login_date: user.login_date,           //最后登录时间
+        login_browser: user.login_browser,     //浏览器类型
+        login_os: user.login_os,               //操作系统
+        pwd_update_date: user.pwd_update_date, //密码最后更新时间
+        remark: item.remark,                   //备注
+        del_flag: user.del_flag,               //删除标志（0代表删除 1代表存在）
+        create_time: None,                     //创建时间
+        update_time: None,                     //修改时间
     };
 
     User::update_by_column(rb, &sys_user, "id").await?;
@@ -464,29 +466,15 @@ pub async fn login(req: &mut Request, res: &mut Response) -> AppResult<()> {
                 );
             }
 
-            match JWTToken::new(id, &username, btn_menu).create_token("123") {
-                Ok(token) => {
-                    add_login_log(item.mobile, 1, "登录成功", agent.clone()).await;
-                    s_user.login_os = agent.os;
-                    s_user.login_browser = agent.browser;
-                    s_user.login_date = Some(DateTime::now());
-                    if User::update_by_column(rb, &s_user, "id").await.is_err() {
-                        return BaseResponse::<String>::err_result_msg(
-                            res,
-                            "更新用户登录后的信息失败",
-                        );
-                    }
-                    BaseResponse::<String>::ok_result_data(res, token)
-                }
-                Err(err) => {
-                    let er = match err {
-                        AppError::JwtTokenError(s) => s,
-                        _ => "no math error".to_string(),
-                    };
-                    add_login_log(item.mobile, 0, "生成token异常", agent).await;
-                    BaseResponse::<String>::err_result_msg(res, er.as_str())
-                }
-            }
+            let token = JwtToken::new(id, &username, btn_menu).create_token("123")?;
+
+            add_login_log(item.mobile, 1, "登录成功", agent.clone()).await;
+            s_user.login_os = agent.os;
+            s_user.login_browser = agent.browser;
+            s_user.login_date = Some(DateTime::now());
+
+            User::update_by_column(rb, &s_user, "id").await?;
+            BaseResponse::<String>::ok_result_data(res, token)
         }
     }
 }
@@ -565,19 +553,17 @@ pub async fn query_user_role(req: &mut Request, res: &mut Response) -> AppResult
     log::info!("query_user_role params: {:?}", item);
 
     let rb = &mut RB.clone();
-    let mut user_role_ids: Vec<i64> = Vec::new();
+    let mut role_ids: Vec<i64> = Vec::new();
 
-    for x in UserRole::select_by_column(rb, "user_id", item.user_id)
-        .await
-        .unwrap_or_default()
-    {
-        user_role_ids.push(x.role_id);
+    let user_id = item.user_id;
+    for x in UserRole::select_by_column(rb, "user_id", user_id).await? {
+        role_ids.push(x.role_id);
     }
 
-    let mut sys_role_list: Vec<RoleList> = Vec::new();
+    let mut list: Vec<RoleList> = Vec::new();
 
     for x in Role::select_all(rb).await? {
-        sys_role_list.push(RoleList {
+        list.push(RoleList {
             id: x.id.unwrap_or_default(),               //主键
             role_name: x.role_name,                     //名称
             role_key: x.role_key,                       //角色权限字符串
@@ -593,8 +579,8 @@ pub async fn query_user_role(req: &mut Request, res: &mut Response) -> AppResult
     BaseResponse::ok_result_data(
         res,
         QueryUserRoleResp {
-            sys_role_list,
-            user_role_ids,
+            sys_role_list: list,
+            user_role_ids: role_ids,
         },
     )
 }
@@ -666,10 +652,7 @@ pub async fn query_user_menu(depot: &mut Depot, res: &mut Response) -> AppResult
             } else {
                 log::info!("The current user is not a super administrator");
                 let sql_str = "select u.* from sys_user_role t left join sys_role usr on t.role_id = usr.id left join sys_role_menu srm on usr.id = srm.role_id left join sys_menu u on srm.menu_id = u.id where t.user_id = ?";
-                sys_menu_list = RB
-                    .query_decode(sql_str, vec![to_value!(user.id)])
-                    .await
-                    .unwrap_or_default();
+                sys_menu_list = RB.query_decode(sql_str, vec![to_value!(user.id)]).await?;
             }
 
             let mut sys_menu: Vec<MenuList> = Vec::new();

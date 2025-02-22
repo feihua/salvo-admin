@@ -67,14 +67,12 @@ pub async fn delete_sys_menu(req: &mut Request, res: &mut Response) -> AppResult
 
     //有下级的时候 不能直接删除
     let rb = &mut RB.clone();
-    let count = select_count_menu_by_parent_id(rb, &item.id).await?;
 
-    if count > 0 {
+    if select_count_menu_by_parent_id(rb, &item.id).await? > 0 {
         return BaseResponse::<String>::err_result_msg(res, "存在子菜单,不允许删除");
     }
-    let count1 = select_count_menu_by_menu_id(rb, &item.id).await?;
 
-    if count1 > 0 {
+    if select_count_menu_by_menu_id(rb, &item.id).await? > 0 {
         return BaseResponse::<String>::err_result_msg(res, "菜单已分配,不允许删除");
     }
 
@@ -210,9 +208,9 @@ pub async fn query_sys_menu_list(req: &mut Request, res: &mut Response) -> AppRe
     let item = req.parse_json::<QueryMenuListReq>().await?;
     log::info!("query sys_menu_list params: {:?}", &item);
 
-    let mut menu_list: Vec<MenuListDataResp> = Vec::new();
+    let mut list: Vec<MenuListDataResp> = Vec::new();
     for x in Menu::select_all(&mut RB.clone()).await? {
-        menu_list.push(MenuListDataResp {
+        list.push(MenuListDataResp {
             id: x.id.unwrap_or_default(),               //主键
             menu_name: x.menu_name,                     //菜单名称
             menu_type: x.menu_type,                     //菜单类型(1：目录   2：菜单   3：按钮)
@@ -229,7 +227,7 @@ pub async fn query_sys_menu_list(req: &mut Request, res: &mut Response) -> AppRe
         })
     }
 
-    BaseResponse::ok_result_data(res, menu_list)
+    BaseResponse::ok_result_data(res, list)
 }
 
 /*
@@ -239,15 +237,15 @@ pub async fn query_sys_menu_list(req: &mut Request, res: &mut Response) -> AppRe
  */
 #[handler]
 pub async fn query_sys_menu_list_simple(res: &mut Response) -> AppResult<()> {
-    let mut menu_list: Vec<MenuListSimpleDataResp> = Vec::new();
+    let mut list: Vec<MenuListSimpleDataResp> = Vec::new();
 
     for x in Menu::select_menu_list(&mut RB.clone()).await? {
-        menu_list.push(MenuListSimpleDataResp {
+        list.push(MenuListSimpleDataResp {
             id: x.id.unwrap_or_default(), //主键
             menu_name: x.menu_name,       //菜单名称
             parent_id: x.parent_id,       //父ID
         })
     }
 
-    BaseResponse::ok_result_data(res, menu_list)
+    BaseResponse::ok_result_data(res, list)
 }

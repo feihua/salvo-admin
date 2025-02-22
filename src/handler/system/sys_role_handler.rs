@@ -226,11 +226,11 @@ pub async fn query_sys_role_list(req: &mut Request, res: &mut Response) -> AppRe
     let page = &PageRequest::new(item.page_no, item.page_size);
     let rb = &mut RB.clone();
 
-    let d = Role::select_sys_role_list(rb, page, role_name, role_key, status).await?;
-    let total = d.total;
+    let p = Role::select_sys_role_list(rb, page, role_name, role_key, status).await?;
+    let total = p.total;
 
     let mut list: Vec<RoleListDataResp> = Vec::new();
-    for x in d.records {
+    for x in p.records {
         list.push(RoleListDataResp {
             id: x.id.unwrap_or_default(),               //主键
             role_name: x.role_name,                     //名称
@@ -348,10 +348,10 @@ pub async fn query_allocated_list(req: &mut Request, res: &mut Response) -> AppR
 
     let page_no = (page_no - 1) * page_size;
     let rb = &mut RB.clone();
-    let d = select_allocated_list(rb, role_id, user_name, mobile, page_no, page_size).await?;
+    let p = select_allocated_list(rb, role_id, user_name, mobile, page_no, page_size).await?;
 
     let mut list: Vec<UserListDataResp> = Vec::new();
-    for x in d {
+    for x in p {
         list.push(UserListDataResp {
             id: x.id.unwrap(),                                  //主键
             mobile: x.mobile,                                   //手机

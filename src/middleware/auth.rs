@@ -3,7 +3,7 @@ use salvo::{Depot, FlowCtrl, Request, Response};
 use std::collections::HashMap;
 
 use crate::common::result::BaseResponse;
-use crate::utils::jwt_util::JWTToken;
+use crate::utils::jwt_util::JwtToken;
 
 #[handler]
 pub async fn auth_token(
@@ -41,7 +41,7 @@ pub async fn auth_token(
                 return res.render(Json(resp));
             }
             let token = split_vec[1];
-            let jwt_token_e = JWTToken::verify("123", &token);
+            let jwt_token_e = JwtToken::verify("123", &token);
             let jwt_token = match jwt_token_e {
                 Ok(data) => data,
                 Err(err) => {
