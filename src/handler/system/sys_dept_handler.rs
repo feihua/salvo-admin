@@ -118,14 +118,12 @@ pub async fn update_sys_dept(req: &mut Request, res: &mut Response) -> AppResult
         }
     }
 
-    let count = select_normal_children_dept_by_id(rb, &item.id).await?;
-    if count > 0 && item.status == 0 {
+    if select_normal_children_dept_by_id(rb, &item.id).await? > 0 && item.status == 0 {
         return BaseResponse::<String>::err_result_msg(res, "该部门包含未停用的子部门");
     }
 
-    let list = select_children_dept_by_id(rb, &item.id).await?;
     let mut depts = vec![];
-    for mut x in list {
+    for mut x in select_children_dept_by_id(rb, &item.id).await? {
         x.ancestors = x
             .ancestors
             .replace(old_ancestors.as_str(), ancestors.as_str());
