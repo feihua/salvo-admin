@@ -2,7 +2,7 @@
 // author：刘飞华
 // date：2025/01/08 13:51:14
 
-use crate::common::error::AppError;
+use crate::common::error::{AppError, AppResult};
 use crate::common::result::BaseResponse;
 use crate::model::system::sys_dept_model::Dept;
 use crate::model::system::sys_login_log_model::LoginLog;
@@ -17,7 +17,6 @@ use crate::utils::user_agent_util::UserAgentUtil;
 use crate::vo::system::sys_dept_vo::QueryDeptDetailResp;
 use crate::vo::system::sys_user_vo::*;
 use crate::RB;
-use log::error;
 use rbatis::plugin::page::PageRequest;
 use rbatis::rbatis_codegen::ops::AsProxy;
 use rbatis::rbdc::datetime::DateTime;
@@ -32,93 +31,63 @@ use std::collections::{HashMap, HashSet};
  *date：2025/01/08 13:51:14
  */
 #[handler]
-pub async fn add_sys_user(req: &mut Request, res: &mut Response) {
-    match req.parse_json::<AddUserReq>().await {
-        Ok(item) => {
-            log::info!("add sys_user params: {:?}", &item);
+pub async fn add_sys_user(req: &mut Request, res: &mut Response) -> AppResult<()> {
+    let item = req.parse_json::<AddUserReq>().await?;
+    log::info!("add sys_user params: {:?}", &item);
 
-            let rb = &mut RB.clone();
-            match User::select_by_user_name(rb, &item.user_name).await {
-                Ok(None) => {}
-                Ok(Some(_x)) => {
-                    return BaseResponse::<String>::err_result_msg(
-                        res,
-                        "登录账号已存在".to_string(),
-                    );
-                }
-                Err(err) => return BaseResponse::<String>::err_result_msg(res, err.to_string()),
-            }
-
-            match User::select_by_mobile(rb, &item.mobile).await {
-                Ok(None) => {}
-                Ok(Some(_x)) => {
-                    return BaseResponse::<String>::err_result_msg(
-                        res,
-                        "手机号码已存在".to_string(),
-                    );
-                }
-                Err(err) => return BaseResponse::<String>::err_result_msg(res, err.to_string()),
-            }
-
-            match User::select_by_email(rb, &item.email).await {
-                Ok(None) => {}
-                Ok(Some(_x)) => {
-                    return BaseResponse::<String>::err_result_msg(
-                        res,
-                        "邮箱账号已存在".to_string(),
-                    );
-                }
-                Err(err) => return BaseResponse::<String>::err_result_msg(res, err.to_string()),
-            }
-
-            let avatar = item.avatar.unwrap_or(
-                "https://gw.alipayobjects.com/zos/antfincdn/XAosXuNZyF/BiazfanxmamNRoxxVxka.png"
-                    .to_string(),
-            );
-            let sys_user = User {
-                id: None,                          //主键
-                mobile: item.mobile,               //手机
-                user_name: item.user_name,         //用户账号
-                nick_name: item.nick_name,         //用户昵称
-                user_type: Some("01".to_string()), //用户类型（00系统用户）
-                email: item.email,                 //用户邮箱
-                avatar,                            //头像路径
-                password: item.password,           //密码
-                status: item.status,               //状态(1:正常，0:禁用)
-                dept_id: item.dept_id,             //部门ID
-                login_ip: "".to_string(),          //最后登录IP
-                login_date: None,                  //最后登录时间
-                login_browser: "".to_string(),     //浏览器类型
-                login_os: "".to_string(),          //操作系统
-                pwd_update_date: None,             //密码最后更新时间
-                remark: item.remark,               //备注
-                del_flag: 1,                       //删除标志（0代表删除 1代表存在）
-                create_time: None,                 //创建时间
-                update_time: None,                 //修改时间
-            };
-
-            match User::insert(rb, &sys_user).await {
-                Ok(u) => {
-                    let mut user_post_list: Vec<UserPost> = Vec::new();
-                    for post_id in item.post_ids {
-                        user_post_list.push(UserPost {
-                            user_id: u.last_insert_id.i64(),
-                            post_id,
-                        })
-                    }
-                    let size = user_post_list.len() as u64;
-                    match UserPost::insert_batch(rb, &user_post_list, size).await {
-                        Ok(_u) => BaseResponse::<String>::ok_result(res),
-                        Err(err) => BaseResponse::<String>::err_result_msg(res, err.to_string()),
-                    }
-                }
-                Err(err) => BaseResponse::<String>::err_result_msg(res, err.to_string()),
-            }
-        }
-        Err(err) => {
-            BaseResponse::<String>::err_result_msg(res, format!("解析请求参数失败: {}", err))
-        }
+    let rb = &mut RB.clone();
+    if User::select_by_user_name(rb, &item.user_name)
+        .await?
+        .is_some()
+    {
+        return BaseResponse::<String>::err_result_msg(res, "登录账号已存在");
     }
+
+    if User::select_by_mobile(rb, &item.mobile).await?.is_some() {
+        return BaseResponse::<String>::err_result_msg(res, "手机号码已存在");
+    }
+
+    if User::select_by_email(rb, &item.email).await?.is_some() {
+        return BaseResponse::<String>::err_result_msg(res, "邮箱账号已存在");
+    }
+
+    let avatar = item.avatar.unwrap_or(
+        "https://gw.alipayobjects.com/zos/antfincdn/XAosXuNZyF/BiazfanxmamNRoxxVxka.png"
+            .to_string(),
+    );
+    let sys_user = User {
+        id: None,                          //主键
+        mobile: item.mobile,               //手机
+        user_name: item.user_name,         //用户账号
+        nick_name: item.nick_name,         //用户昵称
+        user_type: Some("01".to_string()), //用户类型（00系统用户）
+        email: item.email,                 //用户邮箱
+        avatar,                            //头像路径
+        password: item.password,           //密码
+        status: item.status,               //状态(1:正常，0:禁用)
+        dept_id: item.dept_id,             //部门ID
+        login_ip: "".to_string(),          //最后登录IP
+        login_date: None,                  //最后登录时间
+        login_browser: "".to_string(),     //浏览器类型
+        login_os: "".to_string(),          //操作系统
+        pwd_update_date: None,             //密码最后更新时间
+        remark: item.remark,               //备注
+        del_flag: 1,                       //删除标志（0代表删除 1代表存在）
+        create_time: None,                 //创建时间
+        update_time: None,                 //修改时间
+    };
+
+    let id = User::insert(rb, &sys_user).await?.last_insert_id;
+    let mut user_post_list: Vec<UserPost> = Vec::new();
+    for post_id in item.post_ids {
+        user_post_list.push(UserPost {
+            user_id: id.i64(),
+            post_id,
+        })
+    }
+    let size = user_post_list.len() as u64;
+    UserPost::insert_batch(rb, &user_post_list, size).await?;
+    BaseResponse::<String>::ok_result(res)
 }
 
 /*
@@ -127,44 +96,31 @@ pub async fn add_sys_user(req: &mut Request, res: &mut Response) {
  *date：2025/01/08 13:51:14
  */
 #[handler]
-pub async fn delete_sys_user(depot: &mut Depot, req: &mut Request, res: &mut Response) {
-    match req.parse_json::<DeleteUserReq>().await {
-        Ok(item) => {
-            log::info!("delete sys_user params: {:?}", &item);
+pub async fn delete_sys_user(
+    depot: &mut Depot,
+    req: &mut Request,
+    res: &mut Response,
+) -> AppResult<()> {
+    let item = req.parse_json::<DeleteUserReq>().await?;
+    log::info!("delete sys_user params: {:?}", &item);
 
-            let user_id = depot.get::<i64>("userId").copied().unwrap();
+    let user_id = depot.get::<i64>("userId").copied().unwrap();
 
-            let ids = item.ids.clone();
-            if ids.contains(&user_id) {
-                return BaseResponse::<String>::err_result_msg(res, "当前用户不能删除".to_string());
-            }
-            if ids.contains(&1) {
-                return BaseResponse::<String>::err_result_msg(
-                    res,
-                    "不允许操作超级管理员用户".to_string(),
-                );
-            }
-
-            let rb = &mut RB.clone();
-            match UserRole::delete_in_column(rb, "user_id", &ids).await {
-                Err(err) => return BaseResponse::<String>::err_result_msg(res, err.to_string()),
-                _ => {}
-            }
-
-            match UserPost::delete_in_column(rb, "user_id", &ids).await {
-                Err(err) => return BaseResponse::<String>::err_result_msg(res, err.to_string()),
-                _ => {}
-            }
-
-            match User::delete_in_column(rb, "id", &item.ids).await {
-                Ok(_u) => BaseResponse::<String>::ok_result(res),
-                Err(err) => BaseResponse::<String>::err_result_msg(res, err.to_string()),
-            }
-        }
-        Err(err) => {
-            BaseResponse::<String>::err_result_msg(res, format!("解析请求参数失败: {}", err))
-        }
+    let ids = item.ids.clone();
+    if ids.contains(&user_id) {
+        return BaseResponse::<String>::err_result_msg(res, "当前用户不能删除");
     }
+    if ids.contains(&1) {
+        return BaseResponse::<String>::err_result_msg(res, "不允许操作超级管理员用户");
+    }
+
+    let rb = &mut RB.clone();
+    UserRole::delete_in_column(rb, "user_id", &ids).await?;
+
+    UserPost::delete_in_column(rb, "user_id", &ids).await?;
+
+    User::delete_in_column(rb, "id", &item.ids).await?;
+    BaseResponse::<String>::ok_result(res)
 }
 
 /*
@@ -173,117 +129,77 @@ pub async fn delete_sys_user(depot: &mut Depot, req: &mut Request, res: &mut Res
  *date：2025/01/08 13:51:14
  */
 #[handler]
-pub async fn update_sys_user(req: &mut Request, res: &mut Response) {
-    match req.parse_json::<UpdateUserReq>().await {
-        Ok(item) => {
-            log::info!("update sys_user params: {:?}", &item);
+pub async fn update_sys_user(req: &mut Request, res: &mut Response) -> AppResult<()> {
+    let item = req.parse_json::<UpdateUserReq>().await?;
+    log::info!("update sys_user params: {:?}", &item);
 
-            let id = item.id.clone();
-            if id == 1 {
-                return BaseResponse::<String>::err_result_msg(
-                    res,
-                    "不允许操作超级管理员用户".to_string(),
-                );
-            }
+    let id = item.id.clone();
+    if id == 1 {
+        return BaseResponse::<String>::err_result_msg(res, "不允许操作超级管理员用户");
+    }
 
-            let rb = &mut RB.clone();
-            let u = match User::select_by_id(rb, item.id).await {
-                Ok(None) => {
-                    return BaseResponse::<String>::err_result_msg(res, "用户不存在".to_string())
-                }
-                Ok(Some(x)) => x,
-                Err(err) => return BaseResponse::<String>::err_result_msg(res, err.to_string()),
-            };
+    let rb = &mut RB.clone();
+    let u = match User::select_by_id(rb, item.id).await? {
+        None => return BaseResponse::<String>::err_result_msg(res, "用户不存在"),
+        Some(x) => x,
+    };
 
-            match User::select_by_user_name(rb, &item.user_name).await {
-                Ok(None) => {}
-                Ok(Some(x)) => {
-                    if x.id.unwrap_or_default() != item.id {
-                        return BaseResponse::<String>::err_result_msg(
-                            res,
-                            "登录账号已存在".to_string(),
-                        );
-                    }
-                }
-                Err(err) => return BaseResponse::<String>::err_result_msg(res, err.to_string()),
-            }
-
-            match User::select_by_mobile(rb, &item.mobile).await {
-                Ok(None) => {}
-                Ok(Some(x)) => {
-                    if x.id.unwrap_or_default() != item.id {
-                        return BaseResponse::<String>::err_result_msg(
-                            res,
-                            "手机号码已存在".to_string(),
-                        );
-                    }
-                }
-                Err(err) => return BaseResponse::<String>::err_result_msg(res, err.to_string()),
-            }
-
-            match User::select_by_email(rb, &item.email).await {
-                Ok(None) => {}
-                Ok(Some(x)) => {
-                    if x.id.unwrap_or_default() != item.id {
-                        return BaseResponse::<String>::err_result_msg(
-                            res,
-                            "邮箱账号已存在".to_string(),
-                        );
-                    }
-                }
-                Err(err) => return BaseResponse::<String>::err_result_msg(res, err.to_string()),
-            }
-
-            let avatar = item.avatar.unwrap_or(
-                "https://gw.alipayobjects.com/zos/antfincdn/XAosXuNZyF/BiazfanxmamNRoxxVxka.png"
-                    .to_string(),
-            );
-            let sys_user = User {
-                id: Some(item.id),                  //主键
-                mobile: item.mobile,                //手机
-                user_name: item.user_name,          //用户账号
-                nick_name: item.nick_name,          //用户昵称
-                user_type: None,                    //用户类型（00系统用户）
-                email: item.email,                  //用户邮箱
-                avatar,                             //头像路径
-                password: u.password,               //密码
-                status: item.status,                //状态(1:正常，0:禁用)
-                dept_id: item.dept_id,              //部门ID
-                login_ip: u.login_ip,               //最后登录IP
-                login_date: u.login_date,           //最后登录时间
-                login_browser: u.login_browser,     //浏览器类型
-                login_os: u.login_os,               //操作系统
-                pwd_update_date: u.pwd_update_date, //密码最后更新时间
-                remark: item.remark,                //备注
-                del_flag: u.del_flag,               //删除标志（0代表删除 1代表存在）
-                create_time: None,                  //创建时间
-                update_time: None,                  //修改时间
-            };
-
-            match User::update_by_column(rb, &sys_user, "id").await {
-                Ok(_u) => {
-                    let _ = UserPost::delete_by_column(rb, "user_id", &item.id).await;
-                    let mut user_post_list: Vec<UserPost> = Vec::new();
-                    for post_id in item.post_ids {
-                        user_post_list.push(UserPost {
-                            user_id: sys_user.id.unwrap_or_default(),
-                            post_id,
-                        })
-                    }
-                    match UserPost::insert_batch(rb, &user_post_list, user_post_list.len() as u64)
-                        .await
-                    {
-                        Ok(_u) => BaseResponse::<String>::ok_result(res),
-                        Err(err) => BaseResponse::<String>::err_result_msg(res, err.to_string()),
-                    }
-                }
-                Err(err) => BaseResponse::<String>::err_result_msg(res, err.to_string()),
-            }
-        }
-        Err(err) => {
-            BaseResponse::<String>::err_result_msg(res, format!("解析请求参数失败: {}", err))
+    if let Some(x) = User::select_by_user_name(rb, &item.user_name).await? {
+        if x.id.unwrap_or_default() != item.id {
+            return BaseResponse::<String>::err_result_msg(res, "登录账号已存在");
         }
     }
+
+    if let Some(x) = User::select_by_mobile(rb, &item.mobile).await? {
+        if x.id.unwrap_or_default() != item.id {
+            return BaseResponse::<String>::err_result_msg(res, "手机号码已存在");
+        }
+    }
+
+    if let Some(x) = User::select_by_email(rb, &item.email).await? {
+        if x.id.unwrap_or_default() != item.id {
+            return BaseResponse::<String>::err_result_msg(res, "邮箱账号已存在");
+        }
+    }
+
+    let avatar = item.avatar.unwrap_or(
+        "https://gw.alipayobjects.com/zos/antfincdn/XAosXuNZyF/BiazfanxmamNRoxxVxka.png"
+            .to_string(),
+    );
+    let sys_user = User {
+        id: Some(item.id),                  //主键
+        mobile: item.mobile,                //手机
+        user_name: item.user_name,          //用户账号
+        nick_name: item.nick_name,          //用户昵称
+        user_type: None,                    //用户类型（00系统用户）
+        email: item.email,                  //用户邮箱
+        avatar,                             //头像路径
+        password: u.password,               //密码
+        status: item.status,                //状态(1:正常，0:禁用)
+        dept_id: item.dept_id,              //部门ID
+        login_ip: u.login_ip,               //最后登录IP
+        login_date: u.login_date,           //最后登录时间
+        login_browser: u.login_browser,     //浏览器类型
+        login_os: u.login_os,               //操作系统
+        pwd_update_date: u.pwd_update_date, //密码最后更新时间
+        remark: item.remark,                //备注
+        del_flag: u.del_flag,               //删除标志（0代表删除 1代表存在）
+        create_time: None,                  //创建时间
+        update_time: None,                  //修改时间
+    };
+
+    User::update_by_column(rb, &sys_user, "id").await?;
+    let _ = UserPost::delete_by_column(rb, "user_id", &item.id).await;
+    let mut user_post_list: Vec<UserPost> = Vec::new();
+    for post_id in item.post_ids {
+        user_post_list.push(UserPost {
+            user_id: sys_user.id.unwrap_or_default(),
+            post_id,
+        })
+    }
+
+    UserPost::insert_batch(rb, &user_post_list, user_post_list.len() as u64).await?;
+    BaseResponse::<String>::ok_result(res)
 }
 
 /*
@@ -292,13 +208,13 @@ pub async fn update_sys_user(req: &mut Request, res: &mut Response) {
  *date：2025/01/08 13:51:14
  */
 #[handler]
-pub async fn update_sys_user_status(req: &mut Request, res: &mut Response) {
-    let item = req.parse_json::<UpdateUserStatusReq>().await.unwrap();
+pub async fn update_sys_user_status(req: &mut Request, res: &mut Response) -> AppResult<()> {
+    let item = req.parse_json::<UpdateUserStatusReq>().await?;
     log::info!("update sys_user_status params: {:?}", &item);
 
     let ids = item.ids.clone();
     if ids.contains(&1) {
-        return BaseResponse::<String>::err_result_msg(res, "不允许操作超级管理员用户".to_string());
+        return BaseResponse::<String>::err_result_msg(res, "不允许操作超级管理员用户");
     }
 
     let update_sql = format!(
@@ -313,10 +229,8 @@ pub async fn update_sys_user_status(req: &mut Request, res: &mut Response) {
     let mut param = vec![to_value!(item.status)];
     param.extend(item.ids.iter().map(|&id| to_value!(id)));
 
-    match &mut RB.clone().exec(&update_sql, param).await {
-        Ok(_u) => BaseResponse::<String>::ok_result(res),
-        Err(err) => BaseResponse::<String>::err_result_msg(res, err.to_string()),
-    }
+    let _ = &mut RB.clone().exec(&update_sql, param).await?;
+    BaseResponse::<String>::ok_result(res)
 }
 
 /*
@@ -325,37 +239,24 @@ pub async fn update_sys_user_status(req: &mut Request, res: &mut Response) {
  *date：2025/01/08 13:51:14
  */
 #[handler]
-pub async fn reset_sys_user_password(req: &mut Request, res: &mut Response) {
-    match req.parse_json::<ResetUserPwdReq>().await {
-        Ok(item) => {
-            log::info!("update sys_user_password params: {:?}", &item);
+pub async fn reset_sys_user_password(req: &mut Request, res: &mut Response) -> AppResult<()> {
+    let item = req.parse_json::<ResetUserPwdReq>().await?;
+    log::info!("update sys_user_password params: {:?}", &item);
 
-            let id = item.id.clone();
-            if id == 1 {
-                return BaseResponse::<String>::err_result_msg(
-                    res,
-                    "不允许操作超级管理员用户".to_string(),
-                );
-            }
+    let id = item.id.clone();
+    if id == 1 {
+        return BaseResponse::<String>::err_result_msg(res, "不允许操作超级管理员用户");
+    }
 
-            let rb = &mut RB.clone();
+    let rb = &mut RB.clone();
 
-            match User::select_by_id(rb, item.id).await {
-                Ok(None) => BaseResponse::<String>::err_result_msg(res, "用户不存在".to_string()),
-                Ok(Some(x)) => {
-                    let mut user = x;
-                    user.password = item.password;
-                    match User::update_by_column(rb, &user, "id").await {
-                        Ok(_u) => BaseResponse::<String>::ok_result(res),
-                        Err(err) => BaseResponse::<String>::err_result_msg(res, err.to_string()),
-                    }
-                }
-                Err(err) => BaseResponse::<String>::err_result_msg(res, err.to_string()),
-            }
-        }
-
-        Err(err) => {
-            BaseResponse::<String>::err_result_msg(res, format!("解析请求参数失败: {}", err))
+    match User::select_by_id(rb, item.id).await? {
+        None => BaseResponse::<String>::err_result_msg(res, "用户不存在"),
+        Some(x) => {
+            let mut user = x;
+            user.password = item.password;
+            User::update_by_column(rb, &user, "id").await?;
+            BaseResponse::<String>::ok_result(res)
         }
     }
 }
@@ -366,36 +267,28 @@ pub async fn reset_sys_user_password(req: &mut Request, res: &mut Response) {
  *date：2025/01/08 13:51:14
  */
 #[handler]
-pub async fn update_sys_user_password(req: &mut Request, depot: &mut Depot, res: &mut Response) {
-    match req.parse_json::<UpdateUserPwdReq>().await {
-        Ok(item) => {
-            log::info!("update sys_user_password params: {:?}", &item);
-            let user_id = depot.get::<i64>("userId").copied().unwrap();
+pub async fn update_sys_user_password(
+    req: &mut Request,
+    depot: &mut Depot,
+    res: &mut Response,
+) -> AppResult<()> {
+    let item = req.parse_json::<UpdateUserPwdReq>().await?;
+    log::info!("update sys_user_password params: {:?}", &item);
+    let user_id = depot.get::<i64>("userId").copied().unwrap();
 
-            let rb = &mut RB.clone();
+    let rb = &mut RB.clone();
 
-            match User::select_by_id(rb, user_id).await {
-                Ok(None) => BaseResponse::<String>::err_result_msg(res, "用户不存在".to_string()),
-                Ok(Some(x)) => {
-                    let mut user = x;
-                    if user.password != item.pwd {
-                        return BaseResponse::<String>::err_result_msg(
-                            res,
-                            "旧密码不正确".to_string(),
-                        );
-                    }
-                    user.password = item.re_pwd;
-
-                    match User::update_by_column(rb, &user, "id").await {
-                        Ok(_u) => BaseResponse::<String>::ok_result(res),
-                        Err(err) => BaseResponse::<String>::err_result_msg(res, err.to_string()),
-                    }
-                }
-                Err(err) => BaseResponse::<String>::err_result_msg(res, err.to_string()),
+    match User::select_by_id(rb, user_id).await? {
+        None => BaseResponse::<String>::err_result_msg(res, "用户不存在"),
+        Some(x) => {
+            let mut user = x;
+            if user.password != item.pwd {
+                return BaseResponse::<String>::err_result_msg(res, "旧密码不正确");
             }
-        }
-        Err(err) => {
-            BaseResponse::<String>::err_result_msg(res, format!("解析请求参数失败: {}", err))
+            user.password = item.re_pwd;
+
+            User::update_by_column(rb, &user, "id").await?;
+            BaseResponse::<String>::ok_result(res)
         }
     }
 }
@@ -406,101 +299,80 @@ pub async fn update_sys_user_password(req: &mut Request, depot: &mut Depot, res:
  *date：2025/01/08 13:51:14
  */
 #[handler]
-pub async fn query_sys_user_detail(req: &mut Request, res: &mut Response) {
-    match req.parse_json::<QueryUserDetailReq>().await {
-        Ok(item) => {
-            log::info!("query sys_user_detail params: {:?}", &item);
+pub async fn query_sys_user_detail(req: &mut Request, res: &mut Response) -> AppResult<()> {
+    let item = req.parse_json::<QueryUserDetailReq>().await?;
+    log::info!("query sys_user_detail params: {:?}", &item);
 
-            let rb = &mut RB.clone();
+    let rb = &mut RB.clone();
 
-            let x = match User::select_by_id(rb, item.id).await {
-                Ok(None) => {
-                    return BaseResponse::<QueryUserDetailResp>::err_result_data(
-                        res,
-                        QueryUserDetailResp::new(),
-                        "用户不存在".to_string(),
-                    )
-                }
-                Ok(Some(user)) => user,
-                Err(err) => {
-                    return BaseResponse::<QueryUserDetailResp>::err_result_data(
-                        res,
-                        QueryUserDetailResp::new(),
-                        err.to_string(),
-                    )
-                }
-            };
-
-            let dept = match Dept::select_by_id(rb, &x.dept_id).await {
-                Ok(None) => {
-                    return BaseResponse::<QueryUserDetailResp>::err_result_data(
-                        res,
-                        QueryUserDetailResp::new(),
-                        "查询用户详细信息失败,部门不存在".to_string(),
-                    )
-                }
-
-                Ok(Some(y)) => {
-                    QueryDeptDetailResp {
-                        id: y.id.unwrap_or_default(),               //部门id
-                        parent_id: y.parent_id,                     //父部门id
-                        ancestors: y.ancestors,                     //祖级列表
-                        dept_name: y.dept_name,                     //部门名称
-                        sort: y.sort,                               //显示顺序
-                        leader: y.leader,                           //负责人
-                        phone: y.phone,                             //联系电话
-                        email: y.email,                             //邮箱
-                        status: y.status,                           //部状态（0：停用，1:正常）
-                        del_flag: y.del_flag.unwrap_or_default(), //删除标志（0代表删除 1代表存在）
-                        create_time: time_to_string(y.create_time), //创建时间
-                        update_time: time_to_string(y.update_time), //修改时间
-                    }
-                }
-                Err(err) => {
-                    return BaseResponse::<QueryUserDetailResp>::err_result_data(
-                        res,
-                        QueryUserDetailResp::new(),
-                        err.to_string(),
-                    )
-                }
-            };
-
-            let post_ids = UserPost::select_by_column(rb, "user_id", item.id)
-                .await
-                .unwrap_or_default()
-                .iter()
-                .map(|x| x.post_id)
-                .collect::<Vec<i64>>();
-
-            let sys_user = QueryUserDetailResp {
-                id: x.id.unwrap_or_default(),                       //主键
-                mobile: x.mobile,                                   //手机
-                user_name: x.user_name,                             //姓名
-                nick_name: x.nick_name,                             //用户昵称
-                user_type: x.user_type.unwrap_or_default(),         //用户类型（00系统用户）
-                email: x.email,                                     //用户邮箱
-                avatar: x.avatar,                                   //头像路径
-                status: x.status,                                   //状态(1:正常，0:禁用)
-                dept_id: x.dept_id,                                 //部门ID
-                login_ip: x.login_ip,                               //最后登录IP
-                login_date: time_to_string(x.login_date),           //最后登录时间
-                login_browser: x.login_browser,                     //浏览器类型
-                login_os: x.login_os,                               //操作系统
-                pwd_update_date: time_to_string(x.pwd_update_date), //密码最后更新时间
-                remark: x.remark,                                   //备注
-                del_flag: x.del_flag, //删除标志（0代表删除 1代表存在）
-                create_time: time_to_string(x.create_time), //创建时间
-                update_time: time_to_string(x.update_time), //修改时间
-                dept_info: dept,
-                post_ids,
-            };
-
-            BaseResponse::<QueryUserDetailResp>::ok_result_data(res, sys_user)
+    let x = match User::select_by_id(rb, item.id).await? {
+        None => {
+            return BaseResponse::<QueryUserDetailResp>::err_result_data(
+                res,
+                QueryUserDetailResp::new(),
+                "用户不存在",
+            )
         }
-        Err(err) => {
-            BaseResponse::<String>::err_result_msg(res, format!("解析请求参数失败: {}", err))
+        Some(user) => user,
+    };
+
+    let dept = match Dept::select_by_id(rb, &x.dept_id).await? {
+        None => {
+            return BaseResponse::<QueryUserDetailResp>::err_result_data(
+                res,
+                QueryUserDetailResp::new(),
+                "查询用户详细信息失败,部门不存在",
+            )
         }
-    }
+
+        Some(y) => {
+            QueryDeptDetailResp {
+                id: y.id.unwrap_or_default(),               //部门id
+                parent_id: y.parent_id,                     //父部门id
+                ancestors: y.ancestors,                     //祖级列表
+                dept_name: y.dept_name,                     //部门名称
+                sort: y.sort,                               //显示顺序
+                leader: y.leader,                           //负责人
+                phone: y.phone,                             //联系电话
+                email: y.email,                             //邮箱
+                status: y.status,                           //部状态（0：停用，1:正常）
+                del_flag: y.del_flag.unwrap_or_default(),   //删除标志（0代表删除 1代表存在）
+                create_time: time_to_string(y.create_time), //创建时间
+                update_time: time_to_string(y.update_time), //修改时间
+            }
+        }
+    };
+
+    let post_ids = UserPost::select_by_column(rb, "user_id", item.id)
+        .await?
+        .iter()
+        .map(|x| x.post_id)
+        .collect::<Vec<i64>>();
+
+    let sys_user = QueryUserDetailResp {
+        id: x.id.unwrap_or_default(),                       //主键
+        mobile: x.mobile,                                   //手机
+        user_name: x.user_name,                             //姓名
+        nick_name: x.nick_name,                             //用户昵称
+        user_type: x.user_type.unwrap_or_default(),         //用户类型（00系统用户）
+        email: x.email,                                     //用户邮箱
+        avatar: x.avatar,                                   //头像路径
+        status: x.status,                                   //状态(1:正常，0:禁用)
+        dept_id: x.dept_id,                                 //部门ID
+        login_ip: x.login_ip,                               //最后登录IP
+        login_date: time_to_string(x.login_date),           //最后登录时间
+        login_browser: x.login_browser,                     //浏览器类型
+        login_os: x.login_os,                               //操作系统
+        pwd_update_date: time_to_string(x.pwd_update_date), //密码最后更新时间
+        remark: x.remark,                                   //备注
+        del_flag: x.del_flag,                               //删除标志（0代表删除 1代表存在）
+        create_time: time_to_string(x.create_time),         //创建时间
+        update_time: time_to_string(x.update_time),         //修改时间
+        dept_info: dept,
+        post_ids,
+    };
+
+    BaseResponse::<QueryUserDetailResp>::ok_result_data(res, sys_user)
 }
 
 /*
@@ -509,61 +381,45 @@ pub async fn query_sys_user_detail(req: &mut Request, res: &mut Response) {
  *date：2025/01/08 13:51:14
  */
 #[handler]
-pub async fn query_sys_user_list(req: &mut Request, res: &mut Response) {
-    match req.parse_json::<QueryUserListReq>().await {
-        Ok(item) => {
-            log::info!("query sys_user_list params: {:?}", &item);
+pub async fn query_sys_user_list(req: &mut Request, res: &mut Response) -> AppResult<()> {
+    let item = req.parse_json::<QueryUserListReq>().await?;
+    log::info!("query sys_user_list params: {:?}", &item);
 
-            let mobile = item.mobile.as_deref().unwrap_or_default();
-            let user_name = item.user_name.as_deref().unwrap_or_default();
-            let status = item.status.unwrap_or(2);
-            let dept_id = item.dept_id.unwrap_or_default();
+    let mobile = item.mobile.as_deref().unwrap_or_default();
+    let user_name = item.user_name.as_deref().unwrap_or_default();
+    let status = item.status.unwrap_or(2);
+    let dept_id = item.dept_id.unwrap_or_default();
 
-            let page = &PageRequest::new(item.page_no, item.page_size);
-            let rb = &mut RB.clone();
+    let page = &PageRequest::new(item.page_no, item.page_size);
+    let rb = &mut RB.clone();
 
-            match User::select_sys_user_list(rb, page, mobile, user_name, status, dept_id).await {
-                Ok(d) => {
-                    let total = d.total;
-                    let mut sys_user_list_data: Vec<UserListDataResp> = Vec::new();
-                    for x in d.records {
-                        sys_user_list_data.push(UserListDataResp {
-                            id: x.id.unwrap_or_default(),                       //主键
-                            mobile: x.mobile,                                   //手机
-                            user_name: x.user_name,                             //姓名
-                            nick_name: x.nick_name,                             //用户昵称
-                            user_type: x.user_type.unwrap_or_default(), //用户类型（00系统用户）
-                            email: x.email,                             //用户邮箱
-                            avatar: x.avatar,                           //头像路径
-                            status: x.status,                           //状态(1:正常，0:禁用)
-                            dept_id: x.dept_id,                         //部门ID
-                            login_ip: x.login_ip,                       //最后登录IP
-                            login_date: time_to_string(x.login_date),   //最后登录时间
-                            login_browser: x.login_browser,             //浏览器类型
-                            login_os: x.login_os,                       //操作系统
-                            pwd_update_date: time_to_string(x.pwd_update_date), //密码最后更新时间
-                            remark: x.remark,                           //备注
-                            del_flag: x.del_flag, //删除标志（0代表删除 1代表存在）
-                            create_time: time_to_string(x.create_time), //创建时间
-                            update_time: time_to_string(x.update_time), //修改时间
-                        })
-                    }
-
-                    BaseResponse::<Vec<UserListDataResp>>::ok_result_page(
-                        res,
-                        sys_user_list_data,
-                        total,
-                    )
-                }
-                Err(err) => {
-                    BaseResponse::<String>::err_result_msg(res, format!("数据库错误: {}", err))
-                }
-            }
-        }
-        Err(err) => {
-            BaseResponse::<String>::err_result_msg(res, format!("解析请求参数失败: {}", err))
-        }
+    let d = User::select_sys_user_list(rb, page, mobile, user_name, status, dept_id).await?;
+    let total = d.total;
+    let mut list: Vec<UserListDataResp> = Vec::new();
+    for x in d.records {
+        list.push(UserListDataResp {
+            id: x.id.unwrap_or_default(),                       //主键
+            mobile: x.mobile,                                   //手机
+            user_name: x.user_name,                             //姓名
+            nick_name: x.nick_name,                             //用户昵称
+            user_type: x.user_type.unwrap_or_default(),         //用户类型（00系统用户）
+            email: x.email,                                     //用户邮箱
+            avatar: x.avatar,                                   //头像路径
+            status: x.status,                                   //状态(1:正常，0:禁用)
+            dept_id: x.dept_id,                                 //部门ID
+            login_ip: x.login_ip,                               //最后登录IP
+            login_date: time_to_string(x.login_date),           //最后登录时间
+            login_browser: x.login_browser,                     //浏览器类型
+            login_os: x.login_os,                               //操作系统
+            pwd_update_date: time_to_string(x.pwd_update_date), //密码最后更新时间
+            remark: x.remark,                                   //备注
+            del_flag: x.del_flag,                               //删除标志（0代表删除 1代表存在）
+            create_time: time_to_string(x.create_time),         //创建时间
+            update_time: time_to_string(x.update_time),         //修改时间
+        })
     }
+
+    BaseResponse::<Vec<UserListDataResp>>::ok_result_page(res, list, total)
 }
 
 /*
@@ -572,89 +428,67 @@ pub async fn query_sys_user_list(req: &mut Request, res: &mut Response) {
  *date：2025/01/08 13:51:14
  */
 #[handler]
-pub async fn login(req: &mut Request, res: &mut Response) {
-    match req.parse_json::<UserLoginReq>().await {
-        Ok(item) => {
-            log::info!("user login params: {:?}", &item);
+pub async fn login(req: &mut Request, res: &mut Response) -> AppResult<()> {
+    let item = req.parse_json::<UserLoginReq>().await?;
+    log::info!("user login params: {:?}", &item);
 
-            let user_agent = req.header::<&str>("user-agent").unwrap_or_default();
-            log::info!("user agent: {:?}", user_agent);
-            let agent = UserAgentUtil::new(user_agent);
+    let user_agent = req.header::<&str>("user-agent").unwrap_or_default();
+    log::info!("user agent: {:?}", user_agent);
+    let agent = UserAgentUtil::new(user_agent);
 
-            let rb = &mut RB.clone();
-            let user_result = User::select_by_mobile(rb, &item.mobile).await;
-            log::info!("query user by mobile: {:?}", user_result);
+    let rb = &mut RB.clone();
+    let user_result = User::select_by_mobile(rb, &item.mobile).await?;
+    log::info!("query user by mobile: {:?}", user_result);
 
-            match user_result {
-                Ok(None) => {
-                    add_login_log(item.mobile, 0, "用户不存在".to_string(), agent).await;
-                    BaseResponse::<String>::err_result_msg(res, "用户不存在".to_string())
-                }
-                Ok(Some(user)) => {
-                    let mut s_user = user.clone();
-                    let id = user.id.unwrap_or_default();
-                    let username = user.user_name;
-                    let password = user.password;
+    match user_result {
+        None => {
+            add_login_log(item.mobile, 0, "用户不存在", agent).await;
+            BaseResponse::<String>::err_result_msg(res, "用户不存在")
+        }
+        Some(user) => {
+            let mut s_user = user.clone();
+            let id = user.id.unwrap_or_default();
+            let username = user.user_name;
+            let password = user.password;
 
-                    if password.ne(&item.password) {
-                        add_login_log(item.mobile, 0, "密码不正确".to_string(), agent).await;
+            if password.ne(&item.password) {
+                add_login_log(item.mobile, 0, "密码不正确", agent).await;
+                return BaseResponse::<String>::err_result_msg(res, "密码不正确");
+            }
+
+            let btn_menu = query_btn_menu(&id).await;
+
+            if btn_menu.len() == 0 {
+                add_login_log(item.mobile, 0, "用户没有分配角色或者菜单,不能登录", agent).await;
+                return BaseResponse::<String>::err_result_msg(
+                    res,
+                    "用户没有分配角色或者菜单,不能登录",
+                );
+            }
+
+            match JWTToken::new(id, &username, btn_menu).create_token("123") {
+                Ok(token) => {
+                    add_login_log(item.mobile, 1, "登录成功", agent.clone()).await;
+                    s_user.login_os = agent.os;
+                    s_user.login_browser = agent.browser;
+                    s_user.login_date = Some(DateTime::now());
+                    if User::update_by_column(rb, &s_user, "id").await.is_err() {
                         return BaseResponse::<String>::err_result_msg(
                             res,
-                            "密码不正确".to_string(),
+                            "更新用户登录后的信息失败",
                         );
                     }
-
-                    let btn_menu = query_btn_menu(&id).await;
-
-                    if btn_menu.len() == 0 {
-                        add_login_log(
-                            item.mobile,
-                            0,
-                            "用户没有分配角色或者菜单,不能登录".to_string(),
-                            agent,
-                        )
-                        .await;
-                        return BaseResponse::<String>::err_result_msg(
-                            res,
-                            "用户没有分配角色或者菜单,不能登录".to_string(),
-                        );
-                    }
-
-                    match JWTToken::new(id, &username, btn_menu).create_token("123") {
-                        Ok(token) => {
-                            add_login_log(item.mobile, 1, "登录成功".to_string(), agent.clone())
-                                .await;
-                            s_user.login_os = agent.os;
-                            s_user.login_browser = agent.browser;
-                            s_user.login_date = Some(DateTime::now());
-                            if User::update_by_column(rb, &s_user, "id").await.is_err() {
-                                return BaseResponse::<String>::err_result_msg(
-                                    res,
-                                    "更新用户登录后的信息失败".to_string(),
-                                );
-                            }
-                            BaseResponse::<String>::ok_result_data(res, token)
-                        }
-                        Err(err) => {
-                            let er = match err {
-                                AppError::JwtTokenError(s) => s,
-                                _ => "no math error".to_string(),
-                            };
-                            add_login_log(item.mobile, 0, "生成token异常".to_string(), agent).await;
-                            BaseResponse::<String>::err_result_msg(res, er)
-                        }
-                    }
+                    BaseResponse::<String>::ok_result_data(res, token)
                 }
-
                 Err(err) => {
-                    add_login_log(item.mobile, 0, "查询用户异常".to_string(), agent).await;
-                    log::info!("select_by_column: {:?}", err);
-                    BaseResponse::<String>::err_result_msg(res, "查询用户异常".to_string())
+                    let er = match err {
+                        AppError::JwtTokenError(s) => s,
+                        _ => "no math error".to_string(),
+                    };
+                    add_login_log(item.mobile, 0, "生成token异常", agent).await;
+                    BaseResponse::<String>::err_result_msg(res, er.as_str())
                 }
             }
-        }
-        Err(err) => {
-            BaseResponse::<String>::err_result_msg(res, format!("解析请求参数失败: {}", err))
         }
     }
 }
@@ -664,7 +498,7 @@ pub async fn login(req: &mut Request, res: &mut Response) {
  *author：刘飞华
  *date：2025/01/08 13:51:14
  */
-async fn add_login_log(name: String, status: i8, msg: String, agent: UserAgentUtil) {
+async fn add_login_log(name: String, status: i8, msg: &str, agent: UserAgentUtil) {
     let sys_login_log = LoginLog {
         id: None,                             //访问ID
         login_name: name,                     //登录账号
@@ -679,7 +513,7 @@ async fn add_login_log(name: String, status: i8, msg: String, agent: UserAgentUt
         engine_details: agent.engine_details, //渲染引擎详细信息
         extra: agent.extra,                   //其他信息（可选）
         status,                               //登录状态(0:失败,1:成功)
-        msg,                                  //提示消息
+        msg: msg.to_string(),                 //提示消息
         login_time: None,                     //访问时间
     };
 
@@ -688,7 +522,7 @@ async fn add_login_log(name: String, status: i8, msg: String, agent: UserAgentUt
         Err(err) => log::error!(
             "add_login_log error params: {:?}, error message: {:?}",
             sys_login_log,
-            err.to_string()
+            err
         ),
     }
 }
@@ -728,49 +562,43 @@ async fn query_btn_menu(id: &i64) -> Vec<String> {
  *date：2025/01/08 13:51:14
  */
 #[handler]
-pub async fn query_user_role(req: &mut Request, res: &mut Response) {
-    match req.parse_json::<QueryUserRoleReq>().await {
-        Ok(item) => {
-            log::info!("query_user_role params: {:?}", item);
+pub async fn query_user_role(req: &mut Request, res: &mut Response) -> AppResult<()> {
+    let item = req.parse_json::<QueryUserRoleReq>().await?;
+    log::info!("query_user_role params: {:?}", item);
 
-            let rb = &mut RB.clone();
-            let mut user_role_ids: Vec<i64> = Vec::new();
+    let rb = &mut RB.clone();
+    let mut user_role_ids: Vec<i64> = Vec::new();
 
-            for x in UserRole::select_by_column(rb, "user_id", item.user_id)
-                .await
-                .unwrap_or_default()
-            {
-                user_role_ids.push(x.role_id);
-            }
-
-            let mut sys_role_list: Vec<RoleList> = Vec::new();
-
-            for x in Role::select_all(rb).await.unwrap_or_default() {
-                sys_role_list.push(RoleList {
-                    id: x.id.unwrap_or_default(),               //主键
-                    role_name: x.role_name,                     //名称
-                    role_key: x.role_key,                       //角色权限字符串
-                    data_scope: x.data_scope, //数据范围（1：全部数据权限 2：自定数据权限 3：本部门数据权限 4：本部门及以下数据权限）
-                    status: x.status,         //状态(1:正常，0:禁用)
-                    remark: x.remark,         //备注
-                    del_flag: x.del_flag.unwrap_or_default(), //删除标志（0代表删除 1代表存在）
-                    create_time: time_to_string(x.create_time), //创建时间
-                    update_time: time_to_string(x.update_time), //修改时间
-                });
-            }
-
-            BaseResponse::ok_result_data(
-                res,
-                QueryUserRoleResp {
-                    sys_role_list,
-                    user_role_ids,
-                },
-            )
-        }
-        Err(err) => {
-            BaseResponse::<String>::err_result_msg(res, format!("解析请求参数失败: {}", err))
-        }
+    for x in UserRole::select_by_column(rb, "user_id", item.user_id)
+        .await
+        .unwrap_or_default()
+    {
+        user_role_ids.push(x.role_id);
     }
+
+    let mut sys_role_list: Vec<RoleList> = Vec::new();
+
+    for x in Role::select_all(rb).await? {
+        sys_role_list.push(RoleList {
+            id: x.id.unwrap_or_default(),               //主键
+            role_name: x.role_name,                     //名称
+            role_key: x.role_key,                       //角色权限字符串
+            data_scope: x.data_scope, //数据范围（1：全部数据权限 2：自定数据权限 3：本部门数据权限 4：本部门及以下数据权限）
+            status: x.status,         //状态(1:正常，0:禁用)
+            remark: x.remark,         //备注
+            del_flag: x.del_flag.unwrap_or_default(), //删除标志（0代表删除 1代表存在）
+            create_time: time_to_string(x.create_time), //创建时间
+            update_time: time_to_string(x.update_time), //修改时间
+        });
+    }
+
+    BaseResponse::ok_result_data(
+        res,
+        QueryUserRoleResp {
+            sys_role_list,
+            user_role_ids,
+        },
+    )
 }
 
 /*
@@ -779,50 +607,35 @@ pub async fn query_user_role(req: &mut Request, res: &mut Response) {
  *date：2025/01/08 13:51:14
  */
 #[handler]
-pub async fn update_user_role(req: &mut Request, res: &mut Response) {
-    match req.parse_json::<UpdateUserRoleReq>().await {
-        Ok(item) => {
-            log::info!("update_user_role params: {:?}", item);
+pub async fn update_user_role(req: &mut Request, res: &mut Response) -> AppResult<()> {
+    let item = req.parse_json::<UpdateUserRoleReq>().await?;
+    log::info!("update_user_role params: {:?}", item);
 
-            let user_id = item.user_id.clone();
-            let role_ids = &item.role_ids;
-            let len = item.role_ids.len();
+    let user_id = item.user_id.clone();
+    let role_ids = &item.role_ids;
+    let len = item.role_ids.len();
 
-            if user_id.clone() == 1 {
-                BaseResponse::<String>::err_result_msg(res, "不能修改超级管理员的角色".to_string());
-                return;
-            }
-
-            let rb = &mut RB.clone();
-
-            if UserRole::delete_by_column(rb, "user_id", user_id.clone())
-                .await
-                .is_err()
-            {
-                BaseResponse::<String>::err_result_msg(res, "更新用户角色异常".to_string());
-                return;
-            }
-
-            let mut sys_role_user_list: Vec<UserRole> = Vec::new();
-            for role_id in role_ids {
-                let r_id = role_id.clone();
-                sys_role_user_list.push(UserRole {
-                    id: None,
-                    create_time: Some(DateTime::now()),
-                    role_id: r_id,
-                    user_id: user_id.clone(),
-                })
-            }
-
-            match UserRole::insert_batch(rb, &sys_role_user_list, len as u64).await {
-                Ok(_u) => BaseResponse::<String>::ok_result(res),
-                Err(err) => BaseResponse::<String>::err_result_msg(res, err.to_string()),
-            };
-        }
-        Err(err) => {
-            BaseResponse::<String>::err_result_msg(res, format!("解析请求参数失败: {}", err))
-        }
+    if user_id.clone() == 1 {
+        return BaseResponse::<String>::err_result_msg(res, "不能修改超级管理员的角色");
     }
+
+    let rb = &mut RB.clone();
+
+    UserRole::delete_by_column(rb, "user_id", user_id.clone()).await?;
+
+    let mut sys_role_user_list: Vec<UserRole> = Vec::new();
+    for role_id in role_ids {
+        let r_id = role_id.clone();
+        sys_role_user_list.push(UserRole {
+            id: None,
+            create_time: Some(DateTime::now()),
+            role_id: r_id,
+            user_id: user_id.clone(),
+        })
+    }
+
+    UserRole::insert_batch(rb, &sys_role_user_list, len as u64).await?;
+    BaseResponse::<String>::ok_result(res)
 }
 
 /*
@@ -831,27 +644,27 @@ pub async fn update_user_role(req: &mut Request, res: &mut Response) {
  *date：2025/01/08 13:51:14
  */
 #[handler]
-pub async fn query_user_menu(depot: &mut Depot, res: &mut Response) {
+pub async fn query_user_menu(depot: &mut Depot, res: &mut Response) -> AppResult<()> {
     log::info!("query user menu params {:?}", depot);
     let user_id = depot.get::<i64>("userId").copied().unwrap();
-    let username = depot.get::<String>("username").unwrap().to_string();
+    let username = depot.get::<String>("username").unwrap();
     log::info!("query user menu params {:?}", user_id);
     log::info!("query user menu params {:?}", username);
 
     //根据id查询用户
     let rb = &mut RB.clone();
 
-    match User::select_by_id(rb, user_id).await {
-        Ok(None) => BaseResponse::<String>::err_result_msg(res, "用户不存在".to_string()),
-        Ok(Some(user)) => {
+    match User::select_by_id(rb, user_id).await? {
+        None => BaseResponse::<String>::err_result_msg(res, "用户不存在"),
+        Some(user) => {
             //role_id为1是超级管理员--判断是不是超级管理员
-            let count = is_admin(rb, &user_id).await.unwrap_or_default();
+            let count = is_admin(rb, &user_id).await?;
 
             let sys_menu_list: Vec<Menu>;
 
             if count == 1 {
                 log::info!("The current user is a super administrator");
-                sys_menu_list = Menu::select_all(rb).await.unwrap_or_default();
+                sys_menu_list = Menu::select_all(rb).await?;
             } else {
                 log::info!("The current user is not a super administrator");
                 let sql_str = "select u.* from sys_user_role t left join sys_role usr on t.role_id = usr.id left join sys_role_menu srm on usr.id = srm.role_id left join sys_menu u on srm.menu_id = u.id where t.user_id = ?";
@@ -879,7 +692,7 @@ pub async fn query_user_menu(depot: &mut Depot, res: &mut Response) {
             for id in sys_menu_ids {
                 menu_ids.push(id)
             }
-            for menu in Menu::select_by_ids(rb, &menu_ids).await.unwrap_or_default() {
+            for menu in Menu::select_by_ids(rb, &menu_ids).await? {
                 let api_url = menu.api_url.unwrap_or_default();
                 sys_menu.push(MenuList {
                     id: menu.id.unwrap_or_default(),
@@ -897,16 +710,11 @@ pub async fn query_user_menu(depot: &mut Depot, res: &mut Response) {
             }
 
             BaseResponse::<QueryUserMenuResp>::ok_result_data(res, QueryUserMenuResp {
-                    sys_menu,
-                    btn_menu,
-                    avatar: "https://gw.alipayobjects.com/zos/antfincdn/XAosXuNZyF/BiazfanxmamNRoxxVxka.png".to_string(),
-                    name: user.user_name,
-                })
-        }
-        // 查询用户数据库异常
-        Err(err) => {
-            error!("{}", err.to_string());
-            BaseResponse::<String>::err_result_msg(res, err.to_string())
+                sys_menu,
+                btn_menu,
+                avatar: "https://gw.alipayobjects.com/zos/antfincdn/XAosXuNZyF/BiazfanxmamNRoxxVxka.png".to_string(),
+                name: user.user_name,
+            })
         }
     }
 }
