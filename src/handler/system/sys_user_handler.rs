@@ -2,7 +2,7 @@
 // author：刘飞华
 // date：2025/01/08 13:51:14
 
-use crate::common::error::WhoUnfollowedError;
+use crate::common::error::AppError;
 use crate::common::result::BaseResponse;
 use crate::model::system::sys_dept_model::Dept;
 use crate::model::system::sys_login_log_model::LoginLog;
@@ -637,7 +637,7 @@ pub async fn login(req: &mut Request, res: &mut Response) {
                         }
                         Err(err) => {
                             let er = match err {
-                                WhoUnfollowedError::JwtTokenError(s) => s,
+                                AppError::JwtTokenError(s) => s,
                                 _ => "no math error".to_string(),
                             };
                             add_login_log(item.mobile, 0, "生成token异常".to_string(), agent).await;

@@ -1,7 +1,7 @@
 use thiserror::Error;
 
 #[derive(Error, Debug)]
-pub enum WhoUnfollowedError {
+pub enum AppError {
     // #[error("Failed to complete an HTTP request")]
     // Http { #[from] source: reqwest::Error },
     //
