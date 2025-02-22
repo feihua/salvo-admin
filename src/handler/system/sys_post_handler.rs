@@ -251,19 +251,8 @@ pub async fn query_sys_post_detail(req: &mut Request, res: &mut Response) {
             log::info!("query sys_post_detail params: {:?}", &item);
 
             let rb = &mut RB.clone();
-            let result = Post::select_by_id(rb, &item.id).await;
-
-            match result {
-                Ok(d) => {
-                    if d.is_none() {
-                        return BaseResponse::<QueryPostDetailResp>::err_result_data(
-                            res,
-                            QueryPostDetailResp::new(),
-                            "岗位不存在".to_string(),
-                        );
-                    }
-                    let x = d.unwrap();
-
+            match Post::select_by_id(rb, &item.id).await {
+                Ok(Some(x)) => {
                     let sys_post = QueryPostDetailResp {
                         id: x.id.unwrap_or_default(),               //岗位id
                         post_code: x.post_code,                     //岗位编码
@@ -277,6 +266,11 @@ pub async fn query_sys_post_detail(req: &mut Request, res: &mut Response) {
 
                     BaseResponse::<QueryPostDetailResp>::ok_result_data(res, sys_post)
                 }
+                Ok(None) => BaseResponse::<QueryPostDetailResp>::err_result_data(
+                    res,
+                    QueryPostDetailResp::new(),
+                    "岗位不存在".to_string(),
+                ),
                 Err(err) => BaseResponse::<QueryPostDetailResp>::err_result_data(
                     res,
                     QueryPostDetailResp::new(),

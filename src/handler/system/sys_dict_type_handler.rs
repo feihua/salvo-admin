@@ -224,19 +224,14 @@ pub async fn query_sys_dict_type_detail(req: &mut Request, res: &mut Response) {
             log::info!("query sys_dict_type_detail params: {:?}", &item);
 
             let rb = &mut RB.clone();
-            let result = DictType::select_by_id(rb, &item.id).await;
 
-            match result {
-                Ok(d) => {
-                    if d.is_none() {
-                        return BaseResponse::<QueryDictTypeDetailResp>::err_result_data(
-                            res,
-                            QueryDictTypeDetailResp::new(),
-                            "字典类型不存在".to_string(),
-                        );
-                    }
-                    let x = d.unwrap();
-
+            match DictType::select_by_id(rb, &item.id).await {
+                Ok(None) => BaseResponse::<QueryDictTypeDetailResp>::err_result_data(
+                    res,
+                    QueryDictTypeDetailResp::new(),
+                    "字典类型不存在".to_string(),
+                ),
+                Ok(Some(x)) => {
                     let sys_dict_type = QueryDictTypeDetailResp {
                         dict_id: x.dict_id.unwrap_or_default(),     //字典主键
                         dict_name: x.dict_name,                     //字典名称

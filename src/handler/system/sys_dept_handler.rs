@@ -348,19 +348,13 @@ pub async fn query_sys_dept_detail(req: &mut Request, res: &mut Response) {
             log::info!("query sys_dept_detail params: {:?}", &item);
 
             let rb = &mut RB.clone();
-            let result = Dept::select_by_id(rb, &item.id).await;
-
-            match result {
-                Ok(d) => {
-                    if d.is_none() {
-                        return BaseResponse::<QueryDeptDetailResp>::err_result_data(
-                            res,
-                            QueryDeptDetailResp::new(),
-                            "部门不存在".to_string(),
-                        );
-                    }
-                    let x = d.unwrap();
-
+            match Dept::select_by_id(rb, &item.id).await {
+                Ok(None) => BaseResponse::<QueryDeptDetailResp>::err_result_data(
+                    res,
+                    QueryDeptDetailResp::new(),
+                    "部门不存在".to_string(),
+                ),
+                Ok(Some(x)) => {
                     let sys_dept = QueryDeptDetailResp {
                         id: x.id.unwrap_or_default(),               //部门id
                         parent_id: x.parent_id,                     //父部门id

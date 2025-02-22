@@ -299,19 +299,14 @@ pub async fn query_sys_role_detail(req: &mut Request, res: &mut Response) {
             log::info!("query sys_role_detail params: {:?}", &item);
 
             let rb = &mut RB.clone();
-            let result = Role::select_by_id(rb, &item.id).await;
 
-            match result {
-                Ok(opt_role) => {
-                    if opt_role.is_none() {
-                        return BaseResponse::<QueryRoleDetailResp>::err_result_data(
-                            res,
-                            QueryRoleDetailResp::new(),
-                            "角色不存在".to_string(),
-                        );
-                    }
-                    let x = opt_role.unwrap();
-
+            match Role::select_by_id(rb, &item.id).await {
+                Ok(None) => BaseResponse::<QueryRoleDetailResp>::err_result_data(
+                    res,
+                    QueryRoleDetailResp::new(),
+                    "角色不存在".to_string(),
+                ),
+                Ok(Some(x)) => {
                     let sys_role = QueryRoleDetailResp {
                         id: x.id.unwrap_or_default(),               //主键
                         role_name: x.role_name,                     //名称

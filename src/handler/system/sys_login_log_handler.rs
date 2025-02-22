@@ -49,19 +49,14 @@ pub async fn query_sys_login_log_detail(req: &mut Request, res: &mut Response) {
             log::info!("query sys_login_log_detail params: {:?}", &item);
 
             let rb = &mut RB.clone();
-            let result = LoginLog::select_by_id(rb, &item.id).await;
 
-            match result {
-                Ok(opt_sys_login_log) => {
-                    if opt_sys_login_log.is_none() {
-                        return BaseResponse::<QueryLoginLogDetailResp>::err_result_data(
-                            res,
-                            QueryLoginLogDetailResp::new(),
-                            "系统访问记录不存在".to_string(),
-                        );
-                    }
-                    let x = opt_sys_login_log.unwrap();
-
+            match LoginLog::select_by_id(rb, &item.id).await {
+                Ok(None) => BaseResponse::<QueryLoginLogDetailResp>::err_result_data(
+                    res,
+                    QueryLoginLogDetailResp::new(),
+                    "系统访问记录不存在".to_string(),
+                ),
+                Ok(Some(x)) => {
                     let sys_login_log = QueryLoginLogDetailResp {
                         id: x.id.unwrap(),                        //访问ID
                         login_name: x.login_name,                 //登录账号

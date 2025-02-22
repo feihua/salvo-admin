@@ -239,17 +239,12 @@ pub async fn query_sys_dict_data_detail(req: &mut Request, res: &mut Response) {
             let rb = &mut RB.clone();
 
             match DictData::select_by_id(rb, &item.id).await {
-                Ok(d) => {
-                    if d.is_none() {
-                        return BaseResponse::<QueryDictDataDetailResp>::err_result_data(
-                            res,
-                            QueryDictDataDetailResp::new(),
-                            "字典数据不存在".to_string(),
-                        );
-                    }
-
-                    let x = d.unwrap();
-
+                Ok(None) => BaseResponse::<QueryDictDataDetailResp>::err_result_data(
+                    res,
+                    QueryDictDataDetailResp::new(),
+                    "字典数据不存在".to_string(),
+                ),
+                Ok(Some(x)) => {
                     let sys_dict_data = QueryDictDataDetailResp {
                         dict_code: x.dict_code.unwrap_or_default(), //字典编码
                         dict_sort: x.dict_sort,                     //字典排序

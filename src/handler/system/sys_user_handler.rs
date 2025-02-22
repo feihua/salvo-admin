@@ -447,90 +447,90 @@ pub async fn query_sys_user_detail(req: &mut Request, res: &mut Response) {
             log::info!("query sys_user_detail params: {:?}", &item);
 
             let rb = &mut RB.clone();
-            let result = User::select_by_id(rb, item.id).await;
 
-            match result {
-                Ok(d) => {
-                    if d.is_none() {
-                        return BaseResponse::<QueryUserDetailResp>::err_result_data(
-                            res,
-                            QueryUserDetailResp::new(),
-                            "用户不存在".to_string(),
-                        );
-                    }
-                    let x = d.unwrap();
-
-                    let dept_result = Dept::select_by_id(rb, &x.dept_id).await;
-                    let dept = match dept_result {
-                        Ok(opt_dept) => {
-                            if opt_dept.is_none() {
-                                return BaseResponse::<QueryUserDetailResp>::err_result_data(
-                                    res,
-                                    QueryUserDetailResp::new(),
-                                    "查询用户详细信息失败,部门不存在".to_string(),
-                                );
-                            }
-                            let x = opt_dept.unwrap();
-                            QueryDeptDetailResp {
-                                id: x.id.unwrap_or_default(),               //部门id
-                                parent_id: x.parent_id,                     //父部门id
-                                ancestors: x.ancestors,                     //祖级列表
-                                dept_name: x.dept_name,                     //部门名称
-                                sort: x.sort,                               //显示顺序
-                                leader: x.leader,                           //负责人
-                                phone: x.phone,                             //联系电话
-                                email: x.email,                             //邮箱
-                                status: x.status, //部状态（0：停用，1:正常）
-                                del_flag: x.del_flag.unwrap_or_default(), //删除标志（0代表删除 1代表存在）
-                                create_time: time_to_string(x.create_time), //创建时间
-                                update_time: time_to_string(x.update_time), //修改时间
-                            }
-                        }
-                        Err(err) => {
-                            return BaseResponse::<QueryUserDetailResp>::err_result_data(
-                                res,
-                                QueryUserDetailResp::new(),
-                                err.to_string(),
-                            )
-                        }
-                    };
-
-                    let result = UserPost::select_by_column(rb, "user_id", item.id)
-                        .await
-                        .unwrap_or_default();
-                    let post_ids = result.iter().map(|x| x.post_id).collect::<Vec<i64>>();
-
-                    let sys_user = QueryUserDetailResp {
-                        id: x.id.unwrap_or_default(),                       //主键
-                        mobile: x.mobile,                                   //手机
-                        user_name: x.user_name,                             //姓名
-                        nick_name: x.nick_name,                             //用户昵称
-                        user_type: x.user_type.unwrap_or_default(),         //用户类型（00系统用户）
-                        email: x.email,                                     //用户邮箱
-                        avatar: x.avatar,                                   //头像路径
-                        status: x.status,                                   //状态(1:正常，0:禁用)
-                        dept_id: x.dept_id,                                 //部门ID
-                        login_ip: x.login_ip,                               //最后登录IP
-                        login_date: time_to_string(x.login_date),           //最后登录时间
-                        login_browser: x.login_browser,                     //浏览器类型
-                        login_os: x.login_os,                               //操作系统
-                        pwd_update_date: time_to_string(x.pwd_update_date), //密码最后更新时间
-                        remark: x.remark,                                   //备注
-                        del_flag: x.del_flag, //删除标志（0代表删除 1代表存在）
-                        create_time: time_to_string(x.create_time), //创建时间
-                        update_time: time_to_string(x.update_time), //修改时间
-                        dept_info: dept,
-                        post_ids,
-                    };
-
-                    BaseResponse::<QueryUserDetailResp>::ok_result_data(res, sys_user)
+            let x = match User::select_by_id(rb, item.id).await {
+                Ok(None) => {
+                    return BaseResponse::<QueryUserDetailResp>::err_result_data(
+                        res,
+                        QueryUserDetailResp::new(),
+                        "用户不存在".to_string(),
+                    )
                 }
-                Err(err) => BaseResponse::<QueryUserDetailResp>::err_result_data(
-                    res,
-                    QueryUserDetailResp::new(),
-                    err.to_string(),
-                ),
-            }
+                Ok(Some(user)) => user,
+                Err(err) => {
+                    return BaseResponse::<QueryUserDetailResp>::err_result_data(
+                        res,
+                        QueryUserDetailResp::new(),
+                        err.to_string(),
+                    )
+                }
+            };
+
+            let dept = match Dept::select_by_id(rb, &x.dept_id).await {
+                Ok(None) => {
+                    return BaseResponse::<QueryUserDetailResp>::err_result_data(
+                        res,
+                        QueryUserDetailResp::new(),
+                        "查询用户详细信息失败,部门不存在".to_string(),
+                    )
+                }
+
+                Ok(Some(y)) => {
+                    QueryDeptDetailResp {
+                        id: y.id.unwrap_or_default(),               //部门id
+                        parent_id: y.parent_id,                     //父部门id
+                        ancestors: y.ancestors,                     //祖级列表
+                        dept_name: y.dept_name,                     //部门名称
+                        sort: y.sort,                               //显示顺序
+                        leader: y.leader,                           //负责人
+                        phone: y.phone,                             //联系电话
+                        email: y.email,                             //邮箱
+                        status: y.status,                           //部状态（0：停用，1:正常）
+                        del_flag: y.del_flag.unwrap_or_default(), //删除标志（0代表删除 1代表存在）
+                        create_time: time_to_string(y.create_time), //创建时间
+                        update_time: time_to_string(y.update_time), //修改时间
+                    }
+                }
+                Err(err) => {
+                    return BaseResponse::<QueryUserDetailResp>::err_result_data(
+                        res,
+                        QueryUserDetailResp::new(),
+                        err.to_string(),
+                    )
+                }
+            };
+
+            let post_ids = UserPost::select_by_column(rb, "user_id", item.id)
+                .await
+                .unwrap_or_default()
+                .iter()
+                .map(|x| x.post_id)
+                .collect::<Vec<i64>>();
+
+            let sys_user = QueryUserDetailResp {
+                id: x.id.unwrap_or_default(),                       //主键
+                mobile: x.mobile,                                   //手机
+                user_name: x.user_name,                             //姓名
+                nick_name: x.nick_name,                             //用户昵称
+                user_type: x.user_type.unwrap_or_default(),         //用户类型（00系统用户）
+                email: x.email,                                     //用户邮箱
+                avatar: x.avatar,                                   //头像路径
+                status: x.status,                                   //状态(1:正常，0:禁用)
+                dept_id: x.dept_id,                                 //部门ID
+                login_ip: x.login_ip,                               //最后登录IP
+                login_date: time_to_string(x.login_date),           //最后登录时间
+                login_browser: x.login_browser,                     //浏览器类型
+                login_os: x.login_os,                               //操作系统
+                pwd_update_date: time_to_string(x.pwd_update_date), //密码最后更新时间
+                remark: x.remark,                                   //备注
+                del_flag: x.del_flag, //删除标志（0代表删除 1代表存在）
+                create_time: time_to_string(x.create_time), //创建时间
+                update_time: time_to_string(x.update_time), //修改时间
+                dept_info: dept,
+                post_ids,
+            };
+
+            BaseResponse::<QueryUserDetailResp>::ok_result_data(res, sys_user)
         }
         Err(err) => {
             BaseResponse::<String>::err_result_msg(res, format!("解析请求参数失败: {}", err))

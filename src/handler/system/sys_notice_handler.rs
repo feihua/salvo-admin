@@ -199,19 +199,13 @@ pub async fn query_sys_notice_detail(req: &mut Request, res: &mut Response) {
         Ok(item) => {
             log::info!("query sys_notice_detail params: {:?}", &item);
 
-            let result = Notice::select_by_id(&mut RB.clone(), &item.id).await;
-
-            match result {
-                Ok(d) => {
-                    if d.is_none() {
-                        return BaseResponse::<QueryNoticeDetailResp>::err_result_data(
-                            res,
-                            QueryNoticeDetailResp::new(),
-                            "通知公告表不存在".to_string(),
-                        );
-                    }
-                    let x = d.unwrap();
-
+            match Notice::select_by_id(&mut RB.clone(), &item.id).await {
+                Ok(None) => BaseResponse::<QueryNoticeDetailResp>::err_result_data(
+                    res,
+                    QueryNoticeDetailResp::new(),
+                    "通知公告表不存在".to_string(),
+                ),
+                Ok(Some(x)) => {
                     let sys_notice = QueryNoticeDetailResp {
                         id: x.id.unwrap_or_default(),               //公告ID
                         notice_title: x.notice_title,               //公告标题

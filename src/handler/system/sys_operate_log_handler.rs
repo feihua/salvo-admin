@@ -49,19 +49,14 @@ pub async fn query_sys_operate_log_detail(req: &mut Request, res: &mut Response)
             log::info!("query sys_operate_log_detail params: {:?}", &item);
 
             let rb = &mut RB.clone();
-            let result = OperateLog::select_by_id(rb, &item.id).await;
 
-            match result {
-                Ok(d) => {
-                    if d.is_none() {
-                        return BaseResponse::<QueryOperateLogDetailResp>::err_result_data(
-                            res,
-                            QueryOperateLogDetailResp::new(),
-                            "操作日志不存在".to_string(),
-                        );
-                    }
-                    let x = d.unwrap();
-
+            match OperateLog::select_by_id(rb, &item.id).await {
+                Ok(None) => BaseResponse::<QueryOperateLogDetailResp>::err_result_data(
+                    res,
+                    QueryOperateLogDetailResp::new(),
+                    "操作日志不存在".to_string(),
+                ),
+                Ok(Some(x)) => {
                     let sys_operate_log = QueryOperateLogDetailResp {
                         id: x.id,                                     //日志主键
                         title: x.title,                               //模块标题
@@ -169,7 +164,9 @@ pub async fn query_sys_operate_log_list(req: &mut Request, res: &mut Response) {
                         total,
                     )
                 }
-                Err(err) => BaseResponse::<String>::err_result_msg(res, format!("数据库错误: {}", err)),
+                Err(err) => {
+                    BaseResponse::<String>::err_result_msg(res, format!("数据库错误: {}", err))
+                }
             }
         }
         Err(err) => {

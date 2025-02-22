@@ -268,19 +268,14 @@ pub async fn query_sys_menu_detail(req: &mut Request, res: &mut Response) {
             log::info!("query sys_menu_detail params: {:?}", &item);
 
             let rb = &mut RB.clone();
-            let result = Menu::select_by_id(rb, &item.id).await;
 
-            match result {
-                Ok(opt_menu) => {
-                    if opt_menu.is_none() {
-                        return BaseResponse::<QueryMenuDetailResp>::err_result_data(
-                            res,
-                            QueryMenuDetailResp::new(),
-                            "菜单信息不存在".to_string(),
-                        );
-                    }
-                    let x = opt_menu.unwrap();
-
+            match Menu::select_by_id(rb, &item.id).await {
+                Ok(None) => BaseResponse::<QueryMenuDetailResp>::err_result_data(
+                    res,
+                    QueryMenuDetailResp::new(),
+                    "菜单信息不存在".to_string(),
+                ),
+                Ok(Some(x)) => {
                     let sys_menu = QueryMenuDetailResp {
                         id: x.id.unwrap_or_default(),               //主键
                         menu_name: x.menu_name,                     //菜单名称
