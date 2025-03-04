@@ -51,8 +51,8 @@ impl_select!(Notice{select_by_title(title:&str) -> Option => "`where notice_titl
  */
 impl_select_page!(Notice{select_sys_notice_list(req:&QueryNoticeListReq) =>"
     where 1=1
-     if req.title != '':
-       ` and notice_title = #{req.title} `
+     if req.notice_title != '' && req.notice_title != null:
+       ` and notice_title = #{req.notice_title} `
      if req.notice_type != 0:
       ` and notice_type = #{req.notice_type} `
      if req.status != 2:

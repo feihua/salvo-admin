@@ -64,29 +64,30 @@ impl_select_page!(OperateLog{select_page() =>"
 impl_select_page!(OperateLog{select_page_by_name(
     req:&QueryOperateLogListReq) =>"
     where 1=1
-     if req.title != '':
+     if req.title != '' && req.title != null:
        ` and title = #{req.title} `
      if req.business_type != 4:
        ` and business_type = #{req.business_type} `
-     if req.method != '':
+     if req.method != '' && req.method != null:
        ` and method = #{req.method} `
-     if req.request_method != '':
+     if req.request_method != '' && req.request_method != null:
        ` and request_method = #{req.request_method} `
      if req.operator_type != 3:
        ` and operator_type = #{req.operator_type} `
-     if req.operate_name != '':
+     if req.operate_name != '' && req.operate_name != null:
        ` and operate_name = #{req.operate_name} `
-     if req.dept_name != '':
+     if req.dept_name != '' && req.dept_name != null:
        ` and dept_name = #{req.dept_name} `
-     if req.operate_url != '':
+     if req.operate_url != '' && req.operate_url != null:
        ` and operate_url = #{req.operate_url} `
-     if req.operate_ip != '':
+     if req.operate_ip != '' && req.operate_ip != null:
        ` and operate_ip = #{req.operate_ip} `
      if req.status != 2:
        ` and status = #{req.status} `
      if !sql.contains('count'):
        ` order by operate_time desc `"
 },"sys_operate_log");
+
 
 /*
  *清空操作日志

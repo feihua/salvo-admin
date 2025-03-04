@@ -61,13 +61,13 @@ impl_select_page!(LoginLog{select_page() =>"
  */
 impl_select_page!(LoginLog{select_login_log_list(req:&QueryLoginLogListReq) =>"
     where 1=1
-     if req.name != '':
-       ` and login_name = #{req.name} `
-     if req.ipaddr != '':
+     if req.login_name != '' && req.login_name != null:
+       ` and login_name = #{req.login_name} `
+     if req.ipaddr != '' && req.ipaddr != null:
        ` and ipaddr = #{req.ipaddr} `
-     if req.browser != '':
+     if req.browser != '' && req.browser != null:
        ` and browser = #{req.browser} `
-     if req.os != '':
+     if req.os != '' && req.os != null:
        ` and os = #{req.os} `
      if req.status != 2:
        ` and status = #{req.status} `
