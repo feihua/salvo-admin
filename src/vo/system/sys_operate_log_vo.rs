@@ -86,9 +86,12 @@ pub struct QueryOperateLogListReq {
     pub operate_url: Option<String>,      //请求URL
     pub operate_ip: Option<String>,       //主机地址
     pub operate_location: Option<String>, //操作地点
+    #[serde(default = "default_status")]
     pub status: Option<i8>,               //操作状态(0:异常,正常)
 }
-
+fn default_status() -> Option<i8>{
+    Some(2)
+}
 /*
 查询操作日志记录列表响应参数
 */

@@ -219,14 +219,11 @@ pub async fn query_sys_role_detail(req: &mut Request, res: &mut Response) -> App
 pub async fn query_sys_role_list(req: &mut Request, res: &mut Response) -> AppResult<()> {
     let item = req.parse_json::<QueryRoleListReq>().await?;
     log::info!("query sys_role_list params: {:?}", &item);
-    let role_name = item.role_name.as_deref().unwrap_or_default();
-    let role_key = item.role_key.as_deref().unwrap_or_default();
-    let status = item.status_id.unwrap_or(2);
 
     let page = &PageRequest::new(item.page_no, item.page_size);
     let rb = &mut RB.clone();
 
-    let p = Role::select_sys_role_list(rb, page, role_name, role_key, status).await?;
+    let p = Role::select_sys_role_list(rb, page, &item).await?;
     let total = p.total;
 
     let mut list: Vec<RoleListDataResp> = Vec::new();

@@ -191,13 +191,9 @@ pub async fn query_sys_post_list(req: &mut Request, res: &mut Response) -> AppRe
     let item = req.parse_json::<QueryPostListReq>().await?;
     log::info!("query sys_post_list params: {:?}", &item);
 
-    let post_code = item.post_code.as_deref().unwrap_or_default(); //岗位编码
-    let post_name = item.post_name.as_deref().unwrap_or_default(); //岗位名称
-    let status = item.status.unwrap_or(2); //部状态（0：停用，1:正常）
-
     let page = &PageRequest::new(item.page_no, item.page_size);
     let rb = &mut RB.clone();
-    let p = Post::select_post_list(rb, page, post_code, post_name, status).await?;
+    let p = Post::select_post_list(rb, page, &item).await?;
 
     let mut list: Vec<PostListDataResp> = Vec::new();
 

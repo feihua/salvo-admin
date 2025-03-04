@@ -5,7 +5,7 @@
 use rbatis::rbdc::datetime::DateTime;
 use rbatis::RBatis;
 use serde::{Deserialize, Serialize};
-
+use crate::vo::system::sys_login_log_vo::QueryLoginLogListReq;
 /*
  *系统访问记录
  *author：刘飞华
@@ -59,18 +59,18 @@ impl_select_page!(LoginLog{select_page() =>"
  *author：刘飞华
  *date：2024/12/25 10:01:11
  */
-impl_select_page!(LoginLog{select_login_log_list(name:&str, ipaddr:&str,browser:&str,os:&str,status:&i8) =>"
+impl_select_page!(LoginLog{select_login_log_list(req:&QueryLoginLogListReq) =>"
     where 1=1
-     if name != '':
-       ` and login_name = #{name} `
-     if ipaddr != '':
-       ` and ipaddr = #{ipaddr} `
-     if browser != '':
-       ` and browser = #{browser} `
-     if os != '':
-       ` and os = #{os} `
-     if status != 2:
-       ` and status = #{status} `
+     if req.name != '':
+       ` and login_name = #{req.name} `
+     if req.ipaddr != '':
+       ` and ipaddr = #{req.ipaddr} `
+     if req.browser != '':
+       ` and browser = #{req.browser} `
+     if req.os != '':
+       ` and os = #{req.os} `
+     if req.status != 2:
+       ` and status = #{req.status} `
      if !sql.contains('count'):
        ` order by login_time desc `"
 },"sys_login_log");

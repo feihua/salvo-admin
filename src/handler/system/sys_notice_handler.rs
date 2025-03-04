@@ -168,15 +168,11 @@ pub async fn query_sys_notice_list(req: &mut Request, res: &mut Response) -> App
 
     log::info!("query sys_notice_list params: {:?}", &item);
 
-    let notice_title = item.notice_title.as_deref().unwrap_or_default();
-    let notice_type = item.notice_type.unwrap_or(0); //公告类型（1:通知,2:公告）
-    let status = item.status.unwrap_or(2); //公告状态（0:关闭,1:正常 ）
-
     let page = &PageRequest::new(item.page_no, item.page_size);
     let rb = &mut RB.clone();
 
     let mut data: Vec<NoticeListDataResp> = Vec::new();
-    let p = Notice::select_sys_notice_list(rb, page, notice_title, notice_type, status).await?;
+    let p = Notice::select_sys_notice_list(rb, page, &item).await?;
 
     let total = p.total;
 

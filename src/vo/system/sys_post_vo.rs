@@ -96,9 +96,12 @@ pub struct QueryPostListReq {
     pub page_size: u64,
     pub post_code: Option<String>, //岗位编码
     pub post_name: Option<String>, //岗位名称
+    #[serde(default = "default_status")]
     pub status: Option<i8>,        //部状态（0：停用，1:正常）
 }
-
+fn default_status() -> Option<i8>{
+    Some(2)
+}
 /*
 查询岗位信息表列表响应参数
 */

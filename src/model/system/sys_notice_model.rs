@@ -5,6 +5,7 @@
 use rbatis::rbdc::datetime::DateTime;
 use rbatis::{Error, RBatis};
 use serde::{Deserialize, Serialize};
+use crate::vo::system::sys_notice_vo::QueryNoticeListReq;
 /*
  *通知公告表
  *author：刘飞华
@@ -48,14 +49,14 @@ impl_select!(Notice{select_by_title(title:&str) -> Option => "`where notice_titl
  *author：刘飞华
  *date：2024/12/25 10:01:11
  */
-impl_select_page!(Notice{select_sys_notice_list(title:&str, notice_type:i8, status:i8) =>"
+impl_select_page!(Notice{select_sys_notice_list(req:&QueryNoticeListReq) =>"
     where 1=1
-     if title != '':
-       ` and notice_title = #{title} `
-     if notice_type != 0:
-      ` and notice_type = #{notice_type} `
-     if status != 2:
-       ` and status = #{status} `
+     if req.title != '':
+       ` and notice_title = #{req.title} `
+     if req.notice_type != 0:
+      ` and notice_type = #{req.notice_type} `
+     if req.status != 2:
+       ` and status = #{req.status} `
      if !sql.contains('count'):
        ` order by create_time desc `"
 },"sys_notice");

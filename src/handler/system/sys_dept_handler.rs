@@ -260,12 +260,9 @@ pub async fn query_sys_dept_list(req: &mut Request, res: &mut Response) -> AppRe
     let item = req.parse_json::<QueryDeptListReq>().await?;
     log::info!("query sys_dept_list params: {:?}", &item);
 
-    let dept_name = item.dept_name.as_deref().unwrap_or_default(); //部门名称
-    let status = item.status.unwrap_or(2); //部状态（0：停用，1:正常）
-
     let rb = &mut RB.clone();
 
-    let list = Dept::select_page_dept_list(rb, dept_name, status)
+    let list = Dept::select_page_dept_list(rb, &item)
         .await?
         .into_iter()
         .map(|x| {

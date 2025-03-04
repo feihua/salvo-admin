@@ -83,26 +83,11 @@ pub async fn query_sys_operate_log_list(req: &mut Request, res: &mut Response) -
     let item = req.parse_json::<QueryOperateLogListReq>().await?;
     log::info!("query sys_operate_log_list params: {:?}", &item);
 
-    let title = item.title.as_deref().unwrap_or_default(); //模块标题
-    let b_type = item.business_type.unwrap_or(4); //业务类型（0其它 1新增 2修改 3删除）
-    let method = item.method.as_deref().unwrap_or_default(); //方法名称
-    let r_method = item.request_method.as_deref().unwrap_or_default(); //请求方式
-    let o_type = item.operator_type.unwrap_or(3); //操作类别（0其它 1后台用户 2手机端用户）
-    let o_name = item.operate_name.as_deref().unwrap_or_default(); //操作人员
-    let dept_name = item.dept_name.as_deref().unwrap_or_default(); //部门名称
-    let o_url = item.operate_url.as_deref().unwrap_or_default(); //请求URL
-    let o_ip = item.operate_ip.as_deref().unwrap_or_default(); //主机地址
-    let status = item.status.unwrap_or(2); //操作状态(0:异常,正常)
-
     let page = &PageRequest::new(item.page_no, item.page_size);
 
     let mut list: Vec<OperateLogListDataResp> = Vec::new();
     let rb = &mut RB.clone();
-    let d = OperateLog::select_page_by_name(
-        rb, page, title, &b_type, method, r_method, &o_type, o_name, dept_name, o_url, o_ip,
-        &status,
-    )
-    .await?;
+    let d = OperateLog::select_page_by_name(rb, page, &item).await?;
 
     let total = d.total;
 

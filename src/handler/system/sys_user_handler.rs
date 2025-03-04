@@ -384,16 +384,11 @@ pub async fn query_sys_user_detail(req: &mut Request, res: &mut Response) -> App
 pub async fn query_sys_user_list(req: &mut Request, res: &mut Response) -> AppResult<()> {
     let item = req.parse_json::<QueryUserListReq>().await?;
     log::info!("query sys_user_list params: {:?}", &item);
-
-    let mobile = item.mobile.as_deref().unwrap_or_default();
-    let user_name = item.user_name.as_deref().unwrap_or_default();
-    let status = item.status.unwrap_or(2);
-    let dept_id = item.dept_id.unwrap_or_default();
-
+    
     let page = &PageRequest::new(item.page_no, item.page_size);
     let rb = &mut RB.clone();
 
-    let d = User::select_sys_user_list(rb, page, mobile, user_name, status, dept_id).await?;
+    let d = User::select_sys_user_list(rb, page, &item).await?;
     let total = d.total;
     let mut list: Vec<UserListDataResp> = Vec::new();
     for x in d.records {
