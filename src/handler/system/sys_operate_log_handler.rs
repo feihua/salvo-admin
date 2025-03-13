@@ -39,9 +39,7 @@ pub async fn query_sys_operate_log_detail(req: &mut Request, res: &mut Response)
 
     log::info!("query sys_operate_log_detail params: {:?}", &item);
 
-    let rb = &mut RB.clone();
-
-    match OperateLog::select_by_id(rb, &item.id).await? {
+    match OperateLog::select_by_id(&mut RB.clone(), &item.id).await? {
         None => BaseResponse::<QueryOperateLogDetailResp>::err_result_data(
             res,
             QueryOperateLogDetailResp::new(),

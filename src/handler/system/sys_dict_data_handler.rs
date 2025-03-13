@@ -157,9 +157,7 @@ pub async fn query_sys_dict_data_detail(req: &mut Request, res: &mut Response) -
     let item = req.parse_json::<QueryDictDataDetailReq>().await?;
     log::info!("query sys_dict_data_detail params: {:?}", &item);
 
-    let rb = &mut RB.clone();
-
-    match DictData::select_by_id(rb, &item.id).await? {
+    match DictData::select_by_id(&mut RB.clone(), &item.id).await? {
         None => BaseResponse::<QueryDictDataDetailResp>::err_result_data(
             res,
             QueryDictDataDetailResp::new(),
@@ -197,9 +195,8 @@ pub async fn query_sys_dict_data_list(req: &mut Request, res: &mut Response) -> 
     log::info!("query sys_dict_data_list params: {:?}", &item);
 
     let page = &PageRequest::new(item.page_no, item.page_size);
-    let rb = &mut RB.clone();
 
-    let p = DictData::select_dict_data_list(rb, page, &item).await?;
+    let p = DictData::select_dict_data_list(&mut RB.clone(), page, &item).await?;
 
     let total = p.total;
     let list = p

@@ -38,9 +38,7 @@ pub async fn query_sys_login_log_detail(req: &mut Request, res: &mut Response) -
     let item = req.parse_json::<QueryLoginLogDetailReq>().await?;
     log::info!("query sys_login_log_detail params: {:?}", &item);
 
-    let rb = &mut RB.clone();
-
-    match LoginLog::select_by_id(rb, &item.id).await? {
+    match LoginLog::select_by_id(&mut RB.clone(), &item.id).await? {
         None => BaseResponse::<QueryLoginLogDetailResp>::err_result_data(
             res,
             QueryLoginLogDetailResp::new(),
@@ -79,11 +77,10 @@ pub async fn query_sys_login_log_detail(req: &mut Request, res: &mut Response) -
 pub async fn query_sys_login_log_list(req: &mut Request, res: &mut Response) -> AppResult<()> {
     let item = req.parse_json::<QueryLoginLogListReq>().await?;
     log::info!("query sys_login_log_list params: {:?}", &item);
-    let rb = &mut RB.clone();
-    
+
     let page = &PageRequest::new(item.page_no, item.page_size);
 
-    let page_info = LoginLog::select_login_log_list(rb, page, &item).await?;
+    let page_info = LoginLog::select_login_log_list(&mut RB.clone(), page, &item).await?;
 
     let list = page_info
         .records

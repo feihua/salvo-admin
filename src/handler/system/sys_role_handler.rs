@@ -184,9 +184,7 @@ pub async fn query_sys_role_detail(req: &mut Request, res: &mut Response) -> App
     let item = req.parse_json::<QueryRoleDetailReq>().await?;
     log::info!("query sys_role_detail params: {:?}", &item);
 
-    let rb = &mut RB.clone();
-
-    match Role::select_by_id(rb, &item.id).await? {
+    match Role::select_by_id(&mut RB.clone(), &item.id).await? {
         None => BaseResponse::<QueryRoleDetailResp>::err_result_data(
             res,
             QueryRoleDetailResp::new(),

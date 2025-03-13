@@ -152,9 +152,7 @@ pub async fn query_sys_dict_type_detail(req: &mut Request, res: &mut Response) -
 
     log::info!("query sys_dict_type_detail params: {:?}", &item);
 
-    let rb = &mut RB.clone();
-
-    match DictType::select_by_id(rb, &item.id).await? {
+    match DictType::select_by_id(&mut RB.clone(), &item.id).await? {
         None => BaseResponse::<QueryDictTypeDetailResp>::err_result_data(
             res,
             QueryDictTypeDetailResp::new(),
@@ -187,10 +185,9 @@ pub async fn query_sys_dict_type_list(req: &mut Request, res: &mut Response) -> 
     log::info!("query sys_dict_type_list params: {:?}", &item);
 
     let page = &PageRequest::new(item.page_no, item.page_size);
-    let rb = &mut RB.clone();
 
     let mut list: Vec<DictTypeListDataResp> = Vec::new();
-    let d = DictType::select_dict_type_list(rb, page, &item).await?;
+    let d = DictType::select_dict_type_list(&mut RB.clone(), page, &item).await?;
 
     let total = d.total;
 

@@ -168,9 +168,7 @@ pub async fn query_sys_menu_detail(req: &mut Request, res: &mut Response) -> App
     let item = req.parse_json::<QueryMenuDetailReq>().await?;
     log::info!("query sys_menu_detail params: {:?}", &item);
 
-    let rb = &mut RB.clone();
-
-    match Menu::select_by_id(rb, &item.id).await? {
+    match Menu::select_by_id(&mut RB.clone(), &item.id).await? {
         None => BaseResponse::<QueryMenuDetailResp>::err_result_data(
             res,
             QueryMenuDetailResp::new(),

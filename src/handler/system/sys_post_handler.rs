@@ -157,8 +157,7 @@ pub async fn query_sys_post_detail(req: &mut Request, res: &mut Response) -> App
     let item = req.parse_json::<QueryPostDetailReq>().await?;
     log::info!("query sys_post_detail params: {:?}", &item);
 
-    let rb = &mut RB.clone();
-    match Post::select_by_id(rb, &item.id).await? {
+    match Post::select_by_id(&mut RB.clone(), &item.id).await? {
         Some(x) => {
             let sys_post = QueryPostDetailResp {
                 id: x.id.unwrap_or_default(),               //岗位id

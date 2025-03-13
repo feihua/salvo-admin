@@ -222,8 +222,7 @@ pub async fn query_sys_dept_detail(req: &mut Request, res: &mut Response) -> App
     let item = req.parse_json::<QueryDeptDetailReq>().await?;
     log::info!("query sys_dept_detail params: {:?}", &item);
 
-    let rb = &mut RB.clone();
-    match Dept::select_by_id(rb, &item.id).await? {
+    match Dept::select_by_id(&mut RB.clone(), &item.id).await? {
         None => BaseResponse::<QueryDeptDetailResp>::err_result_data(
             res,
             QueryDeptDetailResp::new(),
@@ -260,9 +259,7 @@ pub async fn query_sys_dept_list(req: &mut Request, res: &mut Response) -> AppRe
     let item = req.parse_json::<QueryDeptListReq>().await?;
     log::info!("query sys_dept_list params: {:?}", &item);
 
-    let rb = &mut RB.clone();
-
-    let list = Dept::select_page_dept_list(rb, &item)
+    let list = Dept::select_page_dept_list(&mut RB.clone(), &item)
         .await?
         .into_iter()
         .map(|x| {
