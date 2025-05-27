@@ -9,7 +9,7 @@ use crate::utils::time_util::time_to_string;
 use crate::vo::system::sys_notice_vo::*;
 use crate::RB;
 use rbatis::plugin::page::PageRequest;
-use rbs::to_value;
+use rbs::{value};
 use salvo::prelude::*;
 use salvo::{Request, Response};
 
@@ -58,7 +58,7 @@ pub async fn delete_sys_notice(req: &mut Request, res: &mut Response) -> AppResu
 
     let rb = &mut RB.clone();
 
-    Notice::delete_in_column(rb, "id", &item.ids).await?;
+    Notice::delete_by_map(rb, value! {"id": &item.ids}).await?;
     BaseResponse::<String>::ok_result(res)
 }
 
@@ -93,7 +93,7 @@ pub async fn update_sys_notice(req: &mut Request, res: &mut Response) -> AppResu
         update_time: None,                       //修改时间
     };
 
-    Notice::update_by_column(rb, &sys_notice, "id").await?;
+    Notice::update_by_map(rb, &sys_notice, value! {"id": &item.id}).await?;
     BaseResponse::<String>::ok_result(res)
 }
 
@@ -116,8 +116,8 @@ pub async fn update_sys_notice_status(req: &mut Request, res: &mut Response) -> 
             .join(", ")
     );
 
-    let mut param = vec![to_value!(item.status)];
-    param.extend(item.ids.iter().map(|&id| to_value!(id)));
+    let mut param = vec![value!(item.status)];
+    param.extend(item.ids.iter().map(|&id| value!(id)));
 
     let _ = &mut RB.clone().exec(&update_sql, param).await?;
     BaseResponse::<String>::ok_result(res)

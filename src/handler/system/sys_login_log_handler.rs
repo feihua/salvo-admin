@@ -9,6 +9,7 @@ use crate::utils::time_util::time_to_string;
 use crate::vo::system::sys_login_log_vo::*;
 use crate::RB;
 use rbatis::plugin::page::PageRequest;
+use rbs::value;
 use salvo::prelude::*;
 use salvo::{Request, Response};
 
@@ -24,7 +25,7 @@ pub async fn delete_sys_login_log(req: &mut Request, res: &mut Response) -> AppR
 
     let rb = &mut RB.clone();
 
-    LoginLog::delete_in_column(rb, "id", &item.ids).await?;
+    LoginLog::delete_by_map(rb, value! {"id": &item.ids}).await?;
     BaseResponse::<String>::ok_result(res)
 }
 

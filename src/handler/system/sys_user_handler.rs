@@ -20,7 +20,7 @@ use crate::RB;
 use rbatis::plugin::page::PageRequest;
 use rbatis::rbatis_codegen::ops::AsProxy;
 use rbatis::rbdc::datetime::DateTime;
-use rbs::to_value;
+use rbs::{value};
 use salvo::prelude::*;
 use salvo::{Request, Response};
 use std::collections::{HashMap, HashSet};
@@ -115,11 +115,11 @@ pub async fn delete_sys_user(
     }
 
     let rb = &mut RB.clone();
-    UserRole::delete_in_column(rb, "user_id", &ids).await?;
+    UserRole::delete_by_map(rb, value! {"user_id": &ids}).await?;
 
-    UserPost::delete_in_column(rb, "user_id", &ids).await?;
+    UserPost::delete_by_map(rb, value! {"user_id": &ids}).await?;
 
-    User::delete_in_column(rb, "id", &item.ids).await?;
+    User::delete_by_map(rb, value! {"id": &item.ids}).await?;
     BaseResponse::<String>::ok_result(res)
 }
 
@@ -188,8 +188,8 @@ pub async fn update_sys_user(req: &mut Request, res: &mut Response) -> AppResult
         update_time: None,                     //修改时间
     };
 
-    User::update_by_column(rb, &sys_user, "id").await?;
-    let _ = UserPost::delete_by_column(rb, "user_id", &item.id).await;
+    User::update_by_map(rb, &sys_user, value! {"id": &sys_user.id}).await?;
+    let _ = UserPost::delete_by_map(rb, value! {"user_id": &item.id}).await;
     let mut user_post_list: Vec<UserPost> = Vec::new();
     for post_id in item.post_ids {
         user_post_list.push(UserPost {
@@ -226,8 +226,9 @@ pub async fn update_sys_user_status(req: &mut Request, res: &mut Response) -> Ap
             .join(", ")
     );
 
-    let mut param = vec![to_value!(item.status)];
-    param.extend(item.ids.iter().map(|&id| to_value!(id)));
+    let mut param = vec![value!(item.status)];
+    param.extend(item.ids.iter().map(|&id| value!(id)));
+    
 
     let _ = &mut RB.clone().exec(&update_sql, param).await?;
     BaseResponse::<String>::ok_result(res)
@@ -255,7 +256,7 @@ pub async fn reset_sys_user_password(req: &mut Request, res: &mut Response) -> A
         Some(x) => {
             let mut user = x;
             user.password = item.password;
-            User::update_by_column(rb, &user, "id").await?;
+            User::update_by_map(rb, &user, value! {"id": &user.id}).await?;
             BaseResponse::<String>::ok_result(res)
         }
     }
@@ -287,7 +288,7 @@ pub async fn update_sys_user_password(
             }
             user.password = item.re_pwd;
 
-            User::update_by_column(rb, &user, "id").await?;
+            User::update_by_map(rb, &user, value! {"id": &user.id}).await?;
             BaseResponse::<String>::ok_result(res)
         }
     }
@@ -343,7 +344,7 @@ pub async fn query_sys_user_detail(req: &mut Request, res: &mut Response) -> App
         }
     };
 
-    let post_ids = UserPost::select_by_column(rb, "user_id", item.id)
+    let post_ids = UserPost::select_by_map(rb, value! {"user_id": item.id})
         .await?
         .iter()
         .map(|x| x.post_id)
@@ -384,7 +385,7 @@ pub async fn query_sys_user_detail(req: &mut Request, res: &mut Response) -> App
 pub async fn query_sys_user_list(req: &mut Request, res: &mut Response) -> AppResult<()> {
     let item = req.parse_json::<QueryUserListReq>().await?;
     log::info!("query sys_user_list params: {:?}", &item);
-    
+
     let page = &PageRequest::new(item.page_no, item.page_size);
     let rb = &mut RB.clone();
 
@@ -468,7 +469,7 @@ pub async fn login(req: &mut Request, res: &mut Response) -> AppResult<()> {
             s_user.login_browser = agent.browser;
             s_user.login_date = Some(DateTime::now());
 
-            User::update_by_column(rb, &s_user, "id").await?;
+            User::update_by_map(rb, &s_user, value! {"id": &s_user.id}).await?;
             BaseResponse::<String>::ok_result_data(res, token)
         }
     }
@@ -526,7 +527,7 @@ async fn query_btn_menu(id: &i64) -> Vec<String> {
     } else {
         let sql_str = "select distinct u.api_url from sys_user_role t left join sys_role usr on t.role_id = usr.id left join sys_role_menu srm on usr.id = srm.role_id left join sys_menu u on srm.menu_id = u.id where t.user_id = ?";
         let btn_menu_map = rb
-            .query_decode::<Vec<HashMap<String, String>>>(sql_str, vec![to_value!(id)])
+            .query_decode::<Vec<HashMap<String, String>>>(sql_str, vec![value!(id)])
             .await
             .unwrap_or_default();
         for x in btn_menu_map {
@@ -551,7 +552,7 @@ pub async fn query_user_role(req: &mut Request, res: &mut Response) -> AppResult
     let mut role_ids: Vec<i64> = Vec::new();
 
     let user_id = item.user_id;
-    for x in UserRole::select_by_column(rb, "user_id", user_id).await? {
+    for x in UserRole::select_by_map(rb, value! {"user_id": user_id}).await? {
         role_ids.push(x.role_id);
     }
 
@@ -600,7 +601,7 @@ pub async fn update_user_role(req: &mut Request, res: &mut Response) -> AppResul
 
     let rb = &mut RB.clone();
 
-    UserRole::delete_by_column(rb, "user_id", user_id.clone()).await?;
+    UserRole::delete_by_map(rb, value! {"user_id": user_id.clone()}).await?;
 
     let mut sys_role_user_list: Vec<UserRole> = Vec::new();
     for role_id in role_ids {
@@ -647,7 +648,7 @@ pub async fn query_user_menu(depot: &mut Depot, res: &mut Response) -> AppResult
             } else {
                 log::info!("The current user is not a super administrator");
                 let sql_str = "select u.* from sys_user_role t left join sys_role usr on t.role_id = usr.id left join sys_role_menu srm on usr.id = srm.role_id left join sys_menu u on srm.menu_id = u.id where t.user_id = ?";
-                sys_menu_list = RB.query_decode(sql_str, vec![to_value!(user.id)]).await?;
+                sys_menu_list = RB.query_decode(sql_str, vec![value!(user.id)]).await?;
             }
 
             let mut sys_menu: Vec<MenuList> = Vec::new();
