@@ -9,6 +9,7 @@ use crate::utils::time_util::time_to_string;
 use crate::vo::system::sys_operate_log_vo::*;
 use crate::RB;
 use rbatis::PageRequest;
+use rbs::value;
 use salvo::prelude::*;
 use salvo::{Request, Response};
 
@@ -24,7 +25,7 @@ pub async fn delete_sys_operate_log(req: &mut Request, res: &mut Response) -> Ap
 
     let rb = &mut RB.clone();
 
-    OperateLog::delete_in_column(rb, "id", &item.ids).await?;
+    OperateLog::delete_by_map(rb, value! {"id": &item.ids}).await?;
     BaseResponse::<String>::ok_result(res)
 }
 

@@ -9,7 +9,7 @@ use crate::utils::time_util::time_to_string;
 use crate::vo::system::sys_dict_data_vo::*;
 use crate::RB;
 use rbatis::plugin::page::PageRequest;
-use rbs::to_value;
+use rbs::{ value};
 use salvo::prelude::*;
 use salvo::{Request, Response};
 
@@ -70,7 +70,7 @@ pub async fn delete_sys_dict_data(req: &mut Request, res: &mut Response) -> AppR
 
     let rb = &mut RB.clone();
 
-    DictData::delete_in_column(rb, "dict_code", &item.ids).await?;
+    DictData::delete_by_map(rb, value! {"dict_code": &item.ids}).await?;
     BaseResponse::<String>::ok_result(res)
 }
 
@@ -117,7 +117,7 @@ pub async fn update_sys_dict_data(req: &mut Request, res: &mut Response) -> AppR
         update_time: None,                       //修改时间
     };
 
-    DictData::update_by_column(rb, &sys_dict_data, "dict_code").await?;
+    DictData::update_by_map(rb, &sys_dict_data, value! {"dict_code": &item.dict_code}).await?;
     BaseResponse::<String>::ok_result(res)
 }
 
@@ -140,8 +140,8 @@ pub async fn update_sys_dict_data_status(req: &mut Request, res: &mut Response) 
             .join(", ")
     );
 
-    let mut param = vec![to_value!(item.status)];
-    param.extend(item.ids.iter().map(|&id| to_value!(id)));
+    let mut param = vec![value!(item.status)];
+    param.extend(item.ids.iter().map(|&id| value!(id)));
 
     let _ = &mut RB.clone().exec(&update_sql, param).await?;
     BaseResponse::<String>::ok_result(res)

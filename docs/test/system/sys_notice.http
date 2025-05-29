@@ -41,7 +41,7 @@ Content-Type: application/json
 Authorization: Bearer {{token}}
 
 {
-  "ids": [13],
+  "ids": [13,11],
   "status": 1
 }
 ###查询通知公告表详情 queryNoticeDetail

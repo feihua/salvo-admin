@@ -20,7 +20,7 @@ use crate::vo::system::sys_user_vo::UserListDataResp;
 use crate::RB;
 use rbatis::plugin::page::PageRequest;
 use rbatis::rbdc::datetime::DateTime;
-use rbs::to_value;
+use rbs::{value};
 use salvo::prelude::*;
 use salvo::{Request, Response};
 /*
@@ -89,10 +89,10 @@ pub async fn delete_sys_role(req: &mut Request, res: &mut Response) -> AppResult
         }
     }
 
-    RoleMenu::delete_in_column(rb, "role_id", &item.ids).await?;
-    RoleDept::delete_in_column(rb, "role_id", &item.ids).await?;
+    RoleMenu::delete_by_map(rb, value! {"role_id": &item.ids}).await?;
+    RoleDept::delete_by_map(rb, value! {"role_id": &item.ids}).await?;
 
-    Role::delete_in_column(rb, "id", &item.ids).await?;
+    Role::delete_by_map(rb, value! {"id": &item.ids}).await?;
     BaseResponse::<String>::ok_result(res)
 }
 
@@ -140,7 +140,7 @@ pub async fn update_sys_role(req: &mut Request, res: &mut Response) -> AppResult
         update_time: None,           //修改时间
     };
 
-    Role::update_by_column(rb, &sys_role, "id").await?;
+    Role::update_by_map(rb, &sys_role, value! {"id": &item.id}).await?;
     BaseResponse::<String>::ok_result(res)
 }
 
@@ -167,8 +167,8 @@ pub async fn update_sys_role_status(req: &mut Request, res: &mut Response) -> Ap
             .join(", ")
     );
 
-    let mut param = vec![to_value!(item.status)];
-    param.extend(item.ids.iter().map(|&id| to_value!(id)));
+    let mut param = vec![value!(item.status)];
+    param.extend(item.ids.iter().map(|&id| value!(id)));
 
     let _ = &mut RB.clone().exec(&update_sql, param).await?;
     BaseResponse::<String>::ok_result(res)
@@ -308,7 +308,7 @@ pub async fn update_role_menu(req: &mut Request, res: &mut Response) -> AppResul
 
     let rb = &mut RB.clone();
 
-    RoleMenu::delete_by_column(rb, "role_id", &role_id).await?;
+    RoleMenu::delete_by_map(rb, value! {"role_id": &role_id}).await?;
     let mut role_menu: Vec<RoleMenu> = Vec::new();
 
     for id in &item.menu_ids {
@@ -457,8 +457,8 @@ pub async fn batch_cancel_auth_user(req: &mut Request, res: &mut Response) -> Ap
             .join(", ")
     );
 
-    let mut param = vec![to_value!(item.role_id)];
-    param.extend(item.user_ids.iter().map(|&id| to_value!(id)));
+    let mut param = vec![value!(item.role_id)];
+    param.extend(item.user_ids.iter().map(|&id| value!(id)));
 
     let _ = &mut RB.clone().exec(&update_sql, param).await?;
     BaseResponse::<String>::ok_result(res)
