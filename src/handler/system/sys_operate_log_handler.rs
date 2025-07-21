@@ -2,7 +2,7 @@
 // author：刘飞华
 // date：2025/01/08 13:51:14
 
-use crate::common::error::AppResult;
+use crate::common::error::{AppError, AppResult};
 use crate::common::result::BaseResponse;
 use crate::model::system::sys_operate_log_model::OperateLog;
 use crate::utils::time_util::time_to_string;
@@ -41,11 +41,7 @@ pub async fn query_sys_operate_log_detail(req: &mut Request, res: &mut Response)
     log::info!("query sys_operate_log_detail params: {:?}", &item);
 
     match OperateLog::select_by_id(&mut RB.clone(), &item.id).await? {
-        None => BaseResponse::<QueryOperateLogDetailResp>::err_result_data(
-            res,
-            QueryOperateLogDetailResp::new(),
-            "操作日志不存在",
-        ),
+        None => Err(AppError::BusinessError("操作日志不存在")),
         Some(x) => {
             let sys_operate_log = QueryOperateLogDetailResp {
                 id: x.id,                                     //日志主键
@@ -53,21 +49,21 @@ pub async fn query_sys_operate_log_detail(req: &mut Request, res: &mut Response)
                 business_type: x.business_type,               //业务类型（0其它 1新增 2修改 3删除）
                 method: x.method,                             //方法名称
                 request_method: x.request_method,             //请求方式
-                operator_type: x.operator_type, //操作类别（0其它 1后台用户 2手机端用户）
-                operate_name: x.operate_name,   //操作人员
-                dept_name: x.dept_name,         //部门名称
-                operate_url: x.operate_url,     //请求URL
-                operate_ip: x.operate_ip,       //主机地址
-                operate_location: x.operate_location, //操作地点
-                operate_param: x.operate_param, //请求参数
-                json_result: x.json_result,     //返回参数
-                status: x.status,               //操作状态(0:异常,正常)
-                error_msg: x.error_msg,         //错误消息
+                operator_type: x.operator_type,               //操作类别（0其它 1后台用户 2手机端用户）
+                operate_name: x.operate_name,                 //操作人员
+                dept_name: x.dept_name,                       //部门名称
+                operate_url: x.operate_url,                   //请求URL
+                operate_ip: x.operate_ip,                     //主机地址
+                operate_location: x.operate_location,         //操作地点
+                operate_param: x.operate_param,               //请求参数
+                json_result: x.json_result,                   //返回参数
+                status: x.status,                             //操作状态(0:异常,正常)
+                error_msg: x.error_msg,                       //错误消息
                 operate_time: time_to_string(x.operate_time), //操作时间
-                cost_time: x.cost_time,         //消耗时间
+                cost_time: x.cost_time,                       //消耗时间
             };
 
-            BaseResponse::<QueryOperateLogDetailResp>::ok_result_data(res, sys_operate_log)
+            BaseResponse::ok_result_data(res, sys_operate_log)
         }
     }
 }
@@ -112,5 +108,5 @@ pub async fn query_sys_operate_log_list(req: &mut Request, res: &mut Response) -
         })
     }
 
-    BaseResponse::<Vec<OperateLogListDataResp>>::ok_result_page(res, list, total)
+    BaseResponse::ok_result_page(res, list, total)
 }

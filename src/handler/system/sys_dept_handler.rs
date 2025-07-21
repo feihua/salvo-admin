@@ -2,12 +2,9 @@
 // author：刘飞华
 // date：2025/01/08 13:51:14
 
-use crate::common::error::AppResult;
+use crate::common::error::{AppError, AppResult};
 use crate::common::result::BaseResponse;
-use crate::model::system::sys_dept_model::{
-    check_dept_exist_user, select_children_dept_by_id, select_dept_count,
-    select_normal_children_dept_by_id, Dept,
-};
+use crate::model::system::sys_dept_model::{check_dept_exist_user, select_children_dept_by_id, select_dept_count, select_normal_children_dept_by_id, Dept};
 use crate::utils::time_util::time_to_string;
 use crate::vo::system::sys_dept_vo::*;
 use crate::RB;
@@ -28,38 +25,37 @@ pub async fn add_sys_dept(req: &mut Request, res: &mut Response) -> AppResult<()
     let rb = &mut RB.clone();
 
     let name = item.dept_name;
-    let p_id = item.parent_id;
-    if Dept::select_by_dept_name(rb, &name, p_id).await?.is_some() {
-        return BaseResponse::<String>::err_result_msg(res, "部门名称已存在");
+    let parent_id = item.parent_id;
+    if Dept::select_by_dept_name(rb, &name, parent_id).await?.is_some() {
+        return Err(AppError::BusinessError("部门名称已存在"));
     }
 
-    let ancestors = match Dept::select_by_id(rb, &p_id).await? {
-        None => return BaseResponse::<String>::err_result_msg(res, "添加失败,上级部门不存在"),
+    match Dept::select_by_id(rb, &parent_id).await? {
+        None => Err(AppError::BusinessError("添加失败,上级部门不存在")),
         Some(dept) => {
             if dept.status == 0 {
-                return BaseResponse::<String>::err_result_msg(res, "部门停用，不允许添加");
+                return Err(AppError::BusinessError("部门停用，不允许添加"));
             }
-            format!("{},{}", dept.ancestors, &p_id)
+            let ancestors = format!("{},{}", dept.ancestors, &parent_id);
+            let sys_dept = Dept {
+                id: None,            //部门id
+                parent_id,           //父部门id
+                ancestors,           //祖级列表
+                dept_name: name,     //部门名称
+                sort: item.sort,     //显示顺序
+                leader: item.leader, //负责人
+                phone: item.phone,   //联系电话
+                email: item.email,   //邮箱
+                status: item.status, //部状态（0：停用，1:正常）
+                del_flag: None,      //删除标志（0代表删除 1代表存在）
+                create_time: None,   //创建时间
+                update_time: None,   //修改时间
+            };
+
+            Dept::insert(rb, &sys_dept).await?;
+            BaseResponse::<String>::ok_result(res)
         }
-    };
-
-    let sys_dept = Dept {
-        id: None,            //部门id
-        parent_id: p_id,     //父部门id
-        ancestors,           //祖级列表
-        dept_name: name,     //部门名称
-        sort: item.sort,     //显示顺序
-        leader: item.leader, //负责人
-        phone: item.phone,   //联系电话
-        email: item.email,   //邮箱
-        status: item.status, //部状态（0：停用，1:正常）
-        del_flag: None,      //删除标志（0代表删除 1代表存在）
-        create_time: None,   //创建时间
-        update_time: None,   //修改时间
-    };
-
-    Dept::insert(rb, &sys_dept).await?;
-    BaseResponse::<String>::ok_result(res)
+    }
 }
 
 /*
@@ -74,11 +70,11 @@ pub async fn delete_sys_dept(req: &mut Request, res: &mut Response) -> AppResult
 
     let rb = &mut RB.clone();
     if select_dept_count(rb, &item.id).await? > 0 {
-        return BaseResponse::<String>::err_result_msg(res, "存在下级部门,不允许删除");
+        return Err(AppError::BusinessError("存在下级部门,不允许删除"));
     }
 
     if check_dept_exist_user(rb, &item.id).await? > 0 {
-        return BaseResponse::<String>::err_result_msg(res, "部门存在用户,不允许删除");
+        return Err(AppError::BusinessError("部门存在用户,不允许删除"));
     }
 
     Dept::delete_by_map(rb, value! {"id": &item.id}).await?;
@@ -97,16 +93,16 @@ pub async fn update_sys_dept(req: &mut Request, res: &mut Response) -> AppResult
     log::info!("update sys_dept params: {:?}", &item);
 
     if item.parent_id == item.id {
-        return BaseResponse::<String>::err_result_msg(res, "上级部门不能是自己");
+        return Err(AppError::BusinessError("上级部门不能是自己"));
     }
 
     let old_ancestors = match Dept::select_by_id(rb, &item.id).await? {
-        None => return BaseResponse::<String>::err_result_msg(res, "更新失败,部门不存在"),
+        None => return Err(AppError::BusinessError("部门不存在")),
         Some(dept) => dept.ancestors,
     };
 
     let ancestors = match Dept::select_by_id(rb, &item.parent_id).await? {
-        None => return BaseResponse::<String>::err_result_msg(res, "更新失败,上级部门不存在"),
+        None => return Err(AppError::BusinessError("上级部门不存在")),
         Some(dept) => {
             format!("{},{}", dept.ancestors, &item.parent_id)
         }
@@ -114,18 +110,16 @@ pub async fn update_sys_dept(req: &mut Request, res: &mut Response) -> AppResult
 
     if let Some(dept) = Dept::select_by_dept_name(rb, &item.dept_name, item.parent_id).await? {
         if dept.id.unwrap_or_default() != item.id {
-            return BaseResponse::<String>::err_result_msg(res, "部门名称已存在");
+            return Err(AppError::BusinessError("部门名称已存在"));
         }
     }
 
     if select_normal_children_dept_by_id(rb, &item.id).await? > 0 && item.status == 0 {
-        return BaseResponse::<String>::err_result_msg(res, "该部门包含未停用的子部门");
+        return Err(AppError::BusinessError("该部门包含未停用的子部门"));
     }
 
     for mut x in select_children_dept_by_id(rb, &item.id).await? {
-        x.ancestors = x
-            .ancestors
-            .replace(old_ancestors.as_str(), ancestors.as_str());
+        x.ancestors = x.ancestors.replace(old_ancestors.as_str(), ancestors.as_str());
         Dept::update_by_map(rb, &x, value! {"id": &x.id}).await?;
     }
 
@@ -150,10 +144,7 @@ pub async fn update_sys_dept(req: &mut Request, res: &mut Response) -> AppResult
     if item.status == 1 && sys_dept.ancestors != "0" {
         let ids = ancestors.split(",").map(|s| s.i64()).collect::<Vec<i64>>();
 
-        let update_sql = format!(
-            "update sys_dept set status = ? where id in ({})",
-            ids.iter().map(|_| "?").collect::<Vec<&str>>().join(", ")
-        );
+        let update_sql = format!("update sys_dept set status = ? where id in ({})", ids.iter().map(|_| "?").collect::<Vec<&str>>().join(", "));
 
         let mut param = vec![value!(item.status)];
         param.extend(ids.iter().map(|&id| value!(id)));
@@ -182,10 +173,7 @@ pub async fn update_sys_dept_status(req: &mut Request, res: &mut Response) -> Ap
                 let ancestors = x.ancestors;
                 let ids = ancestors.split(",").map(|s| s.i64()).collect::<Vec<i64>>();
 
-                let update_sql = format!(
-                    "update sys_dept set status = ? where id in ({})",
-                    ids.iter().map(|_| "?").collect::<Vec<&str>>().join(", ")
-                );
+                let update_sql = format!("update sys_dept set status = ? where id in ({})", ids.iter().map(|_| "?").collect::<Vec<&str>>().join(", "));
 
                 let mut param = vec![value!(item.status)];
                 param.extend(ids.iter().map(|&id| value!(id)));
@@ -194,14 +182,7 @@ pub async fn update_sys_dept_status(req: &mut Request, res: &mut Response) -> Ap
         }
     }
 
-    let update_sql = format!(
-        "update sys_dept set status = ? where id in ({})",
-        item.ids
-            .iter()
-            .map(|_| "?")
-            .collect::<Vec<&str>>()
-            .join(", ")
-    );
+    let update_sql = format!("update sys_dept set status = ? where id in ({})", item.ids.iter().map(|_| "?").collect::<Vec<&str>>().join(", "));
 
     let mut param = vec![value!(item.status)];
     param.extend(item.ids.iter().map(|&id| value!(id)));
@@ -220,11 +201,7 @@ pub async fn query_sys_dept_detail(req: &mut Request, res: &mut Response) -> App
     log::info!("query sys_dept_detail params: {:?}", &item);
 
     match Dept::select_by_id(&mut RB.clone(), &item.id).await? {
-        None => BaseResponse::<QueryDeptDetailResp>::err_result_data(
-            res,
-            QueryDeptDetailResp::new(),
-            "部门不存在",
-        ),
+        None => Err(AppError::BusinessError("部门不存在")),
         Some(x) => {
             let sys_dept = QueryDeptDetailResp {
                 id: x.id.unwrap_or_default(),               //部门id
@@ -241,7 +218,7 @@ pub async fn query_sys_dept_detail(req: &mut Request, res: &mut Response) -> App
                 update_time: time_to_string(x.update_time), //修改时间
             };
 
-            BaseResponse::<QueryDeptDetailResp>::ok_result_data(res, sys_dept)
+            BaseResponse::ok_result_data(res, sys_dept)
         }
     }
 }

@@ -2,14 +2,14 @@
 // author：刘飞华
 // date：2025/01/08 13:51:14
 
-use crate::common::error::AppResult;
+use crate::common::error::{AppError, AppResult};
 use crate::common::result::BaseResponse;
 use crate::model::system::sys_menu_model::{select_count_menu_by_parent_id, Menu};
 use crate::model::system::sys_role_menu_model::select_count_menu_by_menu_id;
 use crate::utils::time_util::time_to_string;
 use crate::vo::system::sys_menu_vo::*;
 use crate::RB;
-use rbs::{value};
+use rbs::value;
 use salvo::prelude::*;
 use salvo::{Request, Response};
 
@@ -26,12 +26,12 @@ pub async fn add_sys_menu(req: &mut Request, res: &mut Response) -> AppResult<()
     let rb = &mut RB.clone();
     let name = item.menu_name;
     if Menu::select_by_menu_name(rb, &name).await?.is_some() {
-        return BaseResponse::<String>::err_result_msg(res, "菜单名称已存在");
+        return Err(AppError::BusinessError("菜单名称已存在"));
     }
 
     if let Some(x) = item.menu_url.clone() {
         if Menu::select_by_menu_url(rb, x.as_str()).await?.is_some() {
-            return BaseResponse::<String>::err_result_msg(res, "路由路径已存在");
+            return Err(AppError::BusinessError("路由路径已存在"));
         }
     }
 
@@ -69,11 +69,11 @@ pub async fn delete_sys_menu(req: &mut Request, res: &mut Response) -> AppResult
     let rb = &mut RB.clone();
 
     if select_count_menu_by_parent_id(rb, &item.id).await? > 0 {
-        return BaseResponse::<String>::err_result_msg(res, "存在子菜单,不允许删除");
+        return Err(AppError::BusinessError("存在子菜单,不允许删除"));
     }
 
     if select_count_menu_by_menu_id(rb, &item.id).await? > 0 {
-        return BaseResponse::<String>::err_result_msg(res, "菜单已分配,不允许删除");
+        return Err(AppError::BusinessError("菜单已分配,不允许删除"));
     }
 
     Menu::delete_by_map(rb, value! {"id": &item.id}).await?;
@@ -93,12 +93,12 @@ pub async fn update_sys_menu(req: &mut Request, res: &mut Response) -> AppResult
     let rb = &mut RB.clone();
 
     if Menu::select_by_id(rb, &item.id).await?.is_none() {
-        return BaseResponse::<String>::err_result_msg(res, "更新菜单失败,菜单信息不存在");
+        return Err(AppError::BusinessError("菜单信息不存在"));
     }
 
     if let Some(x) = Menu::select_by_menu_name(rb, &item.menu_name).await? {
         if x.id.unwrap_or_default() != item.id {
-            return BaseResponse::<String>::err_result_msg(res, "菜单名称已存在");
+            return Err(AppError::BusinessError("菜单名称已存在"));
         }
     }
 
@@ -106,7 +106,7 @@ pub async fn update_sys_menu(req: &mut Request, res: &mut Response) -> AppResult
     if menu_url.is_some() {
         if let Some(x) = Menu::select_by_menu_url(rb, &menu_url.unwrap()).await? {
             if x.id.unwrap_or_default() != item.id {
-                return BaseResponse::<String>::err_result_msg(res, "路由路径已存在");
+                return Err(AppError::BusinessError("路由路径已存在"));
             }
         }
     }
@@ -142,14 +142,7 @@ pub async fn update_sys_menu_status(req: &mut Request, res: &mut Response) -> Ap
 
     log::info!("update sys_menu_status params: {:?}", &item);
 
-    let update_sql = format!(
-        "update sys_menu set status = ? where id in ({})",
-        item.ids
-            .iter()
-            .map(|_| "?")
-            .collect::<Vec<&str>>()
-            .join(", ")
-    );
+    let update_sql = format!("update sys_menu set status = ? where id in ({})", item.ids.iter().map(|_| "?").collect::<Vec<&str>>().join(", "));
 
     let mut param = vec![value!(item.status)];
     param.extend(item.ids.iter().map(|&id| value!(id)));
@@ -169,11 +162,7 @@ pub async fn query_sys_menu_detail(req: &mut Request, res: &mut Response) -> App
     log::info!("query sys_menu_detail params: {:?}", &item);
 
     match Menu::select_by_id(&mut RB.clone(), &item.id).await? {
-        None => BaseResponse::<QueryMenuDetailResp>::err_result_data(
-            res,
-            QueryMenuDetailResp::new(),
-            "菜单信息不存在",
-        ),
+        None => Err(AppError::BusinessError("菜单信息不存在")),
         Some(x) => {
             let sys_menu = QueryMenuDetailResp {
                 id: x.id.unwrap_or_default(),               //主键
@@ -191,7 +180,7 @@ pub async fn query_sys_menu_detail(req: &mut Request, res: &mut Response) -> App
                 update_time: time_to_string(x.update_time), //修改时间
             };
 
-            BaseResponse::<QueryMenuDetailResp>::ok_result_data(res, sys_menu)
+            BaseResponse::ok_result_data(res, sys_menu)
         }
     }
 }

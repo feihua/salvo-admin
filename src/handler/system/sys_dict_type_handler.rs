@@ -2,7 +2,7 @@
 // author：刘飞华
 // date：2025/01/08 13:51:14
 
-use crate::common::error::AppResult;
+use crate::common::error::{AppError, AppResult};
 use crate::common::result::BaseResponse;
 use crate::model::system::sys_dict_data_model::{count_dict_data_by_type, update_dict_data_type};
 use crate::model::system::sys_dict_type_model::DictType;
@@ -10,7 +10,7 @@ use crate::utils::time_util::time_to_string;
 use crate::vo::system::sys_dict_type_vo::*;
 use crate::RB;
 use rbatis::plugin::page::PageRequest;
-use rbs::{value};
+use rbs::value;
 use salvo::prelude::*;
 use salvo::{Request, Response};
 
@@ -25,11 +25,8 @@ pub async fn add_sys_dict_type(req: &mut Request, res: &mut Response) -> AppResu
     log::info!("add sys_dict_type params: {:?}", &item);
 
     let rb = &mut RB.clone();
-    if DictType::select_by_dict_type(rb, &item.dict_type)
-        .await?
-        .is_some()
-    {
-        return BaseResponse::<String>::err_result_msg(res, "新增字典失败,字典类型已存在");
+    if DictType::select_by_dict_type(rb, &item.dict_type).await?.is_some() {
+        return Err(AppError::BusinessError("字典类型已存在"));
     }
 
     let sys_dict_type = DictType {
@@ -60,14 +57,13 @@ pub async fn delete_sys_dict_type(req: &mut Request, res: &mut Response) -> AppR
     let ids = item.ids.clone();
     for id in ids {
         let p = match DictType::select_by_id(rb, &id).await? {
-            None => return BaseResponse::<String>::err_result_msg(res, "字典类型不存在,不能删除"),
+            None => return Err(AppError::BusinessError("字典类型不存在,不能删除")),
             Some(x) => x,
         };
 
         let res_count = count_dict_data_by_type(rb, &p.dict_type).await?;
         if res_count > 0 {
-            let msg = format!("{}已分配,不能删除", p.dict_name);
-            return BaseResponse::<String>::err_result_msg(res, msg.as_str());
+            return Err(AppError::BusinessError("已分配,不能删除"));
         }
     }
 
@@ -87,12 +83,12 @@ pub async fn update_sys_dict_type(req: &mut Request, res: &mut Response) -> AppR
 
     let rb = &mut RB.clone();
     if DictType::select_by_id(rb, &item.dict_id).await?.is_none() {
-        return BaseResponse::<String>::err_result_msg(res, "更新字典失败,字典类型不存在");
+        return Err(AppError::BusinessError("字典类型不存在"));
     }
 
     if let Some(x) = DictType::select_by_dict_type(rb, &item.dict_type).await? {
         if x.dict_id.unwrap_or_default() != item.dict_id {
-            return BaseResponse::<String>::err_result_msg(res, "更新字典失败,字典类型已存在");
+            return Err(AppError::BusinessError("字典类型已存在"));
         }
 
         let dict_type = x.dict_type;
@@ -127,11 +123,7 @@ pub async fn update_sys_dict_type_status(req: &mut Request, res: &mut Response) 
 
     let update_sql = format!(
         "update sys_dict_type set status = ? where dict_id in ({})",
-        item.ids
-            .iter()
-            .map(|_| "?")
-            .collect::<Vec<&str>>()
-            .join(", ")
+        item.ids.iter().map(|_| "?").collect::<Vec<&str>>().join(", ")
     );
 
     let mut param = vec![value!(item.status)];
@@ -153,11 +145,7 @@ pub async fn query_sys_dict_type_detail(req: &mut Request, res: &mut Response) -
     log::info!("query sys_dict_type_detail params: {:?}", &item);
 
     match DictType::select_by_id(&mut RB.clone(), &item.id).await? {
-        None => BaseResponse::<QueryDictTypeDetailResp>::err_result_data(
-            res,
-            QueryDictTypeDetailResp::new(),
-            "字典类型不存在",
-        ),
+        None => Err(AppError::BusinessError("字典类型不存在")),
         Some(x) => {
             let sys_dict_type = QueryDictTypeDetailResp {
                 dict_id: x.dict_id.unwrap_or_default(),     //字典主键
@@ -169,7 +157,7 @@ pub async fn query_sys_dict_type_detail(req: &mut Request, res: &mut Response) -
                 update_time: time_to_string(x.update_time), //修改时间
             };
 
-            BaseResponse::<QueryDictTypeDetailResp>::ok_result_data(res, sys_dict_type)
+            BaseResponse::ok_result_data(res, sys_dict_type)
         }
     }
 }
@@ -203,5 +191,5 @@ pub async fn query_sys_dict_type_list(req: &mut Request, res: &mut Response) -> 
         })
     }
 
-    BaseResponse::<Vec<DictTypeListDataResp>>::ok_result_page(res, list, total)
+    BaseResponse::ok_result_page(res, list, total)
 }

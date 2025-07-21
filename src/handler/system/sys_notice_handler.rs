@@ -2,14 +2,14 @@
 // author：刘飞华
 // date：2025/01/08 13:51:14
 
-use crate::common::error::AppResult;
+use crate::common::error::{AppError, AppResult};
 use crate::common::result::BaseResponse;
 use crate::model::system::sys_notice_model::Notice;
 use crate::utils::time_util::time_to_string;
 use crate::vo::system::sys_notice_vo::*;
 use crate::RB;
 use rbatis::plugin::page::PageRequest;
-use rbs::{value};
+use rbs::value;
 use salvo::prelude::*;
 use salvo::{Request, Response};
 
@@ -27,7 +27,7 @@ pub async fn add_sys_notice(req: &mut Request, res: &mut Response) -> AppResult<
     let rb = &mut RB.clone();
     let title = item.notice_title;
     if Notice::exists_by_title(rb, &title).await? {
-        return BaseResponse::<String>::err_result_msg(res, "公告标题已存在");
+        return Err(AppError::BusinessError("公告标题已存在"));
     }
 
     let sys_notice = Notice {
@@ -75,11 +75,11 @@ pub async fn update_sys_notice(req: &mut Request, res: &mut Response) -> AppResu
     let rb = &mut RB.clone();
 
     if Notice::select_by_id(rb, &item.id).await?.is_none() {
-        return BaseResponse::<String>::err_result_msg(res, "通知公告表不存在");
+        return Err(AppError::BusinessError("通知公告表不存在"));
     };
 
     if Notice::exists_by_title_except_id(rb, &item.notice_title, item.id).await? {
-        return BaseResponse::<String>::err_result_msg(res, "公告标题已存在");
+        return Err(AppError::BusinessError("公告标题已存在"));
     }
 
     let sys_notice = Notice {
@@ -107,14 +107,7 @@ pub async fn update_sys_notice_status(req: &mut Request, res: &mut Response) -> 
     let item = req.parse_json::<UpdateNoticeStatusReq>().await?;
     log::info!("update sys_notice_status params: {:?}", &item);
 
-    let update_sql = format!(
-        "update sys_notice set status = ? where id in ({})",
-        item.ids
-            .iter()
-            .map(|_| "?")
-            .collect::<Vec<&str>>()
-            .join(", ")
-    );
+    let update_sql = format!("update sys_notice set status = ? where id in ({})", item.ids.iter().map(|_| "?").collect::<Vec<&str>>().join(", "));
 
     let mut param = vec![value!(item.status)];
     param.extend(item.ids.iter().map(|&id| value!(id)));
@@ -135,11 +128,7 @@ pub async fn query_sys_notice_detail(req: &mut Request, res: &mut Response) -> A
     log::info!("query sys_notice_detail params: {:?}", &item);
 
     match Notice::select_by_id(&mut RB.clone(), &item.id).await? {
-        None => BaseResponse::<QueryNoticeDetailResp>::err_result_data(
-            res,
-            QueryNoticeDetailResp::new(),
-            "通知公告表不存在",
-        ),
+        None => Err(AppError::BusinessError("通知公告表不存在")),
         Some(x) => {
             let sys_notice = QueryNoticeDetailResp {
                 id: x.id.unwrap_or_default(),               //公告ID
@@ -152,7 +141,7 @@ pub async fn query_sys_notice_detail(req: &mut Request, res: &mut Response) -> A
                 update_time: time_to_string(x.update_time), //修改时间
             };
 
-            BaseResponse::<QueryNoticeDetailResp>::ok_result_data(res, sys_notice)
+            BaseResponse::ok_result_data(res, sys_notice)
         }
     }
 }
@@ -189,5 +178,5 @@ pub async fn query_sys_notice_list(req: &mut Request, res: &mut Response) -> App
         })
     }
 
-    BaseResponse::<Vec<NoticeListDataResp>>::ok_result_page(res, data, total)
+    BaseResponse::ok_result_page(res, data, total)
 }

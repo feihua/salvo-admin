@@ -2,7 +2,7 @@
 // author：刘飞华
 // date：2025/01/08 13:51:14
 
-use crate::common::error::AppResult;
+use crate::common::error::{AppError, AppResult};
 use crate::common::result::BaseResponse;
 use crate::model::system::sys_login_log_model::LoginLog;
 use crate::utils::time_util::time_to_string;
@@ -12,7 +12,6 @@ use rbatis::plugin::page::PageRequest;
 use rbs::value;
 use salvo::prelude::*;
 use salvo::{Request, Response};
-
 /*
  *删除系统访问记录
  *author：刘飞华
@@ -40,11 +39,7 @@ pub async fn query_sys_login_log_detail(req: &mut Request, res: &mut Response) -
     log::info!("query sys_login_log_detail params: {:?}", &item);
 
     match LoginLog::select_by_id(&mut RB.clone(), &item.id).await? {
-        None => BaseResponse::<QueryLoginLogDetailResp>::err_result_data(
-            res,
-            QueryLoginLogDetailResp::new(),
-            "系统访问记录不存在",
-        ),
+        None => Err(AppError::BusinessError("系统访问记录不存在")),
         Some(x) => {
             let sys_login_log = QueryLoginLogDetailResp {
                 id: x.id.unwrap(),                        //访问ID
@@ -64,7 +59,7 @@ pub async fn query_sys_login_log_detail(req: &mut Request, res: &mut Response) -
                 login_time: time_to_string(x.login_time), //访问时间
             };
 
-            BaseResponse::<QueryLoginLogDetailResp>::ok_result_data(res, sys_login_log)
+            BaseResponse::ok_result_data(res, sys_login_log)
         }
     }
 }
@@ -105,7 +100,7 @@ pub async fn query_sys_login_log_list(req: &mut Request, res: &mut Response) -> 
                 login_time: time_to_string(x.login_time), //访问时间
             }
         })
-        .collect();
+        .collect::<Vec<LoginLogListDataResp>>();
 
-    BaseResponse::<Vec<LoginLogListDataResp>>::ok_result_page(res, list, page_info.total)
+    BaseResponse::ok_result_page(res, list, page_info.total)
 }

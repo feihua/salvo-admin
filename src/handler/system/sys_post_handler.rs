@@ -2,7 +2,7 @@
 // author：刘飞华
 // date：2025/01/08 13:51:14
 
-use crate::common::error::AppResult;
+use crate::common::error::{AppError, AppResult};
 use crate::common::result::BaseResponse;
 use crate::model::system::sys_post_model::Post;
 use crate::model::system::sys_user_post_model::count_user_post_by_id;
@@ -10,7 +10,7 @@ use crate::utils::time_util::time_to_string;
 use crate::vo::system::sys_post_vo::*;
 use crate::RB;
 use rbatis::plugin::page::PageRequest;
-use rbs::{value};
+use rbs::value;
 use salvo::prelude::*;
 use salvo::{Request, Response};
 
@@ -27,12 +27,12 @@ pub async fn add_sys_post(req: &mut Request, res: &mut Response) -> AppResult<()
     let rb = &mut RB.clone();
     let name = item.post_name;
     if Post::select_by_name(rb, &name).await?.is_some() {
-        return BaseResponse::<String>::err_result_msg(res, "新增岗位失败,岗位名称已存在");
+        return Err(AppError::BusinessError("岗位名称已存在"));
     }
 
     let code = item.post_code;
     if Post::select_by_code(rb, &code).await?.is_some() {
-        return BaseResponse::<String>::err_result_msg(res, "新增岗位失败,岗位编码已存在");
+        return Err(AppError::BusinessError("岗位编码已存在"));
     }
 
     let sys_post = Post {
@@ -64,11 +64,10 @@ pub async fn delete_sys_post(req: &mut Request, res: &mut Response) -> AppResult
     let rb = &mut RB.clone();
     for id in ids {
         match Post::select_by_id(rb, &id).await? {
-            None => return BaseResponse::<String>::err_result_msg(res, "岗位不存在,不能删除"),
-            Some(x) => {
+            None => return Err(AppError::BusinessError("不能删除")),
+            Some(_) => {
                 if count_user_post_by_id(rb, id).await? > 0 {
-                    let msg = format!("{}已分配,不能删除", x.post_name);
-                    return BaseResponse::<String>::err_result_msg(res, msg.as_str());
+                    return Err(AppError::BusinessError("已分配,不能删除"));
                 }
             }
         };
@@ -91,18 +90,18 @@ pub async fn update_sys_post(req: &mut Request, res: &mut Response) -> AppResult
     let rb = &mut RB.clone();
 
     if Post::select_by_id(rb, &item.id).await?.is_none() {
-        return BaseResponse::<String>::err_result_msg(res, "更新岗位失败,岗位不存在");
+        return Err(AppError::BusinessError("岗位不存在"));
     }
 
     if let Some(x) = Post::select_by_name(rb, &item.post_name).await? {
         if x.id.unwrap_or_default() != item.id {
-            return BaseResponse::<String>::err_result_msg(res, "更新岗位失败,岗位名称已存在");
+            return Err(AppError::BusinessError("岗位名称已存在"));
         }
     }
 
     if let Some(x) = Post::select_by_code(rb, &item.post_code).await? {
         if x.id.unwrap_or_default() != item.id {
-            return BaseResponse::<String>::err_result_msg(res, "更新岗位失败,岗位编码已存在");
+            return Err(AppError::BusinessError("岗位编码已存在"));
         }
     }
 
@@ -131,14 +130,7 @@ pub async fn update_sys_post_status(req: &mut Request, res: &mut Response) -> Ap
     let item = req.parse_json::<UpdatePostStatusReq>().await?;
     log::info!("update sys_post_status params: {:?}", &item);
 
-    let update_sql = format!(
-        "update sys_post set status = ? where id in ({})",
-        item.ids
-            .iter()
-            .map(|_| "?")
-            .collect::<Vec<&str>>()
-            .join(", ")
-    );
+    let update_sql = format!("update sys_post set status = ? where id in ({})", item.ids.iter().map(|_| "?").collect::<Vec<&str>>().join(", "));
 
     let mut param = vec![value!(item.status)];
     param.extend(item.ids.iter().map(|&id| value!(id)));
@@ -170,13 +162,9 @@ pub async fn query_sys_post_detail(req: &mut Request, res: &mut Response) -> App
                 update_time: time_to_string(x.update_time), //更新时间
             };
 
-            BaseResponse::<QueryPostDetailResp>::ok_result_data(res, sys_post)
+            BaseResponse::ok_result_data(res, sys_post)
         }
-        None => BaseResponse::<QueryPostDetailResp>::err_result_data(
-            res,
-            QueryPostDetailResp::new(),
-            "岗位不存在",
-        ),
+        None => Err(AppError::BusinessError("岗位不存在")),
     }
 }
 
@@ -211,5 +199,5 @@ pub async fn query_sys_post_list(req: &mut Request, res: &mut Response) -> AppRe
         })
     }
 
-    BaseResponse::<Vec<PostListDataResp>>::ok_result_page(res, list, total)
+    BaseResponse::ok_result_page(res, list, total)
 }

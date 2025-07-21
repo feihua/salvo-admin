@@ -2,14 +2,14 @@
 // author：刘飞华
 // date：2025/01/08 13:51:14
 
-use crate::common::error::AppResult;
+use crate::common::error::{AppError, AppResult};
 use crate::common::result::BaseResponse;
 use crate::model::system::sys_dict_data_model::DictData;
 use crate::utils::time_util::time_to_string;
 use crate::vo::system::sys_dict_data_vo::*;
 use crate::RB;
 use rbatis::plugin::page::PageRequest;
-use rbs::{ value};
+use rbs::value;
 use salvo::prelude::*;
 use salvo::{Request, Response};
 
@@ -25,18 +25,12 @@ pub async fn add_sys_dict_data(req: &mut Request, res: &mut Response) -> AppResu
     log::info!("add sys_dict_data params: {:?}", &item);
 
     let rb = &mut RB.clone();
-    if DictData::select_by_dict_label(rb, &item.dict_type, &item.dict_label)
-        .await?
-        .is_some()
-    {
-        return BaseResponse::<String>::err_result_msg(res, "新增字典数据失败,字典标签已存在");
+    if DictData::select_by_dict_label(rb, &item.dict_type, &item.dict_label).await?.is_some() {
+        return Err(AppError::BusinessError("字典标签已存在"));
     }
 
-    if DictData::select_by_dict_value(rb, &item.dict_type, &item.dict_value)
-        .await?
-        .is_some()
-    {
-        return BaseResponse::<String>::err_result_msg(res, "新增字典数据失败,字典键值已存在");
+    if DictData::select_by_dict_value(rb, &item.dict_type, &item.dict_value).await?.is_some() {
+        return Err(AppError::BusinessError("字典键值已存在"));
     }
 
     let sys_dict_data = DictData {
@@ -87,18 +81,18 @@ pub async fn update_sys_dict_data(req: &mut Request, res: &mut Response) -> AppR
     let rb = &mut RB.clone();
 
     if DictData::select_by_id(rb, &item.dict_code).await?.is_none() {
-        return BaseResponse::<String>::err_result_msg(res, "更新字典数据失败,字典数据不存在");
+        return Err(AppError::BusinessError("字典数据不存在"));
     }
 
     if let Some(x) = DictData::select_by_dict_label(rb, &item.dict_type, &item.dict_label).await? {
         if x.dict_code.unwrap_or_default() != item.dict_code {
-            return BaseResponse::<String>::err_result_msg(res, "新增字典数据失败,字典标签已存在");
+            return Err(AppError::BusinessError("字典标签已存在"));
         }
     }
 
     if let Some(x) = DictData::select_by_dict_value(rb, &item.dict_type, &item.dict_value).await? {
         if x.dict_code.unwrap_or_default() != item.dict_code {
-            return BaseResponse::<String>::err_result_msg(res, "新增字典数据失败,字典键值已存在");
+            return Err(AppError::BusinessError("字典键值已存在"));
         }
     }
 
@@ -133,11 +127,7 @@ pub async fn update_sys_dict_data_status(req: &mut Request, res: &mut Response) 
 
     let update_sql = format!(
         "update sys_dict_data set status = ? where dict_code in ({})",
-        item.ids
-            .iter()
-            .map(|_| "?")
-            .collect::<Vec<&str>>()
-            .join(", ")
+        item.ids.iter().map(|_| "?").collect::<Vec<&str>>().join(", ")
     );
 
     let mut param = vec![value!(item.status)];
@@ -158,11 +148,7 @@ pub async fn query_sys_dict_data_detail(req: &mut Request, res: &mut Response) -
     log::info!("query sys_dict_data_detail params: {:?}", &item);
 
     match DictData::select_by_id(&mut RB.clone(), &item.id).await? {
-        None => BaseResponse::<QueryDictDataDetailResp>::err_result_data(
-            res,
-            QueryDictDataDetailResp::new(),
-            "字典数据不存在",
-        ),
+        None => Err(AppError::BusinessError("字典数据不存在")),
         Some(x) => {
             let sys_dict_data = QueryDictDataDetailResp {
                 dict_code: x.dict_code.unwrap_or_default(), //字典编码
@@ -179,7 +165,7 @@ pub async fn query_sys_dict_data_detail(req: &mut Request, res: &mut Response) -
                 update_time: time_to_string(x.update_time), //修改时间
             };
 
-            BaseResponse::<QueryDictDataDetailResp>::ok_result_data(res, sys_dict_data)
+            BaseResponse::ok_result_data(res, sys_dict_data)
         }
     }
 }
@@ -220,5 +206,5 @@ pub async fn query_sys_dict_data_list(req: &mut Request, res: &mut Response) -> 
         })
         .collect::<Vec<DictDataListDataResp>>();
 
-    BaseResponse::<Vec<DictDataListDataResp>>::ok_result_page(res, list, total)
+    BaseResponse::ok_result_page(res, list, total)
 }
