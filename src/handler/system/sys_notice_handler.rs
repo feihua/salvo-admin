@@ -3,7 +3,7 @@
 // date：2025/01/08 13:51:14
 
 use crate::common::error::{AppError, AppResult};
-use crate::common::result::BaseResponse;
+use crate::common::result::{ok_result, ok_result_data, ok_result_page};
 use crate::model::system::sys_notice_model::Notice;
 use crate::utils::time_util::time_to_string;
 use crate::vo::system::sys_notice_vo::*;
@@ -42,7 +42,7 @@ pub async fn add_sys_notice(req: &mut Request, res: &mut Response) -> AppResult<
     };
 
     Notice::insert(rb, &sys_notice).await?;
-    BaseResponse::<String>::ok_result(res)
+    ok_result(res)
 }
 
 /*
@@ -59,7 +59,7 @@ pub async fn delete_sys_notice(req: &mut Request, res: &mut Response) -> AppResu
     let rb = &mut RB.clone();
 
     Notice::delete_by_map(rb, value! {"id": &item.ids}).await?;
-    BaseResponse::<String>::ok_result(res)
+    ok_result(res)
 }
 
 /*
@@ -94,7 +94,7 @@ pub async fn update_sys_notice(req: &mut Request, res: &mut Response) -> AppResu
     };
 
     Notice::update_by_map(rb, &sys_notice, value! {"id": &item.id}).await?;
-    BaseResponse::<String>::ok_result(res)
+    ok_result(res)
 }
 
 /*
@@ -113,7 +113,7 @@ pub async fn update_sys_notice_status(req: &mut Request, res: &mut Response) -> 
     param.extend(item.ids.iter().map(|&id| value!(id)));
 
     let _ = &mut RB.clone().exec(&update_sql, param).await?;
-    BaseResponse::<String>::ok_result(res)
+    ok_result(res)
 }
 
 /*
@@ -141,7 +141,7 @@ pub async fn query_sys_notice_detail(req: &mut Request, res: &mut Response) -> A
                 update_time: time_to_string(x.update_time), //修改时间
             };
 
-            BaseResponse::ok_result_data(res, sys_notice)
+            ok_result_data(res, sys_notice)
         }
     }
 }
@@ -178,5 +178,5 @@ pub async fn query_sys_notice_list(req: &mut Request, res: &mut Response) -> App
         })
     }
 
-    BaseResponse::ok_result_page(res, data, total)
+    ok_result_page(res, data, total)
 }

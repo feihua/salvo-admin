@@ -3,7 +3,7 @@
 // date：2025/01/08 13:51:14
 
 use crate::common::error::{AppError, AppResult};
-use crate::common::result::BaseResponse;
+use crate::common::result::{ok_result, ok_result_data};
 use crate::model::system::sys_menu_model::{select_count_menu_by_parent_id, Menu};
 use crate::model::system::sys_role_menu_model::select_count_menu_by_menu_id;
 use crate::utils::time_util::time_to_string;
@@ -52,7 +52,7 @@ pub async fn add_sys_menu(req: &mut Request, res: &mut Response) -> AppResult<()
     };
 
     Menu::insert(rb, &sys_menu).await?;
-    BaseResponse::<String>::ok_result(res)
+    ok_result(res)
 }
 
 /*
@@ -77,7 +77,7 @@ pub async fn delete_sys_menu(req: &mut Request, res: &mut Response) -> AppResult
     }
 
     Menu::delete_by_map(rb, value! {"id": &item.id}).await?;
-    BaseResponse::<String>::ok_result(res)
+    ok_result(res)
 }
 
 /*
@@ -128,7 +128,7 @@ pub async fn update_sys_menu(req: &mut Request, res: &mut Response) -> AppResult
     };
 
     Menu::update_by_map(rb, &sys_menu, value! {"id": &sys_menu.id}).await?;
-    BaseResponse::<String>::ok_result(res)
+    ok_result(res)
 }
 
 /*
@@ -148,7 +148,7 @@ pub async fn update_sys_menu_status(req: &mut Request, res: &mut Response) -> Ap
     param.extend(item.ids.iter().map(|&id| value!(id)));
 
     let _ = &mut RB.clone().exec(&update_sql, param).await?;
-    BaseResponse::<String>::ok_result(res)
+    ok_result(res)
 }
 
 /*
@@ -180,7 +180,7 @@ pub async fn query_sys_menu_detail(req: &mut Request, res: &mut Response) -> App
                 update_time: time_to_string(x.update_time), //修改时间
             };
 
-            BaseResponse::ok_result_data(res, sys_menu)
+            ok_result_data(res, sys_menu)
         }
     }
 }
@@ -214,7 +214,7 @@ pub async fn query_sys_menu_list(req: &mut Request, res: &mut Response) -> AppRe
         })
     }
 
-    BaseResponse::ok_result_data(res, list)
+    ok_result_data(res, list)
 }
 
 /*
@@ -234,5 +234,5 @@ pub async fn query_sys_menu_list_simple(res: &mut Response) -> AppResult<()> {
         })
     }
 
-    BaseResponse::ok_result_data(res, list)
+    ok_result_data(res, list)
 }

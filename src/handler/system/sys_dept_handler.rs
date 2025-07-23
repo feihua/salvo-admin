@@ -3,7 +3,7 @@
 // date：2025/01/08 13:51:14
 
 use crate::common::error::{AppError, AppResult};
-use crate::common::result::BaseResponse;
+use crate::common::result::{ok_result, ok_result_data};
 use crate::model::system::sys_dept_model::{check_dept_exist_user, select_children_dept_by_id, select_dept_count, select_normal_children_dept_by_id, Dept};
 use crate::utils::time_util::time_to_string;
 use crate::vo::system::sys_dept_vo::*;
@@ -53,7 +53,7 @@ pub async fn add_sys_dept(req: &mut Request, res: &mut Response) -> AppResult<()
             };
 
             Dept::insert(rb, &sys_dept).await?;
-            BaseResponse::<String>::ok_result(res)
+            ok_result(res)
         }
     }
 }
@@ -78,7 +78,7 @@ pub async fn delete_sys_dept(req: &mut Request, res: &mut Response) -> AppResult
     }
 
     Dept::delete_by_map(rb, value! {"id": &item.id}).await?;
-    BaseResponse::<String>::ok_result(res)
+    ok_result(res)
 }
 
 /*
@@ -150,9 +150,9 @@ pub async fn update_sys_dept(req: &mut Request, res: &mut Response) -> AppResult
         param.extend(ids.iter().map(|&id| value!(id)));
 
         rb.exec(&update_sql, param).await?;
-        BaseResponse::<String>::ok_result(res)
+        ok_result(res)
     } else {
-        BaseResponse::<String>::ok_result(res)
+        ok_result(res)
     }
 }
 
@@ -187,7 +187,7 @@ pub async fn update_sys_dept_status(req: &mut Request, res: &mut Response) -> Ap
     let mut param = vec![value!(item.status)];
     param.extend(item.ids.iter().map(|&id| value!(id)));
     rb.exec(&update_sql, param).await?;
-    BaseResponse::<String>::ok_result(res)
+    ok_result(res)
 }
 
 /*
@@ -218,7 +218,7 @@ pub async fn query_sys_dept_detail(req: &mut Request, res: &mut Response) -> App
                 update_time: time_to_string(x.update_time), //修改时间
             };
 
-            BaseResponse::ok_result_data(res, sys_dept)
+            ok_result_data(res, sys_dept)
         }
     }
 }
@@ -254,5 +254,5 @@ pub async fn query_sys_dept_list(req: &mut Request, res: &mut Response) -> AppRe
         })
         .collect::<Vec<DeptListDataResp>>();
 
-    BaseResponse::ok_result_data(res, list)
+    ok_result_data(res, list)
 }

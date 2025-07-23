@@ -29,11 +29,11 @@ pub type AppResult<T> = Result<T, AppError>;
 
 #[async_trait]
 impl Writer for AppError {
-    async fn write(mut self, _req: &mut Request, depot: &mut Depot, res: &mut Response) {
-        let user_id = depot.get::<i64>("userId").copied().unwrap();
-        let username = depot.get::<String>("username").unwrap();
-        log::info!("query user user_id params {:?}", user_id);
-        log::info!("query user username params {:?}", username);
+    async fn write(mut self, _req: &mut Request, _: &mut Depot, res: &mut Response) {
+        // let user_id = depot.get::<i64>("userId").copied().unwrap();
+        // let username = depot.get::<String>("username").unwrap();
+        // log::info!("query user user_id params {:?}", user_id);
+        // log::info!("query user username params {:?}", username);
 
         res.render(Json(BaseResponse {
             msg: self.to_string(),

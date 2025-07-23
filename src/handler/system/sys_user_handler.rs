@@ -3,7 +3,7 @@
 // date：2025/01/08 13:51:14
 
 use crate::common::error::{AppError, AppResult};
-use crate::common::result::BaseResponse;
+use crate::common::result::{ok_result, ok_result_data, ok_result_page};
 use crate::model::system::sys_dept_model::Dept;
 use crate::model::system::sys_login_log_model::LoginLog;
 use crate::model::system::sys_menu_model::Menu;
@@ -81,7 +81,7 @@ pub async fn add_sys_user(req: &mut Request, res: &mut Response) -> AppResult<()
 
     let size = user_post_list.len() as u64;
     UserPost::insert_batch(rb, &user_post_list, size).await?;
-    BaseResponse::<String>::ok_result(res)
+    ok_result(res)
 }
 
 /*
@@ -110,7 +110,7 @@ pub async fn delete_sys_user(depot: &mut Depot, req: &mut Request, res: &mut Res
     UserPost::delete_by_map(rb, value! {"user_id": &ids}).await?;
 
     User::delete_by_map(rb, value! {"id": &item.ids}).await?;
-    BaseResponse::<String>::ok_result(res)
+    ok_result(res)
 }
 
 /*
@@ -186,7 +186,7 @@ pub async fn update_sys_user(req: &mut Request, res: &mut Response) -> AppResult
     }
 
     UserPost::insert_batch(rb, &user_post_list, user_post_list.len() as u64).await?;
-    BaseResponse::<String>::ok_result(res)
+    ok_result(res)
 }
 
 /*
@@ -210,7 +210,7 @@ pub async fn update_sys_user_status(req: &mut Request, res: &mut Response) -> Ap
     param.extend(item.ids.iter().map(|&id| value!(id)));
 
     let _ = &mut RB.clone().exec(&update_sql, param).await?;
-    BaseResponse::<String>::ok_result(res)
+    ok_result(res)
 }
 
 /*
@@ -236,7 +236,7 @@ pub async fn reset_sys_user_password(req: &mut Request, res: &mut Response) -> A
             let mut user = x;
             user.password = item.password;
             User::update_by_map(rb, &user, value! {"id": &user.id}).await?;
-            BaseResponse::<String>::ok_result(res)
+            ok_result(res)
         }
     }
 }
@@ -264,7 +264,7 @@ pub async fn update_sys_user_password(req: &mut Request, depot: &mut Depot, res:
             user.password = item.re_pwd;
 
             User::update_by_map(rb, &user, value! {"id": &user.id}).await?;
-            BaseResponse::<String>::ok_result(res)
+            ok_result(res)
         }
     }
 }
@@ -282,12 +282,12 @@ pub async fn query_sys_user_detail(req: &mut Request, res: &mut Response) -> App
     let rb = &mut RB.clone();
 
     let x = match User::select_by_id(rb, item.id).await? {
-        None => return BaseResponse::<QueryUserDetailResp>::err_result_data(res, QueryUserDetailResp::new(), "用户不存在"),
+        None => return Err(AppError::BusinessError("用户不存在")),
         Some(user) => user,
     };
 
     let dept = match Dept::select_by_id(rb, &x.dept_id).await? {
-        None => return BaseResponse::<QueryUserDetailResp>::err_result_data(res, QueryUserDetailResp::new(), "查询用户详细信息失败,部门不存在"),
+        None => return Err(AppError::BusinessError("部门不存在")),
 
         Some(y) => {
             QueryDeptDetailResp {
@@ -332,7 +332,7 @@ pub async fn query_sys_user_detail(req: &mut Request, res: &mut Response) -> App
         post_ids,
     };
 
-    BaseResponse::ok_result_data(res, sys_user)
+    ok_result_data(res, sys_user)
 }
 
 /*
@@ -374,7 +374,7 @@ pub async fn query_sys_user_list(req: &mut Request, res: &mut Response) -> AppRe
         })
     }
 
-    BaseResponse::ok_result_page(res, list, total)
+    ok_result_page(res, list, total)
 }
 
 /*
@@ -426,7 +426,7 @@ pub async fn login(req: &mut Request, res: &mut Response) -> AppResult<()> {
             s_user.login_date = Some(DateTime::now());
 
             User::update_by_map(rb, &s_user, value! {"id": &s_user.id}).await?;
-            BaseResponse::<String>::ok_result_data(res, token)
+            ok_result_data(res, token)
         }
     }
 }
@@ -521,7 +521,7 @@ pub async fn query_user_role(req: &mut Request, res: &mut Response) -> AppResult
         });
     }
 
-    BaseResponse::ok_result_data(
+    ok_result_data(
         res,
         QueryUserRoleResp {
             sys_role_list: list,
@@ -564,7 +564,7 @@ pub async fn update_user_role(req: &mut Request, res: &mut Response) -> AppResul
     }
 
     UserRole::insert_batch(rb, &sys_role_user_list, len as u64).await?;
-    BaseResponse::<String>::ok_result(res)
+    ok_result(res)
 }
 
 /*
@@ -635,7 +635,7 @@ pub async fn query_user_menu(depot: &mut Depot, res: &mut Response) -> AppResult
                 }
             }
 
-            BaseResponse::ok_result_data(
+            ok_result_data(
                 res,
                 QueryUserMenuResp {
                     sys_menu,

@@ -3,7 +3,7 @@
 // date：2025/01/08 13:51:14
 
 use crate::common::error::{AppError, AppResult};
-use crate::common::result::BaseResponse;
+use crate::common::result::{ok_result, ok_result_data, ok_result_page};
 use crate::model::system::sys_login_log_model::LoginLog;
 use crate::utils::time_util::time_to_string;
 use crate::vo::system::sys_login_log_vo::*;
@@ -25,7 +25,7 @@ pub async fn delete_sys_login_log(req: &mut Request, res: &mut Response) -> AppR
     let rb = &mut RB.clone();
 
     LoginLog::delete_by_map(rb, value! {"id": &item.ids}).await?;
-    BaseResponse::<String>::ok_result(res)
+    ok_result(res)
 }
 
 /*
@@ -59,7 +59,7 @@ pub async fn query_sys_login_log_detail(req: &mut Request, res: &mut Response) -
                 login_time: time_to_string(x.login_time), //访问时间
             };
 
-            BaseResponse::ok_result_data(res, sys_login_log)
+            ok_result_data(res, sys_login_log)
         }
     }
 }
@@ -102,5 +102,5 @@ pub async fn query_sys_login_log_list(req: &mut Request, res: &mut Response) -> 
         })
         .collect::<Vec<LoginLogListDataResp>>();
 
-    BaseResponse::ok_result_page(res, list, page_info.total)
+    ok_result_page(res, list, page_info.total)
 }

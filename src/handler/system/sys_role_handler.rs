@@ -3,7 +3,7 @@
 // date：2025/01/08 13:51:14
 
 use crate::common::error::{AppError, AppResult};
-use crate::common::result::BaseResponse;
+use crate::common::result::{ok_result, ok_result_data, ok_result_page};
 use crate::model::system::sys_menu_model::Menu;
 use crate::model::system::sys_role_dept_model::RoleDept;
 use crate::model::system::sys_role_menu_model::{query_menu_by_role, RoleMenu};
@@ -53,7 +53,7 @@ pub async fn add_sys_role(req: &mut Request, res: &mut Response) -> AppResult<()
     };
 
     Role::insert(rb, &sys_role).await?;
-    BaseResponse::<String>::ok_result(res)
+    ok_result(res)
 }
 
 /*
@@ -87,7 +87,7 @@ pub async fn delete_sys_role(req: &mut Request, res: &mut Response) -> AppResult
     RoleDept::delete_by_map(rb, value! {"role_id": &item.ids}).await?;
 
     Role::delete_by_map(rb, value! {"id": &item.ids}).await?;
-    BaseResponse::<String>::ok_result(res)
+    ok_result(res)
 }
 
 /*
@@ -135,7 +135,7 @@ pub async fn update_sys_role(req: &mut Request, res: &mut Response) -> AppResult
     };
 
     Role::update_by_map(rb, &sys_role, value! {"id": &item.id}).await?;
-    BaseResponse::<String>::ok_result(res)
+    ok_result(res)
 }
 
 /*
@@ -158,7 +158,7 @@ pub async fn update_sys_role_status(req: &mut Request, res: &mut Response) -> Ap
     param.extend(item.ids.iter().map(|&id| value!(id)));
 
     let _ = &mut RB.clone().exec(&update_sql, param).await?;
-    BaseResponse::<String>::ok_result(res)
+    ok_result(res)
 }
 
 /*
@@ -186,7 +186,7 @@ pub async fn query_sys_role_detail(req: &mut Request, res: &mut Response) -> App
                 update_time: time_to_string(x.update_time), //修改时间
             };
 
-            BaseResponse::ok_result_data(res, sys_role)
+            ok_result_data(res, sys_role)
         }
     }
 }
@@ -222,7 +222,7 @@ pub async fn query_sys_role_list(req: &mut Request, res: &mut Response) -> AppRe
         })
     }
 
-    BaseResponse::ok_result_page(res, list, total)
+    ok_result_page(res, list, total)
 }
 
 /*
@@ -265,7 +265,7 @@ pub async fn query_role_menu(req: &mut Request, res: &mut Response) -> AppResult
         }
     }
 
-    BaseResponse::ok_result_data(res, QueryRoleMenuData { menu_ids, menu_list })
+    ok_result_data(res, QueryRoleMenuData { menu_ids, menu_list })
 }
 
 /*
@@ -299,7 +299,7 @@ pub async fn update_role_menu(req: &mut Request, res: &mut Response) -> AppResul
     }
 
     RoleMenu::insert_batch(rb, &role_menu, item.menu_ids.len() as u64).await?;
-    BaseResponse::<String>::ok_result(res)
+    ok_result(res)
 }
 
 /*
@@ -347,7 +347,7 @@ pub async fn query_allocated_list(req: &mut Request, res: &mut Response) -> AppR
     }
 
     let total = count_allocated_list(rb, role_id, user_name, mobile).await?;
-    BaseResponse::ok_result_page(res, list, total)
+    ok_result_page(res, list, total)
 }
 
 /*
@@ -396,7 +396,7 @@ pub async fn query_unallocated_list(req: &mut Request, res: &mut Response) -> Ap
     }
 
     let total = count_unallocated_list(rb, role_id, user_name, mobile).await?;
-    BaseResponse::ok_result_page(res, list, total)
+    ok_result_page(res, list, total)
 }
 
 /*
@@ -412,7 +412,7 @@ pub async fn cancel_auth_user(req: &mut Request, res: &mut Response) -> AppResul
     let rb = &mut RB.clone();
 
     delete_user_role_by_role_id_user_id(rb, item.role_id, item.user_id).await?;
-    BaseResponse::<String>::ok_result(res)
+    ok_result(res)
 }
 
 /*
@@ -434,7 +434,7 @@ pub async fn batch_cancel_auth_user(req: &mut Request, res: &mut Response) -> Ap
     param.extend(item.user_ids.iter().map(|&id| value!(id)));
 
     let _ = &mut RB.clone().exec(&update_sql, param).await?;
-    BaseResponse::<String>::ok_result(res)
+    ok_result(res)
 }
 
 /*
@@ -463,5 +463,5 @@ pub async fn batch_auth_user(req: &mut Request, res: &mut Response) -> AppResult
     let rb = &mut RB.clone();
 
     UserRole::insert_batch(rb, &user_role, item.user_ids.len() as u64).await?;
-    BaseResponse::<String>::ok_result(res)
+    ok_result(res)
 }

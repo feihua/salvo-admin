@@ -3,7 +3,7 @@
 // date：2025/01/08 13:51:14
 
 use crate::common::error::{AppError, AppResult};
-use crate::common::result::BaseResponse;
+use crate::common::result::{ok_result, ok_result_data, ok_result_page};
 use crate::model::system::sys_dict_data_model::DictData;
 use crate::utils::time_util::time_to_string;
 use crate::vo::system::sys_dict_data_vo::*;
@@ -49,7 +49,7 @@ pub async fn add_sys_dict_data(req: &mut Request, res: &mut Response) -> AppResu
     };
 
     DictData::insert(rb, &sys_dict_data).await?;
-    BaseResponse::<String>::ok_result(res)
+    ok_result(res)
 }
 
 /*
@@ -65,7 +65,7 @@ pub async fn delete_sys_dict_data(req: &mut Request, res: &mut Response) -> AppR
     let rb = &mut RB.clone();
 
     DictData::delete_by_map(rb, value! {"dict_code": &item.ids}).await?;
-    BaseResponse::<String>::ok_result(res)
+    ok_result(res)
 }
 
 /*
@@ -112,7 +112,7 @@ pub async fn update_sys_dict_data(req: &mut Request, res: &mut Response) -> AppR
     };
 
     DictData::update_by_map(rb, &sys_dict_data, value! {"dict_code": &item.dict_code}).await?;
-    BaseResponse::<String>::ok_result(res)
+    ok_result(res)
 }
 
 /*
@@ -134,7 +134,7 @@ pub async fn update_sys_dict_data_status(req: &mut Request, res: &mut Response) 
     param.extend(item.ids.iter().map(|&id| value!(id)));
 
     let _ = &mut RB.clone().exec(&update_sql, param).await?;
-    BaseResponse::<String>::ok_result(res)
+    ok_result(res)
 }
 
 /*
@@ -165,7 +165,7 @@ pub async fn query_sys_dict_data_detail(req: &mut Request, res: &mut Response) -
                 update_time: time_to_string(x.update_time), //修改时间
             };
 
-            BaseResponse::ok_result_data(res, sys_dict_data)
+            ok_result_data(res, sys_dict_data)
         }
     }
 }
@@ -206,5 +206,5 @@ pub async fn query_sys_dict_data_list(req: &mut Request, res: &mut Response) -> 
         })
         .collect::<Vec<DictDataListDataResp>>();
 
-    BaseResponse::ok_result_page(res, list, total)
+    ok_result_page(res, list, total)
 }

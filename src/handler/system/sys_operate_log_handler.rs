@@ -3,7 +3,7 @@
 // date：2025/01/08 13:51:14
 
 use crate::common::error::{AppError, AppResult};
-use crate::common::result::BaseResponse;
+use crate::common::result::{ok_result, ok_result_data, ok_result_page};
 use crate::model::system::sys_operate_log_model::OperateLog;
 use crate::utils::time_util::time_to_string;
 use crate::vo::system::sys_operate_log_vo::*;
@@ -26,7 +26,7 @@ pub async fn delete_sys_operate_log(req: &mut Request, res: &mut Response) -> Ap
     let rb = &mut RB.clone();
 
     OperateLog::delete_by_map(rb, value! {"id": &item.ids}).await?;
-    BaseResponse::<String>::ok_result(res)
+    ok_result(res)
 }
 
 /*
@@ -63,7 +63,7 @@ pub async fn query_sys_operate_log_detail(req: &mut Request, res: &mut Response)
                 cost_time: x.cost_time,                       //消耗时间
             };
 
-            BaseResponse::ok_result_data(res, sys_operate_log)
+            ok_result_data(res, sys_operate_log)
         }
     }
 }
@@ -108,5 +108,5 @@ pub async fn query_sys_operate_log_list(req: &mut Request, res: &mut Response) -
         })
     }
 
-    BaseResponse::ok_result_page(res, list, total)
+    ok_result_page(res, list, total)
 }

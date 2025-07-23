@@ -3,7 +3,7 @@
 // date：2025/01/08 13:51:14
 
 use crate::common::error::{AppError, AppResult};
-use crate::common::result::BaseResponse;
+use crate::common::result::{ok_result, ok_result_data, ok_result_page};
 use crate::model::system::sys_post_model::Post;
 use crate::model::system::sys_user_post_model::count_user_post_by_id;
 use crate::utils::time_util::time_to_string;
@@ -47,7 +47,7 @@ pub async fn add_sys_post(req: &mut Request, res: &mut Response) -> AppResult<()
     };
 
     Post::insert(rb, &sys_post).await?;
-    BaseResponse::<String>::ok_result(res)
+    ok_result(res)
 }
 
 /*
@@ -74,7 +74,7 @@ pub async fn delete_sys_post(req: &mut Request, res: &mut Response) -> AppResult
     }
 
     Post::delete_by_map(rb, value! {"id": &item.ids}).await?;
-    BaseResponse::<String>::ok_result(res)
+    ok_result(res)
 }
 
 /*
@@ -117,7 +117,7 @@ pub async fn update_sys_post(req: &mut Request, res: &mut Response) -> AppResult
     };
 
     Post::update_by_map(rb, &sys_post, value! {"id": &item.id}).await?;
-    BaseResponse::<String>::ok_result(res)
+    ok_result(res)
 }
 
 /*
@@ -136,7 +136,7 @@ pub async fn update_sys_post_status(req: &mut Request, res: &mut Response) -> Ap
     param.extend(item.ids.iter().map(|&id| value!(id)));
 
     let _ = &mut RB.clone().exec(&update_sql, param).await?;
-    BaseResponse::<String>::ok_result(res)
+    ok_result(res)
 }
 
 /*
@@ -162,7 +162,7 @@ pub async fn query_sys_post_detail(req: &mut Request, res: &mut Response) -> App
                 update_time: time_to_string(x.update_time), //更新时间
             };
 
-            BaseResponse::ok_result_data(res, sys_post)
+            ok_result_data(res, sys_post)
         }
         None => Err(AppError::BusinessError("岗位不存在")),
     }
@@ -199,5 +199,5 @@ pub async fn query_sys_post_list(req: &mut Request, res: &mut Response) -> AppRe
         })
     }
 
-    BaseResponse::ok_result_page(res, list, total)
+    ok_result_page(res, list, total)
 }
