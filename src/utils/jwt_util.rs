@@ -12,7 +12,6 @@ use crate::common::error::AppError::JwtTokenError;
 pub struct JwtToken {
     pub id: i64,
     pub username: String,
-    pub permissions: Vec<String>,
     aud: String,
     // (audience)：受众
     exp: usize,
@@ -28,7 +27,7 @@ pub struct JwtToken {
 }
 
 impl JwtToken {
-    pub fn new(id: i64, username: &str, permissions: Vec<String>) -> JwtToken {
+    pub fn new(id: i64, username: &str) -> JwtToken {
         let now = SystemTime::now();
         //过期时间
         let m30 = Duration::from_secs(1800000);
@@ -37,7 +36,6 @@ impl JwtToken {
         JwtToken {
             id,
             username: String::from(username),
-            permissions,
             aud: String::from("rust_admin"), // (audience)：受众
             exp: (now + m30).as_secs() as usize,
             iat: now.as_secs() as usize,     // (Issued At)：签发时间
@@ -93,7 +91,7 @@ mod tests {
 
     #[test]
     fn test_jwt() {
-        let jwt = JwtToken::new(1, "koobe", vec![]);
+        let jwt = JwtToken::new(1, "koobe");
         let res = jwt.create_token("123");
         println!("{:?}", res);
         let token = JwtToken::verify("123", &res.unwrap_or_default());

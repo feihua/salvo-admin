@@ -34,6 +34,7 @@ pub struct AppState {
 struct Config1 {
     server: ServerConfig,
     db: DbConfig,
+    redis: RedisConfig,
 }
 
 // 定义服务器配置结构体
@@ -48,42 +49,39 @@ struct DbConfig {
     url: String,
 }
 
+#[derive(Debug, Deserialize)]
+struct RedisConfig {
+    url: String,
+}
 // 主函数，异步运行
 #[tokio::main]
 async fn main() {
     // 初始化日志系统
     log4rs::init_file("src/config/log4rs.yaml", Default::default()).unwrap();
     // tracing_subscriber::fmt().init();
-    
+
     // 加载和解析配置文件
-    let config = Config::builder()
-        .add_source(File::with_name("config.toml"))
-        .build()
-        .unwrap()
-        .try_deserialize::<Config1>()
-        .unwrap();
+    let config = Config::builder().add_source(File::with_name("config.toml")).build().unwrap().try_deserialize::<Config1>().unwrap();
     println!("Config: {:?}", config);
 
     // 初始化数据库连接
-    RB.init(rbdc_mysql::driver::MysqlDriver {}, config.db.url.as_str())
-        .unwrap();
+    RB.init(rbdc_mysql::driver::MysqlDriver {}, config.db.url.as_str()).unwrap();
 
     // 创建TCP监听器并启动服务器
     let acceptor = TcpListener::new(config.server.addr).bind().await;
-    Server::new(acceptor).serve(route()).await;
+    Server::new(acceptor).serve(route(config.redis.url.as_str())).await;
 }
 
 // 定义路由配置函数
-fn route() -> Router {
+fn route(url: &str) -> Router {
+    let cfg = deadpool_redis::Config::from_url(url);
+    let pool = cfg.create_pool(Some(deadpool_redis::Runtime::Tokio1)).unwrap();
+
     // 创建路由实例，配置API路径和处理函数
     Router::new()
+        .hoop(affix_state::insert("pool", pool))
         .path("/api")
         .get(hello)
         .push(Router::new().path("/system/user/login").post(login))
-        .push(
-            Router::new()
-                .hoop(auth_token)
-                .push(build_system_route())
-                .push(build_other_route()),
-        )
+        .push(Router::new().hoop(auth_token).push(build_system_route()).push(build_other_route()))
 }

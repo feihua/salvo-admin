@@ -24,7 +24,7 @@ use rbs::value;
 use salvo::prelude::*;
 use salvo::{Request, Response};
 use std::collections::{HashMap, HashSet};
-
+use chrono::Local;
 /*
  *添加用户信息
  *author：刘飞华
@@ -383,7 +383,7 @@ pub async fn query_sys_user_list(req: &mut Request, res: &mut Response) -> AppRe
  *date：2025/01/08 13:51:14
  */
 #[handler]
-pub async fn login(req: &mut Request, res: &mut Response) -> AppResult<()> {
+pub async fn login(depot: &mut Depot, req: &mut Request, res: &mut Response) -> AppResult<()> {
     let item = req.parse_json::<UserLoginReq>().await?;
     log::info!("user login params: {:?}", &item);
 
@@ -411,14 +411,31 @@ pub async fn login(req: &mut Request, res: &mut Response) -> AppResult<()> {
                 return Err(AppError::BusinessError("密码不正确"));
             }
 
-            let btn_menu = query_btn_menu(&id).await;
+            let (btn_menu, is_super) = query_btn_menu(&id).await;
 
             if btn_menu.len() == 0 {
                 add_login_log(item.mobile, 0, "用户没有分配角色或者菜单,不能登录", agent).await;
                 return Err(AppError::BusinessError("用户没有分配角色或者菜单,不能登录"));
             }
 
-            let token = JwtToken::new(id, &username, btn_menu).create_token("123")?;
+            let token = JwtToken::new(id, &username).create_token("123")?;
+
+            let pool = depot.get::<deadpool_redis::Pool>("pool").unwrap();
+            let mut conn = pool.get().await.unwrap();
+            let key = format!("salvo:admin:user:info:{:?}", s_user.id.unwrap_or_default());
+            deadpool_redis::redis::cmd("HSET")
+                .arg(&key)
+                .arg(&"permissions")
+                .arg(&btn_menu.join(","))
+                .arg(&"user_name")
+                .arg(&s_user.user_name)
+                .arg(&"is_admin")
+                .arg(&is_super)
+                .arg(&"token")
+                .arg(&token)
+                .arg(&"last_login")
+                .arg(&Local::now().format("%Y-%m-%d %H:%M:%S").to_string())
+                .query_async::<()>(&mut conn).await.unwrap();
 
             add_login_log(item.mobile, 1, "登录成功", agent.clone()).await;
             s_user.login_os = agent.os;
@@ -466,24 +483,33 @@ async fn add_login_log(name: String, status: i8, msg: &str, agent: UserAgentUtil
  *author：刘飞华
  *date：2025/01/08 13:51:14
  */
-async fn query_btn_menu(id: &i64) -> Vec<String> {
+async fn query_btn_menu(id: &i64) -> (Vec<String>, bool) {
     let mut btn_menu: Vec<String> = Vec::new();
     let rb = &mut RB.clone();
     let count = is_admin(rb, id).await.unwrap_or_default();
     if count == 1 {
         for x in Menu::select_all(rb).await.unwrap_or_default() {
-            btn_menu.push(x.api_url.unwrap_or_default());
+            if let Some(a) = x.api_url {
+                if a != "" {
+                    btn_menu.push(a);
+                }
+            }
         }
+
         log::info!("The current user is a super administrator");
-        btn_menu
+        (btn_menu, true)
     } else {
         let sql_str = "select distinct u.api_url from sys_user_role t left join sys_role usr on t.role_id = usr.id left join sys_role_menu srm on usr.id = srm.role_id left join sys_menu u on srm.menu_id = u.id where t.user_id = ?";
         let btn_menu_map = rb.query_decode::<Vec<HashMap<String, String>>>(sql_str, vec![value!(id)]).await.unwrap_or_default();
         for x in btn_menu_map {
-            btn_menu.push(x.get("api_url").unwrap().to_string());
+            if let Some(a) = x.get("api_url") {
+                if a.to_string() != "" {
+                    btn_menu.push(a.to_string());
+                }
+            }
         }
         log::info!("The current user is not a super administrator");
-        btn_menu
+        (btn_menu, false)
     }
 }
 
