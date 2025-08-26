@@ -9,3 +9,5 @@ addr = "0.0.0.0:8100"
 url = "mysql://root:123456@127.0.0.1:3306/rustdb"
 [redis]
 url = "redis://:123456@127.0.0.1:6379"
+[jwt]
+secret = "123456"
