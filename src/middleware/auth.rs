@@ -27,7 +27,7 @@ pub async fn auth_token(req: &mut Request, res: &mut Response, ctrl: &mut FlowCt
             let split_vec = token.split_whitespace().collect::<Vec<_>>();
             if split_vec.len() != 2 || split_vec[0] != "Bearer" {
                 let resp = BaseResponse {
-                    msg: "the token format wrong".to_string(),
+                    msg: "token 格式错误".to_string(),
                     code: 1,
                     data: Some("None"),
                 };
