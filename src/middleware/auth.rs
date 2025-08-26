@@ -36,7 +36,8 @@ pub async fn auth_token(req: &mut Request, res: &mut Response, ctrl: &mut FlowCt
                 return res.render(Json(resp));
             }
             let token = split_vec[1];
-            let jwt_token_e = JwtToken::verify("123", &token);
+            let secret = depot.get::<String>("secret").unwrap();
+            let jwt_token_e = JwtToken::verify(secret, &token);
             let jwt_token = match jwt_token_e {
                 Ok(data) => data,
                 Err(err) => {

@@ -35,6 +35,7 @@ struct Config1 {
     server: ServerConfig,
     db: DbConfig,
     redis: RedisConfig,
+    jwt: JwtConfig,
 }
 
 // 定义服务器配置结构体
@@ -53,6 +54,11 @@ struct DbConfig {
 struct RedisConfig {
     url: String,
 }
+
+#[derive(Debug, Deserialize)]
+struct JwtConfig {
+    secret: String,
+}
 // 主函数，异步运行
 #[tokio::main]
 async fn main() {
@@ -69,17 +75,17 @@ async fn main() {
 
     // 创建TCP监听器并启动服务器
     let acceptor = TcpListener::new(config.server.addr).bind().await;
-    Server::new(acceptor).serve(route(config.redis.url.as_str())).await;
+    Server::new(acceptor).serve(route(config.redis.url.as_str(), config.jwt.secret)).await;
 }
 
 // 定义路由配置函数
-fn route(url: &str) -> Router {
+fn route(url: &str, secret: String) -> Router {
     let cfg = deadpool_redis::Config::from_url(url);
     let pool = cfg.create_pool(Some(deadpool_redis::Runtime::Tokio1)).unwrap();
 
     // 创建路由实例，配置API路径和处理函数
     Router::new()
-        .hoop(affix_state::insert("pool", pool))
+        .hoop(affix_state::insert("pool", pool).insert("secret", secret))
         .path("/api")
         .get(hello)
         .push(Router::new().path("/system/user/login").post(login))

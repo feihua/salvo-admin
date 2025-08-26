@@ -418,7 +418,8 @@ pub async fn login(depot: &mut Depot, req: &mut Request, res: &mut Response) -> 
                 return Err(AppError::BusinessError("用户没有分配角色或者菜单,不能登录"));
             }
 
-            let token = JwtToken::new(id, &username).create_token("123")?;
+            let secret = depot.get::<String>("secret").unwrap();
+            let token = JwtToken::new(id, &username).create_token(secret)?;
 
             let pool = depot.get::<deadpool_redis::Pool>("pool").unwrap();
             let mut conn = pool.get().await.unwrap();
