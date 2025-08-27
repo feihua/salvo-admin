@@ -3,7 +3,7 @@
 // date：2025/01/08 13:51:14
 
 use crate::common::error::{AppError, AppResult};
-use crate::common::result::{ok_result, ok_result_data, ok_result_page};
+use crate::common::result::{err_result_msg, ok_result, ok_result_data, ok_result_page};
 use crate::model::system::sys_dept_model::Dept;
 use crate::model::system::sys_login_log_model::LoginLog;
 use crate::model::system::sys_menu_model::Menu;
@@ -17,6 +17,7 @@ use crate::utils::user_agent_util::UserAgentUtil;
 use crate::vo::system::sys_dept_vo::QueryDeptDetailResp;
 use crate::vo::system::sys_user_vo::*;
 use crate::RB;
+use chrono::Local;
 use rbatis::plugin::page::PageRequest;
 use rbatis::rbatis_codegen::ops::AsProxy;
 use rbatis::rbdc::datetime::DateTime;
@@ -24,7 +25,6 @@ use rbs::value;
 use salvo::prelude::*;
 use salvo::{Request, Response};
 use std::collections::{HashMap, HashSet};
-use chrono::Local;
 /*
  *添加用户信息
  *author：刘飞华
@@ -94,23 +94,25 @@ pub async fn delete_sys_user(depot: &mut Depot, req: &mut Request, res: &mut Res
     let item = req.parse_json::<DeleteUserReq>().await?;
     log::info!("delete sys_user params: {:?}", &item);
 
-    let user_id = depot.get::<i64>("userId").copied().unwrap();
+    if let Ok(user_id) = depot.get::<i64>("userId").copied() {
+        let ids = item.ids.clone();
+        if ids.contains(&user_id) {
+            return Err(AppError::BusinessError("当前用户不能删除"));
+        }
+        if ids.contains(&1) {
+            return Err(AppError::BusinessError("不允许操作超级管理员用户"));
+        }
 
-    let ids = item.ids.clone();
-    if ids.contains(&user_id) {
-        return Err(AppError::BusinessError("当前用户不能删除"));
+        let rb = &mut RB.clone();
+        UserRole::delete_by_map(rb, value! {"user_id": &ids}).await?;
+
+        UserPost::delete_by_map(rb, value! {"user_id": &ids}).await?;
+
+        User::delete_by_map(rb, value! {"id": &item.ids}).await?;
+        ok_result(res)
+    } else {
+        err_result_msg(res, "参数错误".to_string())
     }
-    if ids.contains(&1) {
-        return Err(AppError::BusinessError("不允许操作超级管理员用户"));
-    }
-
-    let rb = &mut RB.clone();
-    UserRole::delete_by_map(rb, value! {"user_id": &ids}).await?;
-
-    UserPost::delete_by_map(rb, value! {"user_id": &ids}).await?;
-
-    User::delete_by_map(rb, value! {"id": &item.ids}).await?;
-    ok_result(res)
 }
 
 /*
@@ -250,22 +252,25 @@ pub async fn reset_sys_user_password(req: &mut Request, res: &mut Response) -> A
 pub async fn update_sys_user_password(req: &mut Request, depot: &mut Depot, res: &mut Response) -> AppResult<()> {
     let item = req.parse_json::<UpdateUserPwdReq>().await?;
     log::info!("update sys_user_password params: {:?}", &item);
-    let user_id = depot.get::<i64>("userId").copied().unwrap();
 
-    let rb = &mut RB.clone();
+    if let Ok(user_id) = depot.get::<i64>("userId").copied() {
+        let rb = &mut RB.clone();
 
-    match User::select_by_id(rb, user_id).await? {
-        None => Err(AppError::BusinessError("用户不存在")),
-        Some(x) => {
-            let mut user = x;
-            if user.password != item.pwd {
-                return Err(AppError::BusinessError("旧密码不正确"));
+        match User::select_by_id(rb, user_id).await? {
+            None => Err(AppError::BusinessError("用户不存在")),
+            Some(x) => {
+                let mut user = x;
+                if user.password != item.pwd {
+                    return Err(AppError::BusinessError("旧密码不正确"));
+                }
+                user.password = item.re_pwd;
+
+                User::update_by_map(rb, &user, value! {"id": &user.id}).await?;
+                ok_result(res)
             }
-            user.password = item.re_pwd;
-
-            User::update_by_map(rb, &user, value! {"id": &user.id}).await?;
-            ok_result(res)
         }
+    } else {
+        return err_result_msg(res, "用户ID不能为空".to_string());
     }
 }
 
@@ -418,33 +423,44 @@ pub async fn login(depot: &mut Depot, req: &mut Request, res: &mut Response) -> 
                 return Err(AppError::BusinessError("用户没有分配角色或者菜单,不能登录"));
             }
 
-            let secret = depot.get::<String>("secret").unwrap();
-            let token = JwtToken::new(id, &username).create_token(secret)?;
+            if let Ok(secret) = depot.get::<String>("secret") {
+                let token = JwtToken::new(id, &username).create_token(secret)?;
 
-            let pool = depot.get::<deadpool_redis::Pool>("pool").unwrap();
-            let mut conn = pool.get().await.unwrap();
-            let key = format!("salvo:admin:user:info:{:?}", s_user.id.unwrap_or_default());
-            deadpool_redis::redis::cmd("HSET")
-                .arg(&key)
-                .arg(&"permissions")
-                .arg(&btn_menu.join(","))
-                .arg(&"user_name")
-                .arg(&s_user.user_name)
-                .arg(&"is_admin")
-                .arg(&is_super)
-                .arg(&"token")
-                .arg(&token)
-                .arg(&"last_login")
-                .arg(&Local::now().format("%Y-%m-%d %H:%M:%S").to_string())
-                .query_async::<()>(&mut conn).await.unwrap();
+                if let Ok(pool) = depot.get::<deadpool_redis::Pool>("pool") {
+                    if let Ok(mut conn) = pool.get().await {
+                        let key = format!("salvo:admin:user:info:{:?}", s_user.id.unwrap_or_default());
+                        deadpool_redis::redis::cmd("HSET")
+                            .arg(&key)
+                            .arg(&"permissions")
+                            .arg(&btn_menu.join(","))
+                            .arg(&"user_name")
+                            .arg(&s_user.user_name)
+                            .arg(&"is_admin")
+                            .arg(&is_super)
+                            .arg(&"token")
+                            .arg(&token)
+                            .arg(&"last_login")
+                            .arg(&Local::now().format("%Y-%m-%d %H:%M:%S").to_string())
+                            .query_async::<()>(&mut conn)
+                            .await
+                            .unwrap();
 
-            add_login_log(item.mobile, 1, "登录成功", agent.clone()).await;
-            s_user.login_os = agent.os;
-            s_user.login_browser = agent.browser;
-            s_user.login_date = Some(DateTime::now());
+                        add_login_log(item.mobile, 1, "登录成功", agent.clone()).await;
+                        s_user.login_os = agent.os;
+                        s_user.login_browser = agent.browser;
+                        s_user.login_date = Some(DateTime::now());
 
-            User::update_by_map(rb, &s_user, value! {"id": &s_user.id}).await?;
-            ok_result_data(res, token)
+                        User::update_by_map(rb, &s_user, value! {"id": &s_user.id}).await?;
+                        ok_result_data(res, token)
+                    } else {
+                        err_result_msg(res, "获取redis连接异常".to_string())
+                    }
+                } else {
+                    err_result_msg(res, "获取redis连接池异常".to_string())
+                }
+            } else {
+                err_result_msg(res, "获取jwt密钥异常".to_string())
+            }
         }
     }
 }
