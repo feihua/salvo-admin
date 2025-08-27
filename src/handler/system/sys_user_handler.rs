@@ -3,7 +3,7 @@
 // date：2025/01/08 13:51:14
 
 use crate::common::error::{AppError, AppResult};
-use crate::common::result::{err_result_msg, ok_result, ok_result_data, ok_result_page};
+use crate::common::result::{ok_result, ok_result_data, ok_result_page};
 use crate::model::system::sys_dept_model::Dept;
 use crate::model::system::sys_login_log_model::LoginLog;
 use crate::model::system::sys_menu_model::Menu;
@@ -423,43 +423,34 @@ pub async fn login(depot: &mut Depot, req: &mut Request, res: &mut Response) -> 
                 return Err(AppError::BusinessError("用户没有分配角色或者菜单,不能登录"));
             }
 
-            if let Ok(secret) = depot.get::<String>("secret") {
-                let token = JwtToken::new(id, &username).create_token(secret)?;
+            let secret = depot.get::<String>("secret").map_err(|_| AppError::BusinessError("获取jwt密钥异常"))?;
+            let token = JwtToken::new(id, &username).create_token(secret)?;
 
-                if let Ok(pool) = depot.get::<deadpool_redis::Pool>("pool") {
-                    if let Ok(mut conn) = pool.get().await {
-                        let key = format!("salvo:admin:user:info:{:?}", s_user.id.unwrap_or_default());
-                        deadpool_redis::redis::cmd("HSET")
-                            .arg(&key)
-                            .arg(&"permissions")
-                            .arg(&btn_menu.join(","))
-                            .arg(&"user_name")
-                            .arg(&s_user.user_name)
-                            .arg(&"is_admin")
-                            .arg(&is_super)
-                            .arg(&"token")
-                            .arg(&token)
-                            .arg(&"last_login")
-                            .arg(&Local::now().format("%Y-%m-%d %H:%M:%S").to_string())
-                            .query_async::<()>(&mut conn)
-                            .await?;
+            let pool = depot.get::<deadpool_redis::Pool>("pool").map_err(|_| AppError::BusinessError("获取redis连接池异常"))?;
+            let mut conn = pool.get().await.map_err(|_| AppError::BusinessError("获取redis连接异常"))?;
+            let key = format!("salvo:admin:user:info:{:?}", s_user.id.unwrap_or_default());
+            deadpool_redis::redis::cmd("HSET")
+                .arg(&key)
+                .arg(&"permissions")
+                .arg(&btn_menu.join(","))
+                .arg(&"user_name")
+                .arg(&s_user.user_name)
+                .arg(&"is_admin")
+                .arg(&is_super)
+                .arg(&"token")
+                .arg(&token)
+                .arg(&"last_login")
+                .arg(&Local::now().format("%Y-%m-%d %H:%M:%S").to_string())
+                .query_async::<()>(&mut conn)
+                .await?;
 
-                        add_login_log(item.mobile, 1, "登录成功", agent.clone()).await;
-                        s_user.login_os = agent.os;
-                        s_user.login_browser = agent.browser;
-                        s_user.login_date = Some(DateTime::now());
+            add_login_log(item.mobile, 1, "登录成功", agent.clone()).await;
+            s_user.login_os = agent.os;
+            s_user.login_browser = agent.browser;
+            s_user.login_date = Some(DateTime::now());
 
-                        User::update_by_map(rb, &s_user, value! {"id": &s_user.id}).await?;
-                        ok_result_data(res, token)
-                    } else {
-                        Err(AppError::BusinessError("获取redis连接异常"))
-                    }
-                } else {
-                    Err(AppError::BusinessError("获取redis连接池异常"))
-                }
-            } else {
-                Err(AppError::BusinessError("获取jwt密钥异常"))
-            }
+            User::update_by_map(rb, &s_user, value! {"id": &s_user.id}).await?;
+            ok_result_data(res, token)
         }
     }
 }
