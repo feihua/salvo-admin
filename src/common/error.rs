@@ -1,4 +1,5 @@
 use crate::common::result::BaseResponse;
+use redis::RedisError;
 use salvo::prelude::Json;
 use salvo::{Depot, Request, Response, Writer};
 use thiserror::Error;
@@ -18,6 +19,9 @@ pub enum AppError {
 
     #[error("解析请求参数错误: {0}")]
     ParseError(#[from] salvo::http::ParseError),
+
+    #[error("redis错误: {0}")]
+    RedisError(#[from] RedisError),
 
     #[error("数据库错误: {0}")]
     DbError(#[from] rbatis::Error),

@@ -442,8 +442,7 @@ pub async fn login(depot: &mut Depot, req: &mut Request, res: &mut Response) -> 
                             .arg(&"last_login")
                             .arg(&Local::now().format("%Y-%m-%d %H:%M:%S").to_string())
                             .query_async::<()>(&mut conn)
-                            .await
-                            .unwrap();
+                            .await?;
 
                         add_login_log(item.mobile, 1, "登录成功", agent.clone()).await;
                         s_user.login_os = agent.os;
