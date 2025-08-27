@@ -111,7 +111,7 @@ pub async fn delete_sys_user(depot: &mut Depot, req: &mut Request, res: &mut Res
         User::delete_by_map(rb, value! {"id": &item.ids}).await?;
         ok_result(res)
     } else {
-        err_result_msg(res, "参数错误".to_string())
+        Err(AppError::BusinessError("参数错误"))
     }
 }
 
@@ -270,7 +270,7 @@ pub async fn update_sys_user_password(req: &mut Request, depot: &mut Depot, res:
             }
         }
     } else {
-        return err_result_msg(res, "用户ID不能为空".to_string());
+        Err(AppError::BusinessError("用户ID不能为空"))
     }
 }
 
@@ -452,13 +452,13 @@ pub async fn login(depot: &mut Depot, req: &mut Request, res: &mut Response) -> 
                         User::update_by_map(rb, &s_user, value! {"id": &s_user.id}).await?;
                         ok_result_data(res, token)
                     } else {
-                        err_result_msg(res, "获取redis连接异常".to_string())
+                        Err(AppError::BusinessError("获取redis连接异常"))
                     }
                 } else {
-                    err_result_msg(res, "获取redis连接池异常".to_string())
+                    Err(AppError::BusinessError("获取redis连接池异常"))
                 }
             } else {
-                err_result_msg(res, "获取jwt密钥异常".to_string())
+                Err(AppError::BusinessError("获取jwt密钥异常"))
             }
         }
     }
