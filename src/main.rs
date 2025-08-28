@@ -7,6 +7,9 @@ use config::{Config, File};
 use handler::system::sys_user_handler::*;
 use once_cell::sync::Lazy;
 use rbatis::RBatis;
+use rbatis::rbdc::pool::{ConnectionManager, Pool};
+use rbdc_mysql::MysqlDriver;
+use rbdc_pool_fast::FastPool;
 use salvo::prelude::*;
 use serde::Deserialize;
 
@@ -71,7 +74,10 @@ async fn main() {
     println!("Config: {:?}", config);
 
     // 初始化数据库连接
-    RB.init(rbdc_mysql::driver::MysqlDriver {}, config.db.url.as_str()).unwrap();
+    let manager = ConnectionManager::new(MysqlDriver {}, config.db.url.as_str()).expect("create connection manager error");
+    let pool = FastPool::new(manager).expect("create db pool error");
+
+    RB.init_pool(pool).expect("init db pool error");
 
     // 创建TCP监听器并启动服务器
     let acceptor = TcpListener::new(config.server.addr).bind().await;

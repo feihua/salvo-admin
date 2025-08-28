@@ -2260,6 +2260,7 @@ dependencies = [
  "once_cell",
  "rbatis",
  "rbdc-mysql",
+ "rbdc-pool-fast",
  "rbs",
  "redis",
  "regex",
