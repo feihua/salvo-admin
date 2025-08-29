@@ -35,14 +35,14 @@ pub async fn add_sys_post(req: &mut Request, res: &mut Response) -> AppResult<()
     }
 
     let sys_post = Post {
-        id: None,                                //岗位id
-        post_code: code,                         //岗位编码
-        post_name: name,                         //岗位名称
-        sort: item.sort,                         //显示顺序
-        status: item.status,                     //部状态（0：停用，1:正常）
-        remark: item.remark.unwrap_or_default(), //备注
-        create_time: None,                       //创建时间
-        update_time: None,                       //更新时间
+        id: None,            //岗位id
+        post_code: code,     //岗位编码
+        post_name: name,     //岗位名称
+        sort: item.sort,     //显示顺序
+        status: item.status, //部状态（0：停用，1:正常）
+        remark: item.remark, //备注
+        create_time: None,   //创建时间
+        update_time: None,   //更新时间
     };
 
     Post::insert(rb, &sys_post).await?;
@@ -93,26 +93,26 @@ pub async fn update_sys_post(req: &mut Request, res: &mut Response) -> AppResult
     }
 
     if let Some(x) = Post::select_by_name(rb, &item.post_name).await? {
-        if x.id.unwrap_or_default() != item.id {
+        if x.id != Some(item.id) {
             return Err(AppError::BusinessError("岗位名称已存在"));
         }
     }
 
     if let Some(x) = Post::select_by_code(rb, &item.post_code).await? {
-        if x.id.unwrap_or_default() != item.id {
+        if x.id != Some(item.id) {
             return Err(AppError::BusinessError("岗位编码已存在"));
         }
     }
 
     let sys_post = Post {
-        id: Some(item.id),                       //岗位id
-        post_code: item.post_code,               //岗位编码
-        post_name: item.post_name,               //岗位名称
-        sort: item.sort,                         //显示顺序
-        status: item.status,                     //部状态（0：停用，1:正常）
-        remark: item.remark.unwrap_or_default(), //备注
-        create_time: None,                       //创建时间
-        update_time: None,                       //更新时间
+        id: Some(item.id),         //岗位id
+        post_code: item.post_code, //岗位编码
+        post_name: item.post_name, //岗位名称
+        sort: item.sort,           //显示顺序
+        status: item.status,       //部状态（0：停用，1:正常）
+        remark: item.remark,       //备注
+        create_time: None,         //创建时间
+        update_time: None,         //更新时间
     };
 
     Post::update_by_map(rb, &sys_post, value! {"id": &item.id}).await?;
@@ -151,7 +151,7 @@ pub async fn query_sys_post_detail(req: &mut Request, res: &mut Response) -> App
     match Post::select_by_id(&mut RB.clone(), &item.id).await? {
         Some(x) => {
             let sys_post = QueryPostDetailResp {
-                id: x.id.unwrap_or_default(), //岗位id
+                id: x.id, //岗位id
                 post_code: x.post_code,       //岗位编码
                 post_name: x.post_name,       //岗位名称
                 sort: x.sort,                 //显示顺序
@@ -187,7 +187,7 @@ pub async fn query_sys_post_list(req: &mut Request, res: &mut Response) -> AppRe
 
     for x in p.records {
         list.push(PostListDataResp {
-            id: x.id.unwrap_or_default(), //岗位id
+            id: x.id, //岗位id
             post_code: x.post_code,       //岗位编码
             post_name: x.post_name,       //岗位名称
             sort: x.sort,                 //显示顺序

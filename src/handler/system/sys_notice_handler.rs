@@ -30,14 +30,14 @@ pub async fn add_sys_notice(req: &mut Request, res: &mut Response) -> AppResult<
     }
 
     let sys_notice = Notice {
-        id: None,                                //公告ID
-        notice_title: title,                     //公告标题
-        notice_type: item.notice_type,           //公告类型（1:通知,2:公告）
-        notice_content: item.notice_content,     //公告内容
-        status: item.status,                     //公告状态（0:关闭,1:正常 ）
-        remark: item.remark.unwrap_or_default(), //备注
-        create_time: None,                       //创建时间
-        update_time: None,                       //修改时间
+        id: None,                            //公告ID
+        notice_title: title,                 //公告标题
+        notice_type: item.notice_type,       //公告类型（1:通知,2:公告）
+        notice_content: item.notice_content, //公告内容
+        status: item.status,                 //公告状态（0:关闭,1:正常 ）
+        remark: item.remark,                 //备注
+        create_time: None,                   //创建时间
+        update_time: None,                   //修改时间
     };
 
     Notice::insert(rb, &sys_notice).await?;
@@ -82,14 +82,14 @@ pub async fn update_sys_notice(req: &mut Request, res: &mut Response) -> AppResu
     }
 
     let sys_notice = Notice {
-        id: Some(item.id),                       //公告ID
-        notice_title: item.notice_title,         //公告标题
-        notice_type: item.notice_type,           //公告类型（1:通知,2:公告）
-        notice_content: item.notice_content,     //公告内容
-        status: item.status,                     //公告状态（0:关闭,1:正常 ）
-        remark: item.remark.unwrap_or_default(), //备注
-        create_time: None,                       //创建时间
-        update_time: None,                       //修改时间
+        id: Some(item.id),                   //公告ID
+        notice_title: item.notice_title,     //公告标题
+        notice_type: item.notice_type,       //公告类型（1:通知,2:公告）
+        notice_content: item.notice_content, //公告内容
+        status: item.status,                 //公告状态（0:关闭,1:正常 ）
+        remark: item.remark,                 //备注
+        create_time: None,                   //创建时间
+        update_time: None,                   //修改时间
     };
 
     Notice::update_by_map(rb, &sys_notice, value! {"id": &item.id}).await?;
@@ -130,7 +130,7 @@ pub async fn query_sys_notice_detail(req: &mut Request, res: &mut Response) -> A
         None => Err(AppError::BusinessError("通知公告表不存在")),
         Some(x) => {
             let sys_notice = QueryNoticeDetailResp {
-                id: x.id.unwrap_or_default(),     //公告ID
+                id: x.id,     //公告ID
                 notice_title: x.notice_title,     //公告标题
                 notice_type: x.notice_type,       //公告类型（1:通知,2:公告）
                 notice_content: x.notice_content, //公告内容
@@ -166,7 +166,7 @@ pub async fn query_sys_notice_list(req: &mut Request, res: &mut Response) -> App
 
     for x in p.records {
         data.push(NoticeListDataResp {
-            id: x.id.unwrap_or_default(),     //公告ID
+            id: x.id,     //公告ID
             notice_title: x.notice_title,     //公告标题
             notice_type: x.notice_type,       //公告类型（1:通知,2:公告）
             notice_content: x.notice_content, //公告内容

@@ -33,18 +33,18 @@ pub async fn add_sys_dict_data(req: &mut Request, res: &mut Response) -> AppResu
     }
 
     let sys_dict_data = DictData {
-        dict_code: None,                         //字典编码
-        dict_sort: item.dict_sort,               //字典排序
-        dict_label: item.dict_label,             //字典标签
-        dict_value: item.dict_value,             //字典键值
-        dict_type: item.dict_type,               //字典类型
-        css_class: item.css_class,               //样式属性（其他样式扩展）
-        list_class: item.list_class,             //格回显样式
-        is_default: item.is_default,             //是否默认（Y是 N否）
-        status: item.status,                     //状态（0：停用，1:正常）
-        remark: item.remark.unwrap_or_default(), //备注
-        create_time: None,                       //创建时间
-        update_time: None,                       //修改时间
+        id: None,             //字典编码
+        dict_sort: item.dict_sort,   //字典排序
+        dict_label: item.dict_label, //字典标签
+        dict_value: item.dict_value, //字典键值
+        dict_type: item.dict_type,   //字典类型
+        css_class: item.css_class,   //样式属性（其他样式扩展）
+        list_class: item.list_class, //格回显样式
+        is_default: item.is_default, //是否默认（Y是 N否）
+        status: item.status,         //状态（0：停用，1:正常）
+        remark: item.remark,         //备注
+        create_time: None,           //创建时间
+        update_time: None,           //修改时间
     };
 
     DictData::insert(rb, &sys_dict_data).await?;
@@ -63,7 +63,7 @@ pub async fn delete_sys_dict_data(req: &mut Request, res: &mut Response) -> AppR
 
     let rb = &mut RB.clone();
 
-    DictData::delete_by_map(rb, value! {"dict_code": &item.ids}).await?;
+    DictData::delete_by_map(rb, value! {"id": &item.ids}).await?;
     ok_result(res)
 }
 
@@ -79,38 +79,38 @@ pub async fn update_sys_dict_data(req: &mut Request, res: &mut Response) -> AppR
 
     let rb = &mut RB.clone();
 
-    if DictData::select_by_id(rb, &item.dict_code).await?.is_none() {
+    if DictData::select_by_id(rb, &item.id).await?.is_none() {
         return Err(AppError::BusinessError("字典数据不存在"));
     }
 
     if let Some(x) = DictData::select_by_dict_label(rb, &item.dict_type, &item.dict_label).await? {
-        if x.dict_code.unwrap_or_default() != item.dict_code {
+        if x.id != Some(item.id) {
             return Err(AppError::BusinessError("字典标签已存在"));
         }
     }
 
     if let Some(x) = DictData::select_by_dict_value(rb, &item.dict_type, &item.dict_value).await? {
-        if x.dict_code.unwrap_or_default() != item.dict_code {
+        if x.id != Some(item.id) {
             return Err(AppError::BusinessError("字典键值已存在"));
         }
     }
 
     let sys_dict_data = DictData {
-        dict_code: Some(item.dict_code),         //字典编码
-        dict_sort: item.dict_sort,               //字典排序
-        dict_label: item.dict_label,             //字典标签
-        dict_value: item.dict_value,             //字典键值
-        dict_type: item.dict_type,               //字典类型
-        css_class: item.css_class,               //样式属性（其他样式扩展）
-        list_class: item.list_class,             //格回显样式
-        is_default: item.is_default,             //是否默认（Y是 N否）
-        status: item.status,                     //状态（0：停用，1:正常）
-        remark: item.remark.unwrap_or_default(), //备注
-        create_time: None,                       //创建时间
-        update_time: None,                       //修改时间
+        id: Some(item.id), //字典编码
+        dict_sort: item.dict_sort,       //字典排序
+        dict_label: item.dict_label,     //字典标签
+        dict_value: item.dict_value,     //字典键值
+        dict_type: item.dict_type,       //字典类型
+        css_class: item.css_class,       //样式属性（其他样式扩展）
+        list_class: item.list_class,     //格回显样式
+        is_default: item.is_default,     //是否默认（Y是 N否）
+        status: item.status,             //状态（0：停用，1:正常）
+        remark: item.remark,             //备注
+        create_time: None,               //创建时间
+        update_time: None,               //修改时间
     };
 
-    DictData::update_by_map(rb, &sys_dict_data, value! {"dict_code": &item.dict_code}).await?;
+    DictData::update_by_map(rb, &sys_dict_data, value! {"id": &item.id}).await?;
     ok_result(res)
 }
 
@@ -125,7 +125,7 @@ pub async fn update_sys_dict_data_status(req: &mut Request, res: &mut Response) 
     log::info!("update sys_dict_data_status params: {:?}", &item);
 
     let update_sql = format!(
-        "update sys_dict_data set status = ? where dict_code in ({})",
+        "update sys_dict_data set status = ? where id in ({})",
         item.ids.iter().map(|_| "?").collect::<Vec<&str>>().join(", ")
     );
 
@@ -150,7 +150,7 @@ pub async fn query_sys_dict_data_detail(req: &mut Request, res: &mut Response) -
         None => Err(AppError::BusinessError("字典数据不存在")),
         Some(x) => {
             let sys_dict_data = QueryDictDataDetailResp {
-                dict_code: x.dict_code.unwrap_or_default(), //字典编码
+                id: x.id, //字典编码
                 dict_sort: x.dict_sort,                     //字典排序
                 dict_label: x.dict_label,                   //字典标签
                 dict_value: x.dict_value,                   //字典键值
@@ -189,7 +189,7 @@ pub async fn query_sys_dict_data_list(req: &mut Request, res: &mut Response) -> 
         .into_iter()
         .map(|x| {
             DictDataListDataResp {
-                dict_code: x.dict_code.unwrap_or_default(), //字典编码
+                id: x.id, //字典编码
                 dict_sort: x.dict_sort,                     //字典排序
                 dict_label: x.dict_label,                   //字典标签
                 dict_value: x.dict_value,                   //字典键值

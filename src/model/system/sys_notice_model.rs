@@ -18,7 +18,7 @@ pub struct Notice {
     pub notice_type: i8,               //公告类型（1:通知,2:公告）
     pub notice_content: String,        //公告内容
     pub status: i8,                    //公告状态（0:关闭,1:正常 ）
-    pub remark: String,                //备注
+    pub remark: Option<String>,                //备注
     pub create_time: Option<DateTime>, //创建时间
     pub update_time: Option<DateTime>, //修改时间
 }

@@ -31,7 +31,7 @@ pub struct DeleteDictTypeReq {
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct UpdateDictTypeReq {
-    pub dict_id: i64,           //字典主键
+    pub id: i64,                //字典主键
     pub dict_name: String,      //字典名称
     pub dict_type: String,      //字典类型
     pub status: i8,             //状态（0：停用，1:正常）
@@ -61,11 +61,11 @@ pub struct QueryDictTypeDetailReq {
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct QueryDictTypeDetailResp {
-    pub dict_id: i64,        //字典主键
-    pub dict_name: String,   //字典名称
-    pub dict_type: String,   //字典类型
-    pub status: i8,          //状态（0：停用，1:正常）
-    pub remark: String,      //备注
+    pub id: Option<i64>,        //字典主键
+    pub dict_name: String,      //字典名称
+    pub dict_type: String,      //字典类型
+    pub status: i8,             //状态（0：停用，1:正常）
+    pub remark: Option<String>, //备注
     #[serde(serialize_with = "serialize_datetime")]
     pub create_time: Option<DateTime>, //创建时间
     #[serde(serialize_with = "serialize_datetime")]
@@ -83,9 +83,9 @@ pub struct QueryDictTypeListReq {
     pub dict_name: Option<String>, //字典名称
     pub dict_type: Option<String>, //字典类型
     #[serde(default = "default_status")]
-    pub status: Option<i8>,        //状态（0：停用，1:正常）
+    pub status: Option<i8>, //状态（0：停用，1:正常）
 }
-fn default_status() -> Option<i8>{
+fn default_status() -> Option<i8> {
     Some(2)
 }
 /*
@@ -94,11 +94,11 @@ fn default_status() -> Option<i8>{
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct DictTypeListDataResp {
-    pub dict_id: i64,        //字典主键
-    pub dict_name: String,   //字典名称
-    pub dict_type: String,   //字典类型
-    pub status: i8,          //状态（0：停用，1:正常）
-    pub remark: String,      //备注
+    pub id: Option<i64>,        //字典主键
+    pub dict_name: String,      //字典名称
+    pub dict_type: String,      //字典类型
+    pub status: i8,             //状态（0：停用，1:正常）
+    pub remark: Option<String>, //备注
     #[serde(serialize_with = "serialize_datetime")]
     pub create_time: Option<DateTime>, //创建时间
     #[serde(serialize_with = "serialize_datetime")]

@@ -203,7 +203,7 @@ pub async fn query_sys_dept_detail(req: &mut Request, res: &mut Response) -> App
         None => Err(AppError::BusinessError("部门不存在")),
         Some(x) => {
             let sys_dept = QueryDeptDetailResp {
-                id: x.id.unwrap_or_default(),             //部门id
+                id: x.id,                                 //部门id
                 parent_id: x.parent_id,                   //父部门id
                 ancestors: x.ancestors,                   //祖级列表
                 dept_name: x.dept_name,                   //部门名称
@@ -212,7 +212,6 @@ pub async fn query_sys_dept_detail(req: &mut Request, res: &mut Response) -> App
                 phone: x.phone,                           //联系电话
                 email: x.email,                           //邮箱
                 status: x.status,                         //部状态（0：停用，1:正常）
-                del_flag: x.del_flag.unwrap_or_default(), //删除标志（0代表删除 1代表存在）
                 create_time: x.create_time,               //创建时间
                 update_time: x.update_time,               //修改时间
             };
@@ -237,7 +236,7 @@ pub async fn query_sys_dept_list(req: &mut Request, res: &mut Response) -> AppRe
         .into_iter()
         .map(|x| {
             DeptListDataResp {
-                id: x.id.unwrap_or_default(),             //部门id
+                id: x.id,                                 //部门id
                 parent_id: x.parent_id,                   //父部门id
                 ancestors: x.ancestors,                   //祖级列表
                 dept_name: x.dept_name,                   //部门名称
@@ -246,7 +245,6 @@ pub async fn query_sys_dept_list(req: &mut Request, res: &mut Response) -> AppRe
                 phone: x.phone,                           //联系电话
                 email: x.email,                           //邮箱
                 status: x.status,                         //部状态（0：停用，1:正常）
-                del_flag: x.del_flag.unwrap_or_default(), //删除标志（0代表删除 1代表存在）
                 create_time: x.create_time,               //创建时间
                 update_time: x.update_time,               //修改时间
             }

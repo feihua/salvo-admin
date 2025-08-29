@@ -25,7 +25,7 @@ pub struct QueryLoginLogDetailReq {
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct QueryLoginLogDetailResp {
-    pub id: i64,                //访问ID
+    pub id: Option<i64>,        //访问ID
     pub login_name: String,     //登录账号
     pub ipaddr: String,         //登录IP地址
     pub login_location: String, //登录地点
@@ -41,7 +41,6 @@ pub struct QueryLoginLogDetailResp {
     pub msg: String,            //提示消息
     pub login_time: String,     //访问时间
 }
-
 
 /*
 查询系统访问记录列表请求参数
@@ -59,7 +58,7 @@ pub struct QueryLoginLogListReq {
     #[serde(default = "default_status")]
     pub status: Option<i8>, //登录状态(0:失败,1:成功)
 }
-fn default_status() -> Option<i8>{
+fn default_status() -> Option<i8> {
     Some(2)
 }
 /*
@@ -68,7 +67,7 @@ fn default_status() -> Option<i8>{
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct LoginLogListDataResp {
-    pub id: i64,                //访问ID
+    pub id: Option<i64>,        //访问ID
     pub login_name: String,     //登录账号
     pub ipaddr: String,         //登录IP地址
     pub login_location: String, //登录地点
@@ -84,4 +83,3 @@ pub struct LoginLogListDataResp {
     pub msg: String,            //提示消息
     pub login_time: String,     //访问时间
 }
-

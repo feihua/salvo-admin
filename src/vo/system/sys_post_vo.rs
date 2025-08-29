@@ -63,12 +63,12 @@ pub struct QueryPostDetailReq {
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct QueryPostDetailResp {
-    pub id: i64,             //岗位id
-    pub post_code: String,   //岗位编码
-    pub post_name: String,   //岗位名称
-    pub sort: i32,           //显示顺序
-    pub status: i8,          //部状态（0：停用，1:正常）
-    pub remark: String,      //备注
+    pub id: Option<i64>,        //岗位id
+    pub post_code: String,      //岗位编码
+    pub post_name: String,      //岗位名称
+    pub sort: i32,              //显示顺序
+    pub status: i8,             //部状态（0：停用，1:正常）
+    pub remark: Option<String>, //备注
     #[serde(serialize_with = "serialize_datetime")]
     pub create_time: Option<DateTime>, //创建时间
     #[serde(serialize_with = "serialize_datetime")]
@@ -86,9 +86,9 @@ pub struct QueryPostListReq {
     pub post_code: Option<String>, //岗位编码
     pub post_name: Option<String>, //岗位名称
     #[serde(default = "default_status")]
-    pub status: Option<i8>,        //部状态（0：停用，1:正常）
+    pub status: Option<i8>, //部状态（0：停用，1:正常）
 }
-fn default_status() -> Option<i8>{
+fn default_status() -> Option<i8> {
     Some(2)
 }
 /*
@@ -97,15 +97,14 @@ fn default_status() -> Option<i8>{
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct PostListDataResp {
-    pub id: i64,             //岗位id
-    pub post_code: String,   //岗位编码
-    pub post_name: String,   //岗位名称
-    pub sort: i32,           //显示顺序
-    pub status: i8,          //部状态（0：停用，1:正常）
-    pub remark: String,      //备注
+    pub id: Option<i64>,        //岗位id
+    pub post_code: String,      //岗位编码
+    pub post_name: String,      //岗位名称
+    pub sort: i32,              //显示顺序
+    pub status: i8,             //部状态（0：停用，1:正常）
+    pub remark: Option<String>, //备注
     #[serde(serialize_with = "serialize_datetime")]
     pub create_time: Option<DateTime>, //创建时间
     #[serde(serialize_with = "serialize_datetime")]
     pub update_time: Option<DateTime>, //修改时间
 }
-

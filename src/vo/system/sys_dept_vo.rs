@@ -67,22 +67,20 @@ pub struct QueryDeptDetailReq {
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct QueryDeptDetailResp {
-    pub id: i64,             //部门id
-    pub parent_id: i64,      //父部门id
-    pub ancestors: String,   //祖级列表
-    pub dept_name: String,   //部门名称
-    pub sort: i32,           //显示顺序
-    pub leader: String,      //负责人
-    pub phone: String,       //联系电话
-    pub email: String,       //邮箱
-    pub status: i8,          //部状态（0：停用，1:正常）
-    pub del_flag: i8,        //删除标志（0代表删除 1代表存在）
+    pub id: Option<i64>,   //部门id
+    pub parent_id: i64,    //父部门id
+    pub ancestors: String, //祖级列表
+    pub dept_name: String, //部门名称
+    pub sort: i32,         //显示顺序
+    pub leader: String,    //负责人
+    pub phone: String,     //联系电话
+    pub email: String,     //邮箱
+    pub status: i8,        //部状态（0：停用，1:正常）
     #[serde(serialize_with = "serialize_datetime")]
     pub create_time: Option<DateTime>, //创建时间
     #[serde(serialize_with = "serialize_datetime")]
     pub update_time: Option<DateTime>, //修改时间
 }
-
 
 /*
 查询部门表列表请求参数
@@ -106,16 +104,15 @@ fn default_status() -> Option<i8> {
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct DeptListDataResp {
-    pub id: i64,             //部门id
-    pub parent_id: i64,      //父部门id
-    pub ancestors: String,   //祖级列表
-    pub dept_name: String,   //部门名称
-    pub sort: i32,           //显示顺序
-    pub leader: String,      //负责人
-    pub phone: String,       //联系电话
-    pub email: String,       //邮箱
-    pub status: i8,          //部状态（0：停用，1:正常）
-    pub del_flag: i8,        //删除标志（0代表删除 1代表存在）
+    pub id: Option<i64>,   //部门id
+    pub parent_id: i64,    //父部门id
+    pub ancestors: String, //祖级列表
+    pub dept_name: String, //部门名称
+    pub sort: i32,         //显示顺序
+    pub leader: String,    //负责人
+    pub phone: String,     //联系电话
+    pub email: String,     //邮箱
+    pub status: i8,        //部状态（0：停用，1:正常）
     #[serde(serialize_with = "serialize_datetime")]
     pub create_time: Option<DateTime>, //创建时间
     #[serde(serialize_with = "serialize_datetime")]

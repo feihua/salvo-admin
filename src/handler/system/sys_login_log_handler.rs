@@ -5,13 +5,13 @@
 use crate::common::error::{AppError, AppResult};
 use crate::common::result::{ok_result, ok_result_data, ok_result_page};
 use crate::model::system::sys_login_log_model::LoginLog;
+use crate::utils::time_util::time_to_string;
 use crate::vo::system::sys_login_log_vo::*;
 use crate::RB;
 use rbatis::plugin::page::PageRequest;
 use rbs::value;
 use salvo::prelude::*;
 use salvo::{Request, Response};
-use crate::utils::time_util::time_to_string;
 /*
  *删除系统访问记录
  *author：刘飞华
@@ -42,7 +42,7 @@ pub async fn query_sys_login_log_detail(req: &mut Request, res: &mut Response) -
         None => Err(AppError::BusinessError("系统访问记录不存在")),
         Some(x) => {
             let sys_login_log = QueryLoginLogDetailResp {
-                id: x.id.unwrap(),                        //访问ID
+                id: x.id,                        //访问ID
                 login_name: x.login_name,                 //登录账号
                 ipaddr: x.ipaddr,                         //登录IP地址
                 login_location: x.login_location,         //登录地点
@@ -83,7 +83,7 @@ pub async fn query_sys_login_log_list(req: &mut Request, res: &mut Response) -> 
         .into_iter()
         .map(|x| {
             LoginLogListDataResp {
-                id: x.id.unwrap_or_default(),             //访问ID
+                id: x.id,             //访问ID
                 login_name: x.login_name,                 //登录账号
                 ipaddr: x.ipaddr,                         //登录IP地址
                 login_location: x.login_location,         //登录地点

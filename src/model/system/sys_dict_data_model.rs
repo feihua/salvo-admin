@@ -13,7 +13,7 @@ use crate::vo::system::sys_dict_data_vo::QueryDictDataListReq;
  */
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct DictData {
-    pub dict_code: Option<i64>,        //字典编码
+    pub id: Option<i64>,        //字典编码
     pub dict_sort: i32,                //字典排序
     pub dict_label: String,            //字典标签
     pub dict_value: String,            //字典键值
@@ -22,7 +22,7 @@ pub struct DictData {
     pub list_class: String,            //表格回显样式
     pub is_default: String,            //是否默认（Y是 N否）
     pub status: i8,                    //状态（0：停用，1:正常）
-    pub remark: String,                //备注
+    pub remark: Option<String>,                //备注
     pub create_time: Option<DateTime>, //创建时间
     pub update_time: Option<DateTime>, //修改时间
 }
@@ -39,7 +39,7 @@ rbatis::crud!(DictData {}, "sys_dict_data");
  *author：刘飞华
  *date：2024/12/25 10:01:11
  */
-impl_select!(DictData{select_by_id(dict_code:&i64) -> Option => "`where dict_code = #{dict_code} limit 1`"}, "sys_dict_data");
+impl_select!(DictData{select_by_id(id:&i64) -> Option => "`where id = #{id} limit 1`"}, "sys_dict_data");
 
 /*
  *根据dict_type和dict_label查询字典数据表

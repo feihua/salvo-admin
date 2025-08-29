@@ -73,17 +73,17 @@ pub struct QueryMenuDetailReq {
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct QueryMenuDetailResp {
-    pub id: i64,             //主键
-    pub menu_name: String,   //菜单名称
-    pub menu_type: i8,       //菜单类型(1：目录   2：菜单   3：按钮)
-    pub visible: i8,         //菜单状态（0:隐藏, 显示:1）
-    pub status: i8,          //状态(1:正常，0:禁用)
-    pub sort: i32,           //排序
-    pub parent_id: i64,      //父ID
-    pub menu_url: String,    //路由路径
-    pub api_url: String,     //接口URL
-    pub menu_icon: String,   //菜单图标
-    pub remark: String,      //备注
+    pub id: Option<i64>,        //主键
+    pub menu_name: String,      //菜单名称
+    pub menu_type: i8,          //菜单类型(1：目录   2：菜单   3：按钮)
+    pub visible: i8,            //菜单状态（0:隐藏, 显示:1）
+    pub status: i8,             //状态(1:正常，0:禁用)
+    pub sort: i32,              //排序
+    pub parent_id: i64,         //父ID
+    pub menu_url: String,       //路由路径
+    pub api_url: String,        //接口URL
+    pub menu_icon: String,      //菜单图标
+    pub remark: Option<String>, //备注
     #[serde(serialize_with = "serialize_datetime")]
     pub create_time: Option<DateTime>, //创建时间
     #[serde(serialize_with = "serialize_datetime")]
@@ -105,17 +105,17 @@ pub struct QueryMenuListReq {
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct MenuListDataResp {
-    pub id: i64,             //主键
-    pub menu_name: String,   //菜单名称
-    pub menu_type: i8,       //菜单类型(1：目录   2：菜单   3：按钮)
-    pub visible: i8,         //菜单状态（0:隐藏, 显示:1）
-    pub status: i8,          //状态(1:正常，0:禁用)
-    pub sort: i32,           //排序
-    pub parent_id: i64,      //父ID
-    pub menu_url: String,    //路由路径
-    pub api_url: String,     //接口URL
-    pub menu_icon: String,   //菜单图标
-    pub remark: String,      //备注
+    pub id: Option<i64>,        //主键
+    pub menu_name: String,      //菜单名称
+    pub menu_type: i8,          //菜单类型(1：目录   2：菜单   3：按钮)
+    pub visible: i8,            //菜单状态（0:隐藏, 显示:1）
+    pub status: i8,             //状态(1:正常，0:禁用)
+    pub sort: i32,              //排序
+    pub parent_id: i64,         //父ID
+    pub menu_url: String,       //路由路径
+    pub api_url: String,        //接口URL
+    pub menu_icon: String,      //菜单图标
+    pub remark: Option<String>, //备注
     #[serde(serialize_with = "serialize_datetime")]
     pub create_time: Option<DateTime>, //创建时间
     #[serde(serialize_with = "serialize_datetime")]
@@ -128,7 +128,7 @@ pub struct MenuListDataResp {
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct MenuListSimpleDataResp {
-    pub id: i64,           //主键
+    pub id: Option<i64>,           //主键
     pub menu_name: String, //菜单名称
     pub parent_id: i64,    //父ID
 }

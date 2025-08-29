@@ -41,15 +41,15 @@ pub async fn add_sys_role(req: &mut Request, res: &mut Response) -> AppResult<()
     }
 
     let sys_role = Role {
-        id: None,                                //主键
-        role_name: name,                         //名称
-        role_key: key,                           //角色权限字符串
-        data_scope: item.data_scope,             //数据范围（1：全部数据权限 2：自定数据权限 3：本部门数据权限 4：本部门及以下数据权限）
-        status: item.status,                     //状态(1:正常，0:禁用)
-        remark: item.remark.unwrap_or_default(), //备注
-        del_flag: None,                          //删除标志（0代表删除 1代表存在）
-        create_time: None,                       //创建时间
-        update_time: None,                       //修改时间
+        id: None,                    //主键
+        role_name: name,             //名称
+        role_key: key,               //角色权限字符串
+        data_scope: item.data_scope, //数据范围（1：全部数据权限 2：自定数据权限 3：本部门数据权限 4：本部门及以下数据权限）
+        status: item.status,         //状态(1:正常，0:禁用)
+        remark: item.remark,         //备注
+        del_flag: None,              //删除标志（0代表删除 1代表存在）
+        create_time: None,           //创建时间
+        update_time: None,           //修改时间
     };
 
     Role::insert(rb, &sys_role).await?;
@@ -111,27 +111,27 @@ pub async fn update_sys_role(req: &mut Request, res: &mut Response) -> AppResult
     }
 
     if let Some(x) = Role::select_by_role_name(rb, &item.role_name).await? {
-        if x.id.unwrap_or_default() != item.id {
+        if x.id != Some(item.id) {
             return Err(AppError::BusinessError("角色名称已存在"));
         }
     }
 
     if let Some(x) = Role::select_by_role_key(rb, &item.role_key).await? {
-        if x.id.unwrap_or_default() != item.id {
+        if x.id != Some(item.id) {
             return Err(AppError::BusinessError("角色权限已存在"));
         }
     }
 
     let sys_role = Role {
-        id: Some(item.id),                       //主键
-        role_name: item.role_name,               //名称
-        role_key: item.role_key,                 //角色权限字符串
-        data_scope: item.data_scope,             //数据范围（1：全部数据权限 2：自定数据权限 3：本部门数据权限 4：本部门及以下数据权限）
-        status: item.status,                     //状态(1:正常，0:禁用)
-        remark: item.remark.unwrap_or_default(), //备注
-        del_flag: None,                          //删除标志（0代表删除 1代表存在）
-        create_time: None,                       //创建时间
-        update_time: None,                       //修改时间
+        id: Some(item.id),           //主键
+        role_name: item.role_name,   //名称
+        role_key: item.role_key,     //角色权限字符串
+        data_scope: item.data_scope, //数据范围（1：全部数据权限 2：自定数据权限 3：本部门数据权限 4：本部门及以下数据权限）
+        status: item.status,         //状态(1:正常，0:禁用)
+        remark: item.remark,         //备注
+        del_flag: None,              //删除标志（0代表删除 1代表存在）
+        create_time: None,           //创建时间
+        update_time: None,           //修改时间
     };
 
     Role::update_by_map(rb, &sys_role, value! {"id": &item.id}).await?;
@@ -175,15 +175,14 @@ pub async fn query_sys_role_detail(req: &mut Request, res: &mut Response) -> App
         None => Err(AppError::BusinessError("角色不存在")),
         Some(x) => {
             let sys_role = QueryRoleDetailResp {
-                id: x.id.unwrap_or_default(), //主键
-                role_name: x.role_name,       //名称
-                role_key: x.role_key,         //角色权限字符串
-                data_scope: x.data_scope,     //数据范围（1：全部数据权限 2：自定数据权限 3：本部门数据权限 4：本部门及以下数据权限）
-                status: x.status,             //状态(1:正常，0:禁用)
-                remark: x.remark,             //备注
-                del_flag: x.del_flag,         //删除标志（0代表删除 1代表存在）
-                create_time: x.create_time,   //创建时间
-                update_time: x.update_time,   //修改时间
+                id: x.id,                   //主键
+                role_name: x.role_name,     //名称
+                role_key: x.role_key,       //角色权限字符串
+                data_scope: x.data_scope,   //数据范围（1：全部数据权限 2：自定数据权限 3：本部门数据权限 4：本部门及以下数据权限）
+                status: x.status,           //状态(1:正常，0:禁用)
+                remark: x.remark,           //备注
+                create_time: x.create_time, //创建时间
+                update_time: x.update_time, //修改时间
             };
 
             ok_result_data(res, sys_role)
@@ -210,15 +209,14 @@ pub async fn query_sys_role_list(req: &mut Request, res: &mut Response) -> AppRe
     let mut list: Vec<RoleListDataResp> = Vec::new();
     for x in p.records {
         list.push(RoleListDataResp {
-            id: x.id.unwrap_or_default(), //主键
-            role_name: x.role_name,       //名称
-            role_key: x.role_key,         //角色权限字符串
-            data_scope: x.data_scope,     //数据范围（1：全部数据权限 2：自定数据权限 3：本部门数据权限 4：本部门及以下数据权限）
-            status: x.status,             //状态(1:正常，0:禁用)
-            remark: x.remark,             //备注
-            del_flag: x.del_flag,         //删除标志（0代表删除 1代表存在）
-            create_time: x.create_time,   //创建时间
-            update_time: x.update_time,   //修改时间
+            id: x.id,                   //主键
+            role_name: x.role_name,     //名称
+            role_key: x.role_key,       //角色权限字符串
+            data_scope: x.data_scope,   //数据范围（1：全部数据权限 2：自定数据权限 3：本部门数据权限 4：本部门及以下数据权限）
+            status: x.status,           //状态(1:正常，0:禁用)
+            remark: x.remark,           //备注
+            create_time: x.create_time, //创建时间
+            update_time: x.update_time, //修改时间
         })
     }
 
@@ -240,19 +238,19 @@ pub async fn query_role_menu(req: &mut Request, res: &mut Response) -> AppResult
     let menu_list_all = Menu::select_all(rb).await?;
 
     let mut menu_list: Vec<MenuDataList> = Vec::new();
-    let mut menu_ids: Vec<i64> = Vec::new();
+    let mut menu_ids: Vec<Option<i64>> = Vec::new();
 
     for y in menu_list_all {
         let x = y.clone();
         menu_list.push(MenuDataList {
-            id: x.id.unwrap_or_default(),
+            id: x.id,
             parent_id: x.parent_id,
             title: x.menu_name,
             key: y.id.unwrap_or_default().to_string(),
             label: y.menu_name,
             is_penultimate: y.parent_id == 2,
         });
-        menu_ids.push(x.id.unwrap())
+        menu_ids.push(x.id)
     }
 
     //不是超级管理员的时候,就要查询角色和菜单的关联
@@ -261,7 +259,7 @@ pub async fn query_role_menu(req: &mut Request, res: &mut Response) -> AppResult
 
         for x in query_menu_by_role(rb, item.role_id).await? {
             let m_id = x.get("menu_id").unwrap().clone();
-            menu_ids.push(m_id)
+            menu_ids.push(Some(m_id))
         }
     }
 
@@ -325,7 +323,7 @@ pub async fn query_allocated_list(req: &mut Request, res: &mut Response) -> AppR
     let mut list: Vec<UserListDataResp> = Vec::new();
     for x in p {
         list.push(UserListDataResp {
-            id: x.id.unwrap(),                                  //主键
+            id: x.id,                                           //主键
             mobile: x.mobile,                                   //手机
             user_name: x.user_name,                             //姓名
             nick_name: x.nick_name,                             //用户昵称
@@ -340,7 +338,6 @@ pub async fn query_allocated_list(req: &mut Request, res: &mut Response) -> AppR
             login_os: x.login_os,                               //操作系统
             pwd_update_date: time_to_string(x.pwd_update_date), //密码最后更新时间
             remark: x.remark,                                   //备注
-            del_flag: x.del_flag,                               //删除标志（0代表删除 1代表存在）
             create_time: x.create_time,                         //创建时间
             update_time: x.update_time,                         //修改时间
         })
@@ -374,7 +371,7 @@ pub async fn query_unallocated_list(req: &mut Request, res: &mut Response) -> Ap
     let mut list: Vec<UserListDataResp> = Vec::new();
     for x in d {
         list.push(UserListDataResp {
-            id: x.id.unwrap(),                                  //主键
+            id: x.id,                                           //主键
             mobile: x.mobile,                                   //手机
             user_name: x.user_name,                             //姓名
             nick_name: x.nick_name,                             //用户昵称
@@ -389,7 +386,6 @@ pub async fn query_unallocated_list(req: &mut Request, res: &mut Response) -> Ap
             login_os: x.login_os,                               //操作系统
             pwd_update_date: time_to_string(x.pwd_update_date), //密码最后更新时间
             remark: x.remark,                                   //备注
-            del_flag: x.del_flag,                               //删除标志（0代表删除 1代表存在）
             create_time: x.create_time,                         //创建时间
             update_time: x.update_time,                         //修改时间
         })

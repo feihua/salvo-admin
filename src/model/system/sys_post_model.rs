@@ -17,7 +17,7 @@ pub struct Post {
     pub post_name: String,             //岗位名称
     pub sort: i32,                     //显示顺序
     pub status: i8,                    //部状态（0：停用，1:正常）
-    pub remark: String,                //备注
+    pub remark: Option<String>,                //备注
     pub create_time: Option<DateTime>, //创建时间
     pub update_time: Option<DateTime>, //更新时间
 }

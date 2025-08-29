@@ -137,19 +137,19 @@ pub async fn update_sys_user(req: &mut Request, res: &mut Response) -> AppResult
     };
 
     if let Some(x) = User::select_by_user_name(rb, &item.user_name).await? {
-        if x.id.unwrap_or_default() != item.id {
+        if x.id != Some(item.id){
             return Err(AppError::BusinessError("登录账号已存在"));
         }
     }
 
     if let Some(x) = User::select_by_mobile(rb, &item.mobile).await? {
-        if x.id.unwrap_or_default() != item.id {
+        if x.id != Some(item.id) {
             return Err(AppError::BusinessError("手机号码已存在"));
         }
     }
 
     if let Some(x) = User::select_by_email(rb, &item.email).await? {
-        if x.id.unwrap_or_default() != item.id {
+        if x.id != Some(item.id) {
             return Err(AppError::BusinessError("邮箱账号已存在"));
         }
     }
@@ -296,7 +296,7 @@ pub async fn query_sys_user_detail(req: &mut Request, res: &mut Response) -> App
 
         Some(y) => {
             QueryDeptDetailResp {
-                id: y.id.unwrap_or_default(),             //部门id
+                id:y.id,             //部门id
                 parent_id: y.parent_id,                   //父部门id
                 ancestors: y.ancestors,                   //祖级列表
                 dept_name: y.dept_name,                   //部门名称
@@ -305,7 +305,6 @@ pub async fn query_sys_user_detail(req: &mut Request, res: &mut Response) -> App
                 phone: y.phone,                           //联系电话
                 email: y.email,                           //邮箱
                 status: y.status,                         //部状态（0：停用，1:正常）
-                del_flag: y.del_flag.unwrap_or_default(), //删除标志（0代表删除 1代表存在）
                 create_time: y.create_time,               //创建时间
                 update_time: y.update_time,               //修改时间
             }
@@ -315,7 +314,7 @@ pub async fn query_sys_user_detail(req: &mut Request, res: &mut Response) -> App
     let post_ids = UserPost::select_by_map(rb, value! {"user_id": item.id}).await?.iter().map(|x| x.post_id).collect::<Vec<i64>>();
 
     let sys_user = QueryUserDetailResp {
-        id: x.id.unwrap_or_default(),                       //主键
+        id: x.id,                       //主键
         mobile: x.mobile,                                   //手机
         user_name: x.user_name,                             //姓名
         nick_name: x.nick_name,                             //用户昵称
@@ -358,7 +357,7 @@ pub async fn query_sys_user_list(req: &mut Request, res: &mut Response) -> AppRe
     let mut list: Vec<UserListDataResp> = Vec::new();
     for x in d.records {
         list.push(UserListDataResp {
-            id: x.id.unwrap_or_default(),                       //主键
+            id: x.id,                       //主键
             mobile: x.mobile,                                   //手机
             user_name: x.user_name,                             //姓名
             nick_name: x.nick_name,                             //用户昵称
@@ -373,7 +372,6 @@ pub async fn query_sys_user_list(req: &mut Request, res: &mut Response) -> AppRe
             login_os: x.login_os,                               //操作系统
             pwd_update_date: time_to_string(x.pwd_update_date), //密码最后更新时间
             remark: x.remark,                                   //备注
-            del_flag: x.del_flag,                               //删除标志（0代表删除 1代表存在）
             create_time: x.create_time,                         //创建时间
             update_time: x.update_time,                         //修改时间
         })
@@ -542,13 +540,12 @@ pub async fn query_user_role(req: &mut Request, res: &mut Response) -> AppResult
 
     for x in Role::select_all(rb).await? {
         list.push(RoleList {
-            id: x.id.unwrap_or_default(),             //主键
+            id: x.id,             //主键
             role_name: x.role_name,                   //名称
             role_key: x.role_key,                     //角色权限字符串
             data_scope: x.data_scope,                 //数据范围（1：全部数据权限 2：自定数据权限 3：本部门数据权限 4：本部门及以下数据权限）
             status: x.status,                         //状态(1:正常，0:禁用)
             remark: x.remark,                         //备注
-            del_flag: x.del_flag.unwrap_or_default(), //删除标志（0代表删除 1代表存在）
             create_time: x.create_time,               //创建时间
             update_time: x.update_time,               //修改时间
         });
@@ -639,7 +636,7 @@ pub async fn query_user_menu(depot: &mut Depot, res: &mut Response) -> AppResult
 
             for x in sys_menu_list {
                 if x.menu_type != 3 {
-                    sys_menu_ids.insert(x.id.unwrap_or_default().clone());
+                    sys_menu_ids.insert(x.id.unwrap_or_default());
                     sys_menu_ids.insert(x.parent_id.clone());
                 }
                 if x.api_url.clone().unwrap_or_default().len() > 0 {
@@ -654,7 +651,7 @@ pub async fn query_user_menu(depot: &mut Depot, res: &mut Response) -> AppResult
             for menu in Menu::select_by_ids(rb, &menu_ids).await? {
                 let api_url = menu.api_url.unwrap_or_default();
                 sys_menu.push(MenuList {
-                    id: menu.id.unwrap_or_default(),
+                    id: menu.id,
                     parent_id: menu.parent_id,
                     name: menu.menu_name,
                     icon: menu.menu_icon.unwrap_or_default(),

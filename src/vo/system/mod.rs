@@ -1,5 +1,3 @@
-use rbatis::rbdc::DateTime;
-
 pub mod sys_dept_vo;
 pub mod sys_dict_data_vo;
 pub mod sys_dict_type_vo;
@@ -10,5 +8,3 @@ pub mod sys_operate_log_vo;
 pub mod sys_post_vo;
 pub mod sys_role_vo;
 pub mod sys_user_vo;
-
-

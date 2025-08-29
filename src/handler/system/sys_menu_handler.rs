@@ -96,7 +96,7 @@ pub async fn update_sys_menu(req: &mut Request, res: &mut Response) -> AppResult
     }
 
     if let Some(x) = Menu::select_by_menu_name(rb, &item.menu_name).await? {
-        if x.id.unwrap_or_default() != item.id {
+        if x.id != Some(item.id) {
             return Err(AppError::BusinessError("菜单名称已存在"));
         }
     }
@@ -104,7 +104,7 @@ pub async fn update_sys_menu(req: &mut Request, res: &mut Response) -> AppResult
     let menu_url = item.menu_url.clone();
     if menu_url.is_some() {
         if let Some(x) = Menu::select_by_menu_url(rb, &menu_url.unwrap()).await? {
-            if x.id.unwrap_or_default() != item.id {
+            if x.id != Some(item.id) {
                 return Err(AppError::BusinessError("路由路径已存在"));
             }
         }
@@ -164,7 +164,7 @@ pub async fn query_sys_menu_detail(req: &mut Request, res: &mut Response) -> App
         None => Err(AppError::BusinessError("菜单信息不存在")),
         Some(x) => {
             let sys_menu = QueryMenuDetailResp {
-                id: x.id.unwrap_or_default(),               //主键
+                id: x.id,               //主键
                 menu_name: x.menu_name,                     //菜单名称
                 menu_type: x.menu_type,                     //菜单类型(1：目录   2：菜单   3：按钮)
                 visible: x.visible,                         //菜单状态（0:隐藏, 显示:1）
@@ -174,7 +174,7 @@ pub async fn query_sys_menu_detail(req: &mut Request, res: &mut Response) -> App
                 menu_url: x.menu_url.unwrap_or_default(),   //路由路径
                 api_url: x.api_url.unwrap_or_default(),     //接口URL
                 menu_icon: x.menu_icon.unwrap_or_default(), //菜单图标
-                remark: x.remark.unwrap_or_default(),       //备注
+                remark: x.remark,       //备注
                 create_time: x.create_time,                 //创建时间
                 update_time: x.update_time,                 //修改时间
             };
@@ -197,7 +197,7 @@ pub async fn query_sys_menu_list(req: &mut Request, res: &mut Response) -> AppRe
     let mut list: Vec<MenuListDataResp> = Vec::new();
     for x in Menu::select_all(&mut RB.clone()).await? {
         list.push(MenuListDataResp {
-            id: x.id.unwrap_or_default(),               //主键
+            id: x.id,               //主键
             menu_name: x.menu_name,                     //菜单名称
             menu_type: x.menu_type,                     //菜单类型(1：目录   2：菜单   3：按钮)
             visible: x.visible,                         //菜单状态（0:隐藏, 显示:1）
@@ -207,7 +207,7 @@ pub async fn query_sys_menu_list(req: &mut Request, res: &mut Response) -> AppRe
             menu_url: x.menu_url.unwrap_or_default(),   //路由路径
             api_url: x.api_url.unwrap_or_default(),     //接口URL
             menu_icon: x.menu_icon.unwrap_or_default(), //菜单图标
-            remark: x.remark.unwrap_or_default(),       //备注
+            remark: x.remark,       //备注
             create_time: x.create_time,                 //创建时间
             update_time: x.update_time,                 //修改时间
         })
@@ -227,7 +227,7 @@ pub async fn query_sys_menu_list_simple(res: &mut Response) -> AppResult<()> {
 
     for x in Menu::select_menu_list(&mut RB.clone()).await? {
         list.push(MenuListSimpleDataResp {
-            id: x.id.unwrap_or_default(), //主键
+            id: x.id, //主键
             menu_name: x.menu_name,       //菜单名称
             parent_id: x.parent_id,       //父ID
         })
