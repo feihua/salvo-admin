@@ -1,6 +1,8 @@
 // author：刘飞华
 // createTime：2024/12/25 10:01:11
 
+use crate::vo::system::serialize_datetime;
+use rbatis::rbdc::DateTime;
 use serde::{Deserialize, Serialize};
 
 /*
@@ -67,23 +69,10 @@ pub struct QueryPostDetailResp {
     pub sort: i32,           //显示顺序
     pub status: i8,          //部状态（0：停用，1:正常）
     pub remark: String,      //备注
-    pub create_time: String, //创建时间
-    pub update_time: String, //更新时间
-}
-
-impl QueryPostDetailResp {
-    pub fn new() -> QueryPostDetailResp {
-        QueryPostDetailResp {
-            id: 0,                       //岗位id
-            post_code: "".to_string(),   //岗位编码
-            post_name: "".to_string(),   //岗位名称
-            sort: 0,                     //显示顺序
-            status: 0,                   //部状态（0：停用，1:正常）
-            remark: "".to_string(),      //备注
-            create_time: "".to_string(), //创建时间
-            update_time: "".to_string(), //更新时间
-        }
-    }
+    #[serde(serialize_with = "serialize_datetime")]
+    pub create_time: Option<DateTime>, //创建时间
+    #[serde(serialize_with = "serialize_datetime")]
+    pub update_time: Option<DateTime>, //修改时间
 }
 
 /*
@@ -114,11 +103,9 @@ pub struct PostListDataResp {
     pub sort: i32,           //显示顺序
     pub status: i8,          //部状态（0：停用，1:正常）
     pub remark: String,      //备注
-    pub create_time: String, //创建时间
-    pub update_time: String, //更新时间
+    #[serde(serialize_with = "serialize_datetime")]
+    pub create_time: Option<DateTime>, //创建时间
+    #[serde(serialize_with = "serialize_datetime")]
+    pub update_time: Option<DateTime>, //修改时间
 }
-impl PostListDataResp {
-    pub fn new() -> Vec<PostListDataResp> {
-        Vec::new()
-    }
-}
+

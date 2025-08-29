@@ -6,7 +6,6 @@ use crate::common::error::{AppError, AppResult};
 use crate::common::result::{ok_result, ok_result_data, ok_result_page};
 use crate::model::system::sys_dict_data_model::{count_dict_data_by_type, update_dict_data_type};
 use crate::model::system::sys_dict_type_model::DictType;
-use crate::utils::time_util::time_to_string;
 use crate::vo::system::sys_dict_type_vo::*;
 use crate::RB;
 use rbatis::plugin::page::PageRequest;
@@ -148,13 +147,13 @@ pub async fn query_sys_dict_type_detail(req: &mut Request, res: &mut Response) -
         None => Err(AppError::BusinessError("字典类型不存在")),
         Some(x) => {
             let sys_dict_type = QueryDictTypeDetailResp {
-                dict_id: x.dict_id.unwrap_or_default(),     //字典主键
-                dict_name: x.dict_name,                     //字典名称
-                dict_type: x.dict_type,                     //字典类型
-                status: x.status,                           //状态（0：停用，1:正常）
-                remark: x.remark,                           //备注
-                create_time: time_to_string(x.create_time), //创建时间
-                update_time: time_to_string(x.update_time), //修改时间
+                dict_id: x.dict_id.unwrap_or_default(), //字典主键
+                dict_name: x.dict_name,                 //字典名称
+                dict_type: x.dict_type,                 //字典类型
+                status: x.status,                       //状态（0：停用，1:正常）
+                remark: x.remark,                       //备注
+                create_time: x.create_time,             //创建时间
+                update_time: x.update_time,             //修改时间
             };
 
             ok_result_data(res, sys_dict_type)
@@ -181,13 +180,13 @@ pub async fn query_sys_dict_type_list(req: &mut Request, res: &mut Response) -> 
 
     for x in d.records {
         list.push(DictTypeListDataResp {
-            dict_id: x.dict_id.unwrap_or_default(),     //字典主键
-            dict_name: x.dict_name,                     //字典名称
-            dict_type: x.dict_type,                     //字典类型
-            status: x.status,                           //状态（0：停用，1:正常）
-            remark: x.remark,                           //备注
-            create_time: time_to_string(x.create_time), //创建时间
-            update_time: time_to_string(x.update_time), //修改时间
+            dict_id: x.dict_id.unwrap_or_default(), //字典主键
+            dict_name: x.dict_name,                 //字典名称
+            dict_type: x.dict_type,                 //字典类型
+            status: x.status,                       //状态（0：停用，1:正常）
+            remark: x.remark,                       //备注
+            create_time: x.create_time,             //创建时间
+            update_time: x.update_time,             //修改时间
         })
     }
 

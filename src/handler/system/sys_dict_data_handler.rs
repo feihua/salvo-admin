@@ -5,7 +5,6 @@
 use crate::common::error::{AppError, AppResult};
 use crate::common::result::{ok_result, ok_result_data, ok_result_page};
 use crate::model::system::sys_dict_data_model::DictData;
-use crate::utils::time_util::time_to_string;
 use crate::vo::system::sys_dict_data_vo::*;
 use crate::RB;
 use rbatis::plugin::page::PageRequest;
@@ -161,8 +160,8 @@ pub async fn query_sys_dict_data_detail(req: &mut Request, res: &mut Response) -
                 is_default: x.is_default,                   //是否默认（Y是 N否）
                 status: x.status,                           //状态（0：停用，1:正常）
                 remark: x.remark,                           //备注
-                create_time: time_to_string(x.create_time), //创建时间
-                update_time: time_to_string(x.update_time), //修改时间
+                create_time: x.create_time,                 //创建时间
+                update_time: x.update_time,                 //修改时间
             };
 
             ok_result_data(res, sys_dict_data)
@@ -200,8 +199,8 @@ pub async fn query_sys_dict_data_list(req: &mut Request, res: &mut Response) -> 
                 is_default: x.is_default,                   //是否默认（Y是 N否）
                 status: x.status,                           //状态（0：停用，1:正常）
                 remark: x.remark,                           //备注
-                create_time: time_to_string(x.create_time), //创建时间
-                update_time: time_to_string(x.update_time), //修改时间
+                create_time: x.create_time,                 //创建时间
+                update_time: x.update_time,                 //修改时间
             }
         })
         .collect::<Vec<DictDataListDataResp>>();

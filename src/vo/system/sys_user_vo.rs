@@ -1,6 +1,8 @@
 // author：刘飞华
 // createTime：2024/12/12 14:41:44
 
+use crate::vo::system::serialize_datetime;
+use rbatis::rbdc::DateTime;
 use crate::vo::system::sys_dept_vo::QueryDeptDetailResp;
 use serde::{Deserialize, Serialize};
 /*
@@ -86,50 +88,12 @@ pub struct QueryUserDetailResp {
     pub pwd_update_date: String,        //密码最后更新时间
     pub remark: Option<String>,         //备注
     pub del_flag: i8,                   //删除标志（0代表删除 1代表存在）
-    pub create_time: String,            //创建时间
-    pub update_time: String,            //修改时间
+    #[serde(serialize_with = "serialize_datetime")]
+    pub create_time: Option<DateTime>, //创建时间
+    #[serde(serialize_with = "serialize_datetime")]
+    pub update_time: Option<DateTime>, //修改时间
     pub dept_info: QueryDeptDetailResp, //部门详细信息
     pub post_ids: Vec<i64>,             //岗位ids
-}
-
-impl QueryUserDetailResp {
-    pub fn new() -> QueryUserDetailResp {
-        QueryUserDetailResp {
-            id: 0,
-            mobile: "".to_string(),
-            user_name: "".to_string(),
-            nick_name: "".to_string(),
-            user_type: "".to_string(),
-            email: "".to_string(),
-            avatar: "".to_string(),
-            status: 0,
-            dept_id: 0,
-            login_ip: "".to_string(),
-            login_date: "".to_string(),
-            login_browser: "".to_string(),
-            login_os: "".to_string(),
-            pwd_update_date: "".to_string(),
-            remark: None,
-            del_flag: 0,
-            create_time: "".to_string(),
-            update_time: "".to_string(),
-            dept_info: QueryDeptDetailResp {
-                id: 0,
-                parent_id: 0,
-                ancestors: "".to_string(),
-                dept_name: "".to_string(),
-                sort: 0,
-                leader: "".to_string(),
-                phone: "".to_string(),
-                email: "".to_string(),
-                status: 0,
-                del_flag: 0,
-                create_time: "".to_string(),
-                update_time: "".to_string(),
-            },
-            post_ids: vec![],
-        }
-    }
 }
 
 /*
@@ -171,13 +135,10 @@ pub struct UserListDataResp {
     pub pwd_update_date: String, //密码最后更新时间
     pub remark: Option<String>,  //备注
     pub del_flag: i8,            //删除标志（0代表删除 1代表存在）
-    pub create_time: String,     //创建时间
-    pub update_time: String,     //修改时间
-}
-impl UserListDataResp {
-    pub fn new() -> Vec<UserListDataResp> {
-        Vec::new()
-    }
+    #[serde(serialize_with = "serialize_datetime")]
+    pub create_time: Option<DateTime>, //创建时间
+    #[serde(serialize_with = "serialize_datetime")]
+    pub update_time: Option<DateTime>, //修改时间
 }
 /*
 登录请求参数
@@ -247,8 +208,10 @@ pub struct RoleList {
     pub status: i8,     //状态(1:正常，0:禁用)
     pub remark: String, //备注
     pub del_flag: i8,   //删除标志（0代表删除 1代表存在）
-    pub create_time: String, //创建时间
-    pub update_time: String, //修改时间
+    #[serde(serialize_with = "serialize_datetime")]
+    pub create_time: Option<DateTime>, //创建时间
+    #[serde(serialize_with = "serialize_datetime")]
+    pub update_time: Option<DateTime>, //修改时间
 }
 
 /*

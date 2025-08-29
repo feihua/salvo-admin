@@ -6,7 +6,6 @@ use crate::common::error::{AppError, AppResult};
 use crate::common::result::{ok_result, ok_result_data};
 use crate::model::system::sys_menu_model::{select_count_menu_by_parent_id, Menu};
 use crate::model::system::sys_role_menu_model::select_count_menu_by_menu_id;
-use crate::utils::time_util::time_to_string;
 use crate::vo::system::sys_menu_vo::*;
 use crate::RB;
 use rbs::value;
@@ -176,8 +175,8 @@ pub async fn query_sys_menu_detail(req: &mut Request, res: &mut Response) -> App
                 api_url: x.api_url.unwrap_or_default(),     //接口URL
                 menu_icon: x.menu_icon.unwrap_or_default(), //菜单图标
                 remark: x.remark.unwrap_or_default(),       //备注
-                create_time: time_to_string(x.create_time), //创建时间
-                update_time: time_to_string(x.update_time), //修改时间
+                create_time: x.create_time,                 //创建时间
+                update_time: x.update_time,                 //修改时间
             };
 
             ok_result_data(res, sys_menu)
@@ -209,8 +208,8 @@ pub async fn query_sys_menu_list(req: &mut Request, res: &mut Response) -> AppRe
             api_url: x.api_url.unwrap_or_default(),     //接口URL
             menu_icon: x.menu_icon.unwrap_or_default(), //菜单图标
             remark: x.remark.unwrap_or_default(),       //备注
-            create_time: time_to_string(x.create_time), //创建时间
-            update_time: time_to_string(x.update_time), //修改时间
+            create_time: x.create_time,                 //创建时间
+            update_time: x.update_time,                 //修改时间
         })
     }
 

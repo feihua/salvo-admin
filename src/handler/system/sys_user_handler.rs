@@ -296,18 +296,18 @@ pub async fn query_sys_user_detail(req: &mut Request, res: &mut Response) -> App
 
         Some(y) => {
             QueryDeptDetailResp {
-                id: y.id.unwrap_or_default(),               //部门id
-                parent_id: y.parent_id,                     //父部门id
-                ancestors: y.ancestors,                     //祖级列表
-                dept_name: y.dept_name,                     //部门名称
-                sort: y.sort,                               //显示顺序
-                leader: y.leader,                           //负责人
-                phone: y.phone,                             //联系电话
-                email: y.email,                             //邮箱
-                status: y.status,                           //部状态（0：停用，1:正常）
-                del_flag: y.del_flag.unwrap_or_default(),   //删除标志（0代表删除 1代表存在）
-                create_time: time_to_string(y.create_time), //创建时间
-                update_time: time_to_string(y.update_time), //修改时间
+                id: y.id.unwrap_or_default(),             //部门id
+                parent_id: y.parent_id,                   //父部门id
+                ancestors: y.ancestors,                   //祖级列表
+                dept_name: y.dept_name,                   //部门名称
+                sort: y.sort,                             //显示顺序
+                leader: y.leader,                         //负责人
+                phone: y.phone,                           //联系电话
+                email: y.email,                           //邮箱
+                status: y.status,                         //部状态（0：停用，1:正常）
+                del_flag: y.del_flag.unwrap_or_default(), //删除标志（0代表删除 1代表存在）
+                create_time: y.create_time,               //创建时间
+                update_time: y.update_time,               //修改时间
             }
         }
     };
@@ -331,8 +331,8 @@ pub async fn query_sys_user_detail(req: &mut Request, res: &mut Response) -> App
         pwd_update_date: time_to_string(x.pwd_update_date), //密码最后更新时间
         remark: x.remark,                                   //备注
         del_flag: x.del_flag,                               //删除标志（0代表删除 1代表存在）
-        create_time: time_to_string(x.create_time),         //创建时间
-        update_time: time_to_string(x.update_time),         //修改时间
+        create_time: x.create_time,                         //创建时间
+        update_time: x.update_time,                         //修改时间
         dept_info: dept,
         post_ids,
     };
@@ -374,8 +374,8 @@ pub async fn query_sys_user_list(req: &mut Request, res: &mut Response) -> AppRe
             pwd_update_date: time_to_string(x.pwd_update_date), //密码最后更新时间
             remark: x.remark,                                   //备注
             del_flag: x.del_flag,                               //删除标志（0代表删除 1代表存在）
-            create_time: time_to_string(x.create_time),         //创建时间
-            update_time: time_to_string(x.update_time),         //修改时间
+            create_time: x.create_time,                         //创建时间
+            update_time: x.update_time,                         //修改时间
         })
     }
 
@@ -542,15 +542,15 @@ pub async fn query_user_role(req: &mut Request, res: &mut Response) -> AppResult
 
     for x in Role::select_all(rb).await? {
         list.push(RoleList {
-            id: x.id.unwrap_or_default(),               //主键
-            role_name: x.role_name,                     //名称
-            role_key: x.role_key,                       //角色权限字符串
-            data_scope: x.data_scope,                   //数据范围（1：全部数据权限 2：自定数据权限 3：本部门数据权限 4：本部门及以下数据权限）
-            status: x.status,                           //状态(1:正常，0:禁用)
-            remark: x.remark,                           //备注
-            del_flag: x.del_flag.unwrap_or_default(),   //删除标志（0代表删除 1代表存在）
-            create_time: time_to_string(x.create_time), //创建时间
-            update_time: time_to_string(x.update_time), //修改时间
+            id: x.id.unwrap_or_default(),             //主键
+            role_name: x.role_name,                   //名称
+            role_key: x.role_key,                     //角色权限字符串
+            data_scope: x.data_scope,                 //数据范围（1：全部数据权限 2：自定数据权限 3：本部门数据权限 4：本部门及以下数据权限）
+            status: x.status,                         //状态(1:正常，0:禁用)
+            remark: x.remark,                         //备注
+            del_flag: x.del_flag.unwrap_or_default(), //删除标志（0代表删除 1代表存在）
+            create_time: x.create_time,               //创建时间
+            update_time: x.update_time,               //修改时间
         });
     }
 

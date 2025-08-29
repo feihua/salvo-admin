@@ -5,7 +5,6 @@
 use crate::common::error::{AppError, AppResult};
 use crate::common::result::{ok_result, ok_result_data, ok_result_page};
 use crate::model::system::sys_notice_model::Notice;
-use crate::utils::time_util::time_to_string;
 use crate::vo::system::sys_notice_vo::*;
 use crate::RB;
 use rbatis::plugin::page::PageRequest;
@@ -131,14 +130,14 @@ pub async fn query_sys_notice_detail(req: &mut Request, res: &mut Response) -> A
         None => Err(AppError::BusinessError("通知公告表不存在")),
         Some(x) => {
             let sys_notice = QueryNoticeDetailResp {
-                id: x.id.unwrap_or_default(),               //公告ID
-                notice_title: x.notice_title,               //公告标题
-                notice_type: x.notice_type,                 //公告类型（1:通知,2:公告）
-                notice_content: x.notice_content,           //公告内容
-                status: x.status,                           //公告状态（0:关闭,1:正常 ）
-                remark: x.remark,                           //备注
-                create_time: time_to_string(x.create_time), //创建时间
-                update_time: time_to_string(x.update_time), //修改时间
+                id: x.id.unwrap_or_default(),     //公告ID
+                notice_title: x.notice_title,     //公告标题
+                notice_type: x.notice_type,       //公告类型（1:通知,2:公告）
+                notice_content: x.notice_content, //公告内容
+                status: x.status,                 //公告状态（0:关闭,1:正常 ）
+                remark: x.remark,                 //备注
+                create_time: x.create_time,       //创建时间
+                update_time: x.update_time,       //修改时间
             };
 
             ok_result_data(res, sys_notice)
@@ -167,14 +166,14 @@ pub async fn query_sys_notice_list(req: &mut Request, res: &mut Response) -> App
 
     for x in p.records {
         data.push(NoticeListDataResp {
-            id: x.id.unwrap_or_default(),               //公告ID
-            notice_title: x.notice_title,               //公告标题
-            notice_type: x.notice_type,                 //公告类型（1:通知,2:公告）
-            notice_content: x.notice_content,           //公告内容
-            status: x.status,                           //公告状态（0:关闭,1:正常 ）
-            remark: x.remark,                           //备注
-            create_time: time_to_string(x.create_time), //创建时间
-            update_time: time_to_string(x.update_time), //修改时间
+            id: x.id.unwrap_or_default(),     //公告ID
+            notice_title: x.notice_title,     //公告标题
+            notice_type: x.notice_type,       //公告类型（1:通知,2:公告）
+            notice_content: x.notice_content, //公告内容
+            status: x.status,                 //公告状态（0:关闭,1:正常 ）
+            remark: x.remark,                 //备注
+            create_time: x.create_time,       //创建时间
+            update_time: x.update_time,       //修改时间
         })
     }
 

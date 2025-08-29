@@ -44,30 +44,6 @@ pub struct QueryOperateLogDetailResp {
     pub cost_time: Option<i64>,           //消耗时间
 }
 
-impl QueryOperateLogDetailResp {
-    pub fn new() -> QueryOperateLogDetailResp {
-        QueryOperateLogDetailResp {
-            id: None,
-            title: None,
-            business_type: None,
-            method: None,
-            request_method: None,
-            operator_type: None,
-            operate_name: None,
-            dept_name: None,
-            operate_url: None,
-            operate_ip: None,
-            operate_location: None,
-            operate_param: None,
-            json_result: None,
-            status: None,
-            error_msg: None,
-            operate_time: "".to_string(),
-            cost_time: None,
-        }
-    }
-}
-
 /*
 查询操作日志记录列表请求参数
 */
@@ -115,9 +91,4 @@ pub struct OperateLogListDataResp {
     pub error_msg: Option<String>,        //错误消息
     pub operate_time: String,             //操作时间
     pub cost_time: Option<i64>,           //消耗时间
-}
-impl OperateLogListDataResp {
-    pub fn new() -> Vec<OperateLogListDataResp> {
-        Vec::new()
-    }
 }

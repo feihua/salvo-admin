@@ -6,7 +6,6 @@ use crate::common::error::{AppError, AppResult};
 use crate::common::result::{ok_result, ok_result_data, ok_result_page};
 use crate::model::system::sys_post_model::Post;
 use crate::model::system::sys_user_post_model::count_user_post_by_id;
-use crate::utils::time_util::time_to_string;
 use crate::vo::system::sys_post_vo::*;
 use crate::RB;
 use rbatis::plugin::page::PageRequest;
@@ -152,14 +151,14 @@ pub async fn query_sys_post_detail(req: &mut Request, res: &mut Response) -> App
     match Post::select_by_id(&mut RB.clone(), &item.id).await? {
         Some(x) => {
             let sys_post = QueryPostDetailResp {
-                id: x.id.unwrap_or_default(),               //岗位id
-                post_code: x.post_code,                     //岗位编码
-                post_name: x.post_name,                     //岗位名称
-                sort: x.sort,                               //显示顺序
-                status: x.status,                           //部状态（0：停用，1:正常）
-                remark: x.remark,                           //备注
-                create_time: time_to_string(x.create_time), //创建时间
-                update_time: time_to_string(x.update_time), //更新时间
+                id: x.id.unwrap_or_default(), //岗位id
+                post_code: x.post_code,       //岗位编码
+                post_name: x.post_name,       //岗位名称
+                sort: x.sort,                 //显示顺序
+                status: x.status,             //部状态（0：停用，1:正常）
+                remark: x.remark,             //备注
+                create_time: x.create_time,   //创建时间
+                update_time: x.update_time,   //修改时间
             };
 
             ok_result_data(res, sys_post)
@@ -188,14 +187,14 @@ pub async fn query_sys_post_list(req: &mut Request, res: &mut Response) -> AppRe
 
     for x in p.records {
         list.push(PostListDataResp {
-            id: x.id.unwrap_or_default(),               //岗位id
-            post_code: x.post_code,                     //岗位编码
-            post_name: x.post_name,                     //岗位名称
-            sort: x.sort,                               //显示顺序
-            status: x.status,                           //部状态（0：停用，1:正常）
-            remark: x.remark,                           //备注
-            create_time: time_to_string(x.create_time), //创建时间
-            update_time: time_to_string(x.update_time), //更新时间
+            id: x.id.unwrap_or_default(), //岗位id
+            post_code: x.post_code,       //岗位编码
+            post_name: x.post_name,       //岗位名称
+            sort: x.sort,                 //显示顺序
+            status: x.status,             //部状态（0：停用，1:正常）
+            remark: x.remark,             //备注
+            create_time: x.create_time,   //创建时间
+            update_time: x.update_time,   //修改时间
         })
     }
 
