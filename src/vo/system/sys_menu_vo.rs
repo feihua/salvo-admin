@@ -1,7 +1,7 @@
 // author：刘飞华
 // createTime：2024/12/12 14:41:44
 
-use crate::vo::system::serialize_datetime;
+use crate::common::result::serialize_datetime;
 use rbatis::rbdc::DateTime;
 use serde::{Deserialize, Serialize};
 

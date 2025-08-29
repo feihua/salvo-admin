@@ -3,6 +3,7 @@ use salvo::prelude::Json;
 use salvo::Response;
 use serde::Serialize;
 use std::fmt::Debug;
+use rbatis::rbdc::DateTime;
 
 // 统一返回vo
 #[derive(Serialize, Debug, Clone)]
@@ -65,4 +66,18 @@ pub fn ok_result_page<T: Serialize + Send>(res: &mut Response, data: T, total: u
     };
     res.render(Json(page));
     Ok(())
+}
+
+
+pub fn serialize_datetime<S>(dt: &Option<DateTime>, serializer: S) -> Result<S::Ok, S::Error>
+where
+    S: serde::Serializer,
+{
+    match dt {
+        Some(datetime) => {
+            let formatted = datetime.format("YYYY-MM-DD hh:mm:ss");
+            serializer.serialize_str(&formatted)
+        }
+        None => serializer.serialize_none(),
+    }
 }
