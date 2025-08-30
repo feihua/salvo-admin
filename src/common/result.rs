@@ -78,6 +78,6 @@ where
             let formatted = datetime.format("YYYY-MM-DD hh:mm:ss");
             serializer.serialize_str(&formatted)
         }
-        None => serializer.serialize_none(),
+        None => serializer.serialize_str(""),
     }
 }
