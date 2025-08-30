@@ -6,19 +6,6 @@ use rbatis::rbdc::DateTime;
 use serde::{Deserialize, Serialize};
 
 /*
-添加岗位信息表请求参数
-*/
-#[derive(Debug, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
-pub struct AddPostReq {
-    pub post_code: String,      //岗位编码
-    pub post_name: String,      //岗位名称
-    pub sort: i32,              //显示顺序
-    pub status: i8,             //部状态（0：停用，1:正常）
-    pub remark: Option<String>, //备注
-}
-
-/*
 删除岗位信息表请求参数
 */
 #[derive(Debug, Serialize, Deserialize)]
@@ -31,8 +18,8 @@ pub struct DeletePostReq {
 */
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub struct UpdatePostReq {
-    pub id: i64,                //岗位id
+pub struct PostReq {
+    pub id: Option<i64>,        //岗位id
     pub post_code: String,      //岗位编码
     pub post_name: String,      //岗位名称
     pub sort: i32,              //显示顺序
@@ -58,24 +45,6 @@ pub struct QueryPostDetailReq {
 }
 
 /*
-查询岗位信息表详情响应参数
-*/
-#[derive(Debug, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
-pub struct QueryPostDetailResp {
-    pub id: Option<i64>,        //岗位id
-    pub post_code: String,      //岗位编码
-    pub post_name: String,      //岗位名称
-    pub sort: i32,              //显示顺序
-    pub status: i8,             //部状态（0：停用，1:正常）
-    pub remark: Option<String>, //备注
-    #[serde(serialize_with = "serialize_datetime")]
-    pub create_time: Option<DateTime>, //创建时间
-    #[serde(serialize_with = "serialize_datetime")]
-    pub update_time: Option<DateTime>, //修改时间
-}
-
-/*
 查询岗位信息表列表请求参数
 */
 #[derive(Debug, Serialize, Deserialize)]
@@ -96,7 +65,7 @@ fn default_status() -> Option<i8> {
 */
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub struct PostListDataResp {
+pub struct PostResp {
     pub id: Option<i64>,        //岗位id
     pub post_code: String,      //岗位编码
     pub post_name: String,      //岗位名称

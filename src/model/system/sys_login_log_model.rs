@@ -2,10 +2,11 @@
 // author：刘飞华
 // createTime：2024/12/25 10:01:11
 
+use crate::vo::system::sys_login_log_vo::LoginLogResp;
+use crate::vo::system::sys_login_log_vo::QueryLoginLogListReq;
 use rbatis::rbdc::datetime::DateTime;
 use rbatis::RBatis;
 use serde::{Deserialize, Serialize};
-use crate::vo::system::sys_login_log_vo::QueryLoginLogListReq;
 /*
  *系统访问记录
  *author：刘飞华
@@ -37,6 +38,27 @@ pub struct LoginLog {
  */
 rbatis::crud!(LoginLog {}, "sys_login_log");
 
+impl Into<LoginLogResp> for LoginLog {
+    fn into(self) -> LoginLogResp {
+        LoginLogResp {
+            id: self.id,                         //访问ID
+            login_name: self.login_name,         //登录账号
+            ipaddr: self.ipaddr,                 //登录IP地址
+            login_location: self.login_location, //登录地点
+            platform: self.platform,             //平台信息
+            browser: self.browser,               //浏览器类型
+            version: self.version,               //浏览器版本
+            os: self.os,                         //操作系统
+            arch: self.arch,                     //体系结构信息
+            engine: self.engine,                 //渲染引擎信息
+            engine_details: self.engine_details, //渲染引擎详细信息
+            extra: self.extra,                   //其他信息（可选）
+            status: self.status,                 //登录状态(0:失败,1:成功)
+            msg: self.msg,                       //提示消息
+            login_time: self.login_time,         //访问时间
+        }
+    }
+}
 /*
  *根据id查询系统访问记录
  *author：刘飞华

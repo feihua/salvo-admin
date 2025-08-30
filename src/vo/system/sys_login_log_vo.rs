@@ -1,6 +1,7 @@
 // author：刘飞华
 // createTime：2024/12/25 10:01:11
-
+use crate::common::result::serialize_datetime;
+use rbatis::rbdc::DateTime;
 use serde::{Deserialize, Serialize};
 
 /*
@@ -17,29 +18,6 @@ pub struct DeleteLoginLogReq {
 #[derive(Debug, Serialize, Deserialize)]
 pub struct QueryLoginLogDetailReq {
     pub id: i64,
-}
-
-/*
-查询系统访问记录详情响应参数
-*/
-#[derive(Debug, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
-pub struct QueryLoginLogDetailResp {
-    pub id: Option<i64>,        //访问ID
-    pub login_name: String,     //登录账号
-    pub ipaddr: String,         //登录IP地址
-    pub login_location: String, //登录地点
-    pub platform: String,       //平台信息
-    pub browser: String,        //浏览器类型
-    pub version: String,        //浏览器版本
-    pub os: String,             //操作系统
-    pub arch: String,           //体系结构信息
-    pub engine: String,         //渲染引擎信息
-    pub engine_details: String, //渲染引擎详细信息
-    pub extra: String,          //其他信息（可选）
-    pub status: i8,             //登录状态(0:失败,1:成功)
-    pub msg: String,            //提示消息
-    pub login_time: String,     //访问时间
 }
 
 /*
@@ -66,7 +44,7 @@ fn default_status() -> Option<i8> {
 */
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub struct LoginLogListDataResp {
+pub struct LoginLogResp {
     pub id: Option<i64>,        //访问ID
     pub login_name: String,     //登录账号
     pub ipaddr: String,         //登录IP地址
@@ -81,5 +59,6 @@ pub struct LoginLogListDataResp {
     pub extra: String,          //其他信息（可选）
     pub status: i8,             //登录状态(0:失败,1:成功)
     pub msg: String,            //提示消息
-    pub login_time: String,     //访问时间
+    #[serde(serialize_with = "serialize_datetime")]
+    pub login_time: Option<DateTime>, //访问时间
 }

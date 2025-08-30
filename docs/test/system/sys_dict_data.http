@@ -31,16 +31,16 @@ Content-Type: application/json
 Authorization: Bearer {{token}}
 
 {
-    "dictCode": 0,
-    "dictSort": 0,
-    "dictLabel": "",
-    "dictValue": "",
-    "dictType": "",
-    "cssClass": "",
-    "listClass": "",
-    "isDefault": "",
-    "status": 0,
-    "remark": "",
+  "id": 1,
+  "dictSort": 1,
+  "dictLabel": "男",
+  "dictValue": "0",
+  "dictType": "sys_user_sex",
+  "cssClass": "1",
+  "listClass": "1",
+  "isDefault": "N",
+  "status": 0,
+  "remark": "性别男"
 }
 
 ###更新字典数据表 updateDictDataStatus状态
@@ -49,7 +49,7 @@ Content-Type: application/json
 Authorization: Bearer {{token}}
 
 {
-  "ids": [13],
+  "ids": [1],
   "status": 1
 }
 ###查询字典数据表详情 queryDictDataDetail

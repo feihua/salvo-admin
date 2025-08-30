@@ -2,10 +2,11 @@
 // createTime：2024/12/12 14:41:44
 
 use crate::rbatis::rbatis_codegen::IntoSql;
+use crate::vo::system::sys_menu_vo::MenuReq;
+use crate::vo::system::sys_menu_vo::MenuResp;
 use rbatis::rbdc::datetime::DateTime;
 use rbatis::RBatis;
 use serde::{Deserialize, Serialize};
-
 /*
  *菜单信息
  *author：刘飞华
@@ -19,7 +20,7 @@ pub struct Menu {
     pub visible: i8,                   //菜单状态（0:隐藏, 显示:1）
     pub status: i8,                    //状态(1:正常，0:禁用)
     pub sort: i32,                     //排序
-    pub parent_id: i64,                //父ID
+    pub parent_id: Option<i64>,        //父ID
     pub menu_url: Option<String>,      //路由路径
     pub api_url: Option<String>,       //接口URL
     pub menu_icon: Option<String>,     //菜单图标
@@ -27,7 +28,45 @@ pub struct Menu {
     pub create_time: Option<DateTime>, //创建时间
     pub update_time: Option<DateTime>, //修改时间
 }
+impl From<MenuReq> for Menu {
+    fn from(item: MenuReq) -> Self {
+        Menu {
+            id: item.id,               //主键
+            menu_name: item.menu_name, //菜单名称
+            menu_type: item.menu_type, //菜单类型(1：目录   2：菜单   3：按钮)
+            visible: item.visible,     //菜单状态（0:隐藏, 显示:1）
+            status: item.status,       //状态(1:正常，0:禁用)
+            sort: item.sort,           //排序
+            parent_id: item.parent_id, //父ID
+            menu_url: item.menu_url,   //路由路径
+            api_url: item.api_url,     //接口URL
+            menu_icon: item.menu_icon, //菜单图标
+            remark: item.remark,       //备注
+            create_time: None,         //创建时间
+            update_time: None,         //修改时间
+        }
+    }
+}
 
+impl Into<MenuResp> for Menu {
+    fn into(self) -> MenuResp {
+        MenuResp {
+            id: self.id,                   //主键
+            menu_name: self.menu_name,     //菜单名称
+            menu_type: self.menu_type,     //菜单类型(1：目录   2：菜单   3：按钮)
+            visible: self.visible,         //菜单状态（0:隐藏, 显示:1）
+            status: self.status,           //状态(1:正常，0:禁用)
+            sort: self.sort,               //排序
+            parent_id: self.parent_id,     //父ID
+            menu_url: self.menu_url,       //路由路径
+            api_url: self.api_url,         //接口URL
+            menu_icon: self.menu_icon,     //菜单图标
+            remark: self.remark,           //备注
+            create_time: self.create_time, //创建时间
+            update_time: self.update_time, //修改时间
+        }
+    }
+}
 /*
  *菜单信息基本操作
  *author：刘飞华

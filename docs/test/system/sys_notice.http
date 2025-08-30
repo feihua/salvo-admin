@@ -27,12 +27,12 @@ Content-Type: application/json
 Authorization: Bearer {{token}}
 
 {
-  "id": 7,
+  "id": 1,
   "noticeTitle": "测试通知12311",
   "noticeType": 1,
-  "noticeContent": "sdfs",
+  "noticeContent": "这是一条测试通知内容",
   "status": 1,
-  "remark": "sfdsdf"
+  "remark": ""
 }
 
 ###更新通知公告表 updateNoticeStatus状态
@@ -41,7 +41,7 @@ Content-Type: application/json
 Authorization: Bearer {{token}}
 
 {
-  "ids": [13,11],
+  "ids": [1],
   "status": 1
 }
 ###查询通知公告表详情 queryNoticeDetail

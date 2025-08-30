@@ -8,6 +8,7 @@ use crate::model::system::sys_notice_model::Notice;
 use crate::vo::system::sys_notice_vo::*;
 use crate::RB;
 use rbatis::plugin::page::PageRequest;
+use rbatis::rbdc::DateTime;
 use rbs::value;
 use salvo::prelude::*;
 use salvo::{Request, Response};
@@ -60,7 +61,7 @@ pub async fn update_sys_notice(req: &mut Request, res: &mut Response) -> AppResu
     let rb = &mut RB.clone();
     let id = item.id;
 
-    if Notice::select_by_id(rb, &item.id.unwrap_or_default()).await?.is_none() {
+    if Notice::select_by_id(rb, &id.unwrap_or_default()).await?.is_none() {
         return Err(AppError::BusinessError("通知公告表不存在"));
     };
 
@@ -68,7 +69,9 @@ pub async fn update_sys_notice(req: &mut Request, res: &mut Response) -> AppResu
         return Err(AppError::BusinessError("公告标题已存在"));
     }
 
-    Notice::update_by_map(rb, &Notice::from(item), value! {"id": &id}).await.map(|_| ok_result(res))?
+    let mut data = Notice::from(item);
+    data.update_time = Some(DateTime::now());
+    Notice::update_by_map(rb, &data, value! {"id": &id}).await.map(|_| ok_result(res))?
 }
 
 /*
@@ -81,9 +84,9 @@ pub async fn update_sys_notice_status(req: &mut Request, res: &mut Response) -> 
     let item = req.parse_json::<UpdateNoticeStatusReq>().await?;
     log::info!("update sys_notice_status params: {:?}", &item);
 
-    let update_sql = format!("update sys_notice set status = ? where id in ({})", item.ids.iter().map(|_| "?").collect::<Vec<&str>>().join(", "));
+    let update_sql = format!("update sys_notice set status = ? ,update_time = ? where id in ({})", item.ids.iter().map(|_| "?").collect::<Vec<&str>>().join(", "));
 
-    let mut param = vec![value!(item.status)];
+    let mut param = vec![value!(item.status),value!(DateTime::now())];
     param.extend(item.ids.iter().map(|&id| value!(id)));
 
     RB.clone().exec(&update_sql, param).await.map(|_| ok_result(res))?

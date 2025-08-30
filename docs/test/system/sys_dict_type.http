@@ -39,7 +39,7 @@ Content-Type: application/json
 Authorization: Bearer {{token}}
 
 {
-  "ids": [13],
+  "ids": [1],
   "status": 1
 }
 ###查询字典类型表详情 queryDictTypeDetail
