@@ -4,7 +4,7 @@ Content-Type: application/json
 Authorization: Bearer {{token}}
 
 {
-    "noticeTitle": "123ggg",
+    "noticeTitle": "123gg11g1",
     "noticeType": 1,
     "noticeContent": "sdfs",
     "status": 1,
@@ -27,11 +27,11 @@ Content-Type: application/json
 Authorization: Bearer {{token}}
 
 {
-  "id": 1,
-  "noticeTitle": "123ggg",
-  "noticeType": 0,
+  "id": 7,
+  "noticeTitle": "测试通知12311",
+  "noticeType": 1,
   "noticeContent": "sdfs",
-  "status": 0,
+  "status": 1,
   "remark": "sfdsdf"
 }
 

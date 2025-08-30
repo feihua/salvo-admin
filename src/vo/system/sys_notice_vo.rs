@@ -6,19 +6,6 @@ use rbatis::rbdc::DateTime;
 use serde::{Deserialize, Serialize};
 
 /*
-添加通知公告表请求参数
-*/
-#[derive(Debug, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
-pub struct AddNoticeReq {
-    pub notice_title: String,   //公告标题
-    pub notice_type: i8,        //公告类型（1:通知,2:公告）
-    pub notice_content: String, //公告内容
-    pub status: i8,             //公告状态（0:关闭,1:正常 ）
-    pub remark: Option<String>, //备注
-}
-
-/*
 删除通知公告表请求参数
 */
 #[derive(Debug, Serialize, Deserialize)]
@@ -31,8 +18,8 @@ pub struct DeleteNoticeReq {
 */
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub struct UpdateNoticeReq {
-    pub id: i64,                //公告ID
+pub struct NoticeReq {
+    pub id: Option<i64>,                //公告ID
     pub notice_title: String,   //公告标题
     pub notice_type: i8,        //公告类型（1:通知,2:公告）
     pub notice_content: String, //公告内容
@@ -58,24 +45,6 @@ pub struct QueryNoticeDetailReq {
 }
 
 /*
-查询通知公告表详情响应参数
-*/
-#[derive(Debug, Serialize, Deserialize)]
-#[serde(rename_all = "camelCase")]
-pub struct QueryNoticeDetailResp {
-    pub id: Option<i64>,        //公告ID
-    pub notice_title: String,   //公告标题
-    pub notice_type: i8,        //公告类型（1:通知,2:公告）
-    pub notice_content: String, //公告内容
-    pub status: i8,             //公告状态（0:关闭,1:正常 ）
-    pub remark: Option<String>, //备注
-    #[serde(serialize_with = "serialize_datetime")]
-    pub create_time: Option<DateTime>, //创建时间
-    #[serde(serialize_with = "serialize_datetime")]
-    pub update_time: Option<DateTime>, //修改时间
-}
-
-/*
 查询通知公告表列表请求参数
 */
 #[derive(Debug, Serialize, Deserialize)]
@@ -96,7 +65,7 @@ fn default_status() -> Option<i8> {
 */
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub struct NoticeListDataResp {
+pub struct NoticeResp {
     pub id: Option<i64>,        //公告ID
     pub notice_title: String,   //公告标题
     pub notice_type: i8,        //公告类型（1:通知,2:公告）
