@@ -14,6 +14,7 @@ use crate::model::system::sys_user_role_model::{is_admin, UserRole};
 use crate::utils::jwt_util::JwtToken;
 use crate::utils::user_agent_util::UserAgentUtil;
 use crate::vo::system::sys_dept_vo::DeptResp;
+use crate::vo::system::sys_role_vo::RoleResp;
 use crate::vo::system::sys_user_vo::*;
 use crate::RB;
 use chrono::Local;
@@ -160,9 +161,12 @@ pub async fn update_sys_user_status(req: &mut Request, res: &mut Response) -> Ap
         return Err(AppError::BusinessError("不允许操作超级管理员用户"));
     }
 
-    let update_sql = format!("update sys_user set status = ? ,update_time = ? where id in ({})", item.ids.iter().map(|_| "?").collect::<Vec<&str>>().join(", "));
+    let update_sql = format!(
+        "update sys_user set status = ? ,update_time = ? where id in ({})",
+        item.ids.iter().map(|_| "?").collect::<Vec<&str>>().join(", ")
+    );
 
-    let mut param = vec![value!(item.status),value!(DateTime::now())];
+    let mut param = vec![value!(item.status), value!(DateTime::now())];
     param.extend(item.ids.iter().map(|&id| value!(id)));
 
     RB.clone().exec(&update_sql, param).await.map(|_| ok_result(res))?
@@ -431,35 +435,16 @@ pub async fn query_user_role(req: &mut Request, res: &mut Response) -> AppResult
     log::info!("query_user_role params: {:?}", item);
 
     let rb = &mut RB.clone();
-    let mut role_ids: Vec<i64> = Vec::new();
+    let mut user_role_ids: Vec<i64> = Vec::new();
 
     let user_id = item.user_id;
     for x in UserRole::select_by_map(rb, value! {"user_id": user_id}).await? {
-        role_ids.push(x.role_id);
+        user_role_ids.push(x.role_id);
     }
 
-    let mut list: Vec<RoleList> = Vec::new();
+    let sys_role_list = Role::select_all(rb).await.map(|x| x.into_iter().map(|x| x.into()).collect::<Vec<RoleResp>>())?;
 
-    for x in Role::select_all(rb).await? {
-        list.push(RoleList {
-            id: x.id,                   //主键
-            role_name: x.role_name,     //名称
-            role_key: x.role_key,       //角色权限字符串
-            data_scope: x.data_scope,   //数据范围（1：全部数据权限 2：自定数据权限 3：本部门数据权限 4：本部门及以下数据权限）
-            status: x.status,           //状态(1:正常，0:禁用)
-            remark: x.remark,           //备注
-            create_time: x.create_time, //创建时间
-            update_time: x.update_time, //修改时间
-        });
-    }
-
-    ok_result_data(
-        res,
-        QueryUserRoleResp {
-            sys_role_list: list,
-            user_role_ids: role_ids,
-        },
-    )
+    ok_result_data(res, QueryUserRoleResp { sys_role_list, user_role_ids })
 }
 
 /*
@@ -484,10 +469,10 @@ pub async fn update_user_role(req: &mut Request, res: &mut Response) -> AppResul
 
     UserRole::delete_by_map(rb, value! {"user_id": user_id.clone()}).await?;
 
-    let mut sys_role_user_list: Vec<UserRole> = Vec::new();
+    let mut list: Vec<UserRole> = Vec::new();
     for role_id in role_ids {
         let r_id = role_id.clone();
-        sys_role_user_list.push(UserRole {
+        list.push(UserRole {
             id: None,
             create_time: Some(DateTime::now()),
             role_id: r_id,
@@ -495,7 +480,7 @@ pub async fn update_user_role(req: &mut Request, res: &mut Response) -> AppResul
         })
     }
 
-    UserRole::insert_batch(rb, &sys_role_user_list, len as u64).await?;
+    UserRole::insert_batch(rb, &list, len as u64).await?;
     ok_result(res)
 }
 
@@ -508,9 +493,9 @@ pub async fn update_user_role(req: &mut Request, res: &mut Response) -> AppResul
 pub async fn query_user_menu(depot: &mut Depot, res: &mut Response) -> AppResult<()> {
     log::info!("query user menu params {:?}", depot);
     let user_id = depot.get::<i64>("userId").copied().unwrap();
-    let username = depot.get::<String>("username").unwrap();
-    log::info!("query user menu params {:?}", user_id);
-    log::info!("query user menu params {:?}", username);
+    let user_name = depot.get::<String>("username").unwrap();
+    log::info!("query user menu params user_id {:?}", user_id);
+    log::info!("query user menu params user_name {:?}", user_name);
 
     //根据id查询用户
     let rb = &mut RB.clone();

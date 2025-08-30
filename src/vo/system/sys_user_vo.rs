@@ -5,7 +5,7 @@ use crate::common::result::serialize_datetime;
 use crate::vo::system::sys_dept_vo::DeptResp;
 use rbatis::rbdc::DateTime;
 use serde::{Deserialize, Serialize};
-
+use crate::vo::system::sys_role_vo::RoleResp;
 /*
 删除用户信息请求参数
 */
@@ -151,26 +151,8 @@ pub struct QueryUserRoleReq {
 #[derive(Debug, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct QueryUserRoleResp {
-    pub sys_role_list: Vec<RoleList>,
+    pub sys_role_list: Vec<RoleResp>,
     pub user_role_ids: Vec<i64>,
-}
-
-/*
-角色信息
-*/
-#[derive(Debug, Serialize)]
-#[serde(rename_all = "camelCase")]
-pub struct RoleList {
-    pub id: Option<i64>,        //主键
-    pub role_name: String,      //名称
-    pub role_key: String,       //角色权限字符串
-    pub data_scope: i8,         //数据范围（1：全部数据权限 2：自定数据权限 3：本部门数据权限 4：本部门及以下数据权限）
-    pub status: i8,             //状态(1:正常，0:禁用)
-    pub remark: Option<String>, //备注
-    #[serde(serialize_with = "serialize_datetime")]
-    pub create_time: Option<DateTime>, //创建时间
-    #[serde(serialize_with = "serialize_datetime")]
-    pub update_time: Option<DateTime>, //修改时间
 }
 
 /*
