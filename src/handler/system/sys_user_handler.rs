@@ -194,8 +194,7 @@ pub async fn reset_sys_user_password(req: &mut Request, res: &mut Response) -> A
         Some(x) => {
             let mut user = x;
             user.password = item.password;
-            User::update_by_map(rb, &user, value! {"id": &user.id}).await?;
-            ok_result(res)
+            User::update_by_map(rb, &user, value! {"id": &user.id}).await.map(|_| ok_result(res))?
         }
     }
 }
@@ -222,8 +221,7 @@ pub async fn update_sys_user_password(req: &mut Request, depot: &mut Depot, res:
                 }
                 user.password = item.re_pwd;
 
-                User::update_by_map(rb, &user, value! {"id": &user.id}).await?;
-                ok_result(res)
+                User::update_by_map(rb, &user, value! {"id": &user.id}).await.map(|_| ok_result(res))?
             }
         }
     } else {
@@ -480,8 +478,7 @@ pub async fn update_user_role(req: &mut Request, res: &mut Response) -> AppResul
         })
     }
 
-    UserRole::insert_batch(rb, &list, len as u64).await?;
-    ok_result(res)
+    UserRole::insert_batch(rb, &list, len as u64).await.map(|_| ok_result(res))?
 }
 
 /*
