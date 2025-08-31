@@ -58,9 +58,9 @@ pub async fn delete_sys_role(req: &mut Request, res: &mut Response) -> AppResult
 
     let rb = &mut RB.clone();
     for id in ids {
-        if Role::select_by_id(rb, &id).await?.is_none() {
+        if let None = Role::select_by_id(rb, &id).await? {
             return Err(AppError::BusinessError("角色不存在,不能删除"));
-        };
+        }
 
         if count_user_role_by_role_id(rb, id).await? > 0 {
             return Err(AppError::BusinessError("已分配,不能删除"));
@@ -126,9 +126,12 @@ pub async fn update_sys_role_status(req: &mut Request, res: &mut Response) -> Ap
         return Err(AppError::BusinessError("不允许操作超级管理员角色"));
     }
 
-    let update_sql = format!("update sys_role set status = ? ,update_time = ? where id in ({})", item.ids.iter().map(|_| "?").collect::<Vec<&str>>().join(", "));
+    let update_sql = format!(
+        "update sys_role set status = ? ,update_time = ? where id in ({})",
+        item.ids.iter().map(|_| "?").collect::<Vec<&str>>().join(", ")
+    );
 
-    let mut param = vec![value!(item.status),value!(DateTime::now())];
+    let mut param = vec![value!(item.status), value!(DateTime::now())];
     param.extend(item.ids.iter().map(|&id| value!(id)));
 
     RB.clone().exec(&update_sql, param).await.map(|_| ok_result(res))?
@@ -181,7 +184,6 @@ pub async fn query_role_menu(req: &mut Request, res: &mut Response) -> AppResult
     let item = req.parse_json::<QueryRoleMenuReq>().await?;
     log::info!("query role_menu params: {:?}", &item);
 
-    // 查询所有菜单
     let rb = &mut RB.clone();
     let menu_list_all = Menu::select_all(rb).await?;
 
@@ -201,7 +203,6 @@ pub async fn query_role_menu(req: &mut Request, res: &mut Response) -> AppResult
         menu_ids.push(x.id)
     }
 
-    //不是超级管理员的时候,就要查询角色和菜单的关联
     if item.role_id != 1 {
         menu_ids.clear();
 
