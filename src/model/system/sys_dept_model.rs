@@ -103,10 +103,10 @@ impl_select_page!(Dept{select_page() =>"
  */
 impl_select!(Dept{select_page_dept_list(req:&QueryDeptListReq) =>"
     where 1=1
-     if req.dept_name != null && req.dept_name != '':
-      ` and dept_name = #{req.dept_name} `
+     if req.deptName != null && req.deptName != '':
+      ` and dept_name = #{req.deptName} `
      if req.status != 2:
-      ` and status = #req.{status} `
+      ` and status = #{req.status} `
      if !sql.contains('count'):
       ` order by sort"
 },"sys_dept");
