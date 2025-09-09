@@ -84,9 +84,9 @@ impl_select!(Notice{select_by_title(title:&str) -> Option => "`where notice_titl
 impl_select_page!(Notice{select_sys_notice_list(req:&QueryNoticeListReq) =>"
     where 1=1
      if req.noticeTitle != '' && req.noticeTitle != null:
-       ` and notice_title = #{req.noticeTitle} `
+       ` and notice_title like concat('%', #{req.noticeTitle}, '%') `
      if req.noticeType != 0:
-      ` and notice_type = #{req.noticeType} `
+      ` and notice_type = like concat('%', #{req.noticeType}, '%') `
      if req.status != 2:
        ` and status = #{req.status} `
      if !sql.contains('count'):

@@ -104,7 +104,7 @@ impl_select_page!(Dept{select_page() =>"
 impl_select!(Dept{select_page_dept_list(req:&QueryDeptListReq) =>"
     where 1=1
      if req.deptName != null && req.deptName != '':
-      ` and dept_name = #{req.deptName} `
+      ` and dept_name like concat('%', #{req.deptName}, '%') `
      if req.status != 2:
       ` and status = #{req.status} `
      if !sql.contains('count'):
