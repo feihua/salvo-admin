@@ -101,7 +101,7 @@ impl_select_page!(Role{select_sys_role_list(req:&QueryRoleListReq) =>"
      if req.roleName != null && req.roleName != '':
        ` and role_name like concat('%', #{req.roleName}, '%') `
      if req.roleKey != null && req.roleKey != '':
-       ` and role_key = like concat('%', #{req.roleKey}, '%') `
+       ` and role_key like concat('%', #{req.roleKey}, '%') `
      if req.status != 2:
        ` and status = #{req.status} `
      if !sql.contains('count'):

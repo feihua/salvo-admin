@@ -86,11 +86,11 @@ impl_select_page!(LoginLog{select_login_log_list(req:&QueryLoginLogListReq) =>"
      if req.loginName != '' && req.loginName != null:
        ` and login_name like concat('%', #{req.loginName}, '%') `
      if req.ipaddr != '' && req.ipaddr != null:
-       ` and ipaddr = like concat('%', #{req.ipaddr}, '%') `
+       ` and ipaddr like concat('%', #{req.ipaddr}, '%') `
      if req.browser != '' && req.browser != null:
-       ` and browser = like concat('%', #{req.browser}, '%') `
+       ` and browser like concat('%', #{req.browser}, '%') `
      if req.os != '' && req.os != null:
-       ` and os = like concat('%', #{req.os}, '%') `
+       ` and os like concat('%', #{req.os}, '%') `
      if req.status != 2:
        ` and status = #{req.status} `
      if !sql.contains('count'):
