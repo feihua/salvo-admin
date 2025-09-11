@@ -20,7 +20,7 @@ use salvo::{Request, Response};
  */
 #[handler]
 pub async fn add_sys_dict_data(req: &mut Request, res: &mut Response) -> AppResult<()> {
-    let item = req.parse_json::<DictDataReq>().await?;
+    let mut item = req.parse_json::<DictDataReq>().await?;
 
     log::info!("add sys_dict_data params: {:?}", &item);
 
@@ -33,6 +33,7 @@ pub async fn add_sys_dict_data(req: &mut Request, res: &mut Response) -> AppResu
         return Err(AppError::BusinessError("字典键值已存在"));
     }
 
+    item.id = None;
     DictData::insert(rb, &DictData::from(item)).await.map(|_| ok_result(res))?
 }
 
@@ -64,7 +65,9 @@ pub async fn update_sys_dict_data(req: &mut Request, res: &mut Response) -> AppR
     let rb = &mut RB.clone();
 
     let id = item.id;
-
+    if id.is_none() {
+        return Err(AppError::BusinessError("主键不能为空"));
+    }
     if DictData::select_by_id(rb, &id.unwrap_or_default()).await?.is_none() {
         return Err(AppError::BusinessError("字典数据不存在"));
     }
@@ -81,9 +84,7 @@ pub async fn update_sys_dict_data(req: &mut Request, res: &mut Response) -> AppR
         }
     }
 
-    let mut data = DictData::from(item);
-    data.update_time = Some(DateTime::now());
-    DictData::update_by_map(rb, &data, value! {"id": &id}).await.map(|_| ok_result(res))?
+    DictData::update_by_map(rb, &DictData::from(item), value! {"id": &id}).await.map(|_| ok_result(res))?
 }
 
 /*

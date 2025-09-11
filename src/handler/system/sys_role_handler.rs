@@ -25,7 +25,7 @@ use salvo::{Request, Response};
  */
 #[handler]
 pub async fn add_sys_role(req: &mut Request, res: &mut Response) -> AppResult<()> {
-    let item = req.parse_json::<RoleReq>().await?;
+    let mut item = req.parse_json::<RoleReq>().await?;
     log::info!("add sys_role params: {:?}", &item);
 
     let rb = &mut RB.clone();
@@ -37,6 +37,7 @@ pub async fn add_sys_role(req: &mut Request, res: &mut Response) -> AppResult<()
         return Err(AppError::BusinessError("角色权限已存在"));
     }
 
+    item.id = None;
     Role::insert(rb, &Role::from(item)).await.map(|_| ok_result(res))?
 }
 
@@ -86,7 +87,9 @@ pub async fn update_sys_role(req: &mut Request, res: &mut Response) -> AppResult
     let rb = &mut RB.clone();
 
     let id = item.id;
-
+    if id.is_none() {
+        return Err(AppError::BusinessError("主键不能为空"));
+    }
     if id.unwrap_or_default() == 1 {
         return Err(AppError::BusinessError("不允许操作超级管理员角色"));
     }
@@ -107,9 +110,7 @@ pub async fn update_sys_role(req: &mut Request, res: &mut Response) -> AppResult
         }
     }
 
-    let mut data = Role::from(item);
-    data.update_time = Some(DateTime::now());
-    Role::update_by_map(rb, &data, value! {"id": &id}).await.map(|_| ok_result(res))?
+    Role::update_by_map(rb, &Role::from(item), value! {"id": &id}).await.map(|_| ok_result(res))?
 }
 
 /*

@@ -21,7 +21,7 @@ use salvo::{Request, Response};
  */
 #[handler]
 pub async fn add_sys_post(req: &mut Request, res: &mut Response) -> AppResult<()> {
-    let item = req.parse_json::<PostReq>().await?;
+    let mut item = req.parse_json::<PostReq>().await?;
     log::info!("add sys_post params: {:?}", &item);
 
     let rb = &mut RB.clone();
@@ -34,6 +34,7 @@ pub async fn add_sys_post(req: &mut Request, res: &mut Response) -> AppResult<()
         return Err(AppError::BusinessError("岗位编码已存在"));
     }
 
+    item.id = None;
     Post::insert(rb, &Post::from(item)).await.map(|_| ok_result(res))?
 }
 
@@ -76,7 +77,9 @@ pub async fn update_sys_post(req: &mut Request, res: &mut Response) -> AppResult
     let rb = &mut RB.clone();
 
     let id = item.id;
-
+    if id.is_none() {
+        return Err(AppError::BusinessError("主键不能为空"));
+    }
     if Post::select_by_id(rb, &id.unwrap_or_default()).await?.is_none() {
         return Err(AppError::BusinessError("岗位不存在"));
     }
@@ -93,9 +96,7 @@ pub async fn update_sys_post(req: &mut Request, res: &mut Response) -> AppResult
         }
     }
 
-    let mut data = Post::from(item);
-    data.update_time = Some(DateTime::now());
-    Post::update_by_map(rb, &data, value! {"id": &id}).await.map(|_| ok_result(res))?
+    Post::update_by_map(rb, &Post::from(item), value! {"id": &id}).await.map(|_| ok_result(res))?
 }
 
 /*
@@ -108,9 +109,12 @@ pub async fn update_sys_post_status(req: &mut Request, res: &mut Response) -> Ap
     let item = req.parse_json::<UpdatePostStatusReq>().await?;
     log::info!("update sys_post_status params: {:?}", &item);
 
-    let update_sql = format!("update sys_post set status = ? ,update_time = ? where id in ({})", item.ids.iter().map(|_| "?").collect::<Vec<&str>>().join(", "));
+    let update_sql = format!(
+        "update sys_post set status = ? ,update_time = ? where id in ({})",
+        item.ids.iter().map(|_| "?").collect::<Vec<&str>>().join(", ")
+    );
 
-    let mut param = vec![value!(item.status),value!(DateTime::now())];
+    let mut param = vec![value!(item.status), value!(DateTime::now())];
     param.extend(item.ids.iter().map(|&id| value!(id)));
 
     RB.clone().exec(&update_sql, param).await.map(|_| ok_result(res))?

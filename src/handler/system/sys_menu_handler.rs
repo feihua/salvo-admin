@@ -2,13 +2,13 @@
 // author：刘飞华
 // date：2025/01/08 13:51:14
 
-use rbatis::rbdc::DateTime;
 use crate::common::error::{AppError, AppResult};
 use crate::common::result::{ok_result, ok_result_data};
 use crate::model::system::sys_menu_model::{select_count_menu_by_parent_id, Menu};
 use crate::model::system::sys_role_menu_model::select_count_menu_by_menu_id;
 use crate::vo::system::sys_menu_vo::*;
 use crate::RB;
+use rbatis::rbdc::DateTime;
 use rbs::value;
 use salvo::prelude::*;
 use salvo::{Request, Response};
@@ -20,7 +20,7 @@ use salvo::{Request, Response};
  */
 #[handler]
 pub async fn add_sys_menu(req: &mut Request, res: &mut Response) -> AppResult<()> {
-    let item = req.parse_json::<MenuReq>().await?;
+    let mut item = req.parse_json::<MenuReq>().await?;
     log::info!("add sys_menu params: {:?}", &item);
 
     let rb = &mut RB.clone();
@@ -34,6 +34,7 @@ pub async fn add_sys_menu(req: &mut Request, res: &mut Response) -> AppResult<()
         }
     }
 
+    item.id = None;
     Menu::insert(rb, &Menu::from(item)).await.map(|_| ok_result(res))?
 }
 
@@ -73,6 +74,11 @@ pub async fn update_sys_menu(req: &mut Request, res: &mut Response) -> AppResult
     let rb = &mut RB.clone();
 
     let id = item.id;
+
+    if id.is_none() {
+        return Err(AppError::BusinessError("主键不能为空"));
+    }
+
     if Menu::select_by_id(rb, &id.unwrap_or_default()).await?.is_none() {
         return Err(AppError::BusinessError("菜单信息不存在"));
     }
@@ -92,9 +98,7 @@ pub async fn update_sys_menu(req: &mut Request, res: &mut Response) -> AppResult
         }
     }
 
-    let mut data = Menu::from(item);
-    data.update_time = Some(DateTime::now());
-    Menu::update_by_map(rb, &data, value! {"id": &id}).await.map(|_| ok_result(res))?
+    Menu::update_by_map(rb, &Menu::from(item), value! {"id": &id}).await.map(|_| ok_result(res))?
 }
 
 /*
@@ -108,9 +112,12 @@ pub async fn update_sys_menu_status(req: &mut Request, res: &mut Response) -> Ap
 
     log::info!("update sys_menu_status params: {:?}", &item);
 
-    let update_sql = format!("update sys_menu set status = ? ,update_time = ? where id in ({})", item.ids.iter().map(|_| "?").collect::<Vec<&str>>().join(", "));
+    let update_sql = format!(
+        "update sys_menu set status = ? ,update_time = ? where id in ({})",
+        item.ids.iter().map(|_| "?").collect::<Vec<&str>>().join(", ")
+    );
 
-    let mut param = vec![value!(item.status),value!(DateTime::now())];
+    let mut param = vec![value!(item.status), value!(DateTime::now())];
     param.extend(item.ids.iter().map(|&id| value!(id)));
 
     RB.clone().exec(&update_sql, param).await.map(|_| ok_result(res))?

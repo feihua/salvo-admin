@@ -32,7 +32,7 @@ use std::collections::{HashMap, HashSet};
  */
 #[handler]
 pub async fn add_sys_user(req: &mut Request, res: &mut Response) -> AppResult<()> {
-    let item = req.parse_json::<UserReq>().await?;
+    let mut item = req.parse_json::<UserReq>().await?;
     log::info!("add sys_user params: {:?}", &item);
 
     let rb = &mut RB.clone();
@@ -49,6 +49,7 @@ pub async fn add_sys_user(req: &mut Request, res: &mut Response) -> AppResult<()
     }
 
     let post_ids = item.post_ids.clone();
+    item.id = None;
     let id = User::insert(rb, &User::from(item)).await?.last_insert_id;
 
     let mut user_post_list: Vec<UserPost> = Vec::new();
@@ -101,6 +102,9 @@ pub async fn update_sys_user(req: &mut Request, res: &mut Response) -> AppResult
     log::info!("update sys_user params: {:?}", &item);
 
     let id = item.id;
+    if id.is_none() {
+        return Err(AppError::BusinessError("主键不能为空"));
+    }
     if id == Some(1) {
         return Err(AppError::BusinessError("不允许操作超级管理员用户"));
     }
@@ -141,9 +145,7 @@ pub async fn update_sys_user(req: &mut Request, res: &mut Response) -> AppResult
     UserPost::delete_by_map(rb, value! {"user_id": &item.id}).await?;
     UserPost::insert_batch(rb, &user_post_list, user_post_list.len() as u64).await?;
 
-    let mut data = User::from(item);
-    data.update_time = Some(DateTime::now());
-    User::update_by_map(rb, &data, value! {"id": &id}).await.map(|_| ok_result(res))?
+    User::update_by_map(rb, &User::from(item), value! {"id": &id}).await.map(|_| ok_result(res))?
 }
 
 /*

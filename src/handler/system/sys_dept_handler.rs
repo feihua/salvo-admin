@@ -77,6 +77,9 @@ pub async fn update_sys_dept(req: &mut Request, res: &mut Response) -> AppResult
     log::info!("update sys_dept params: {:?}", &item);
 
     let id = item.id;
+    if id.is_none() {
+        return Err(AppError::BusinessError("主键不能为空"));
+    }
     if Some(item.parent_id) == id {
         return Err(AppError::BusinessError("上级部门不能是自己"));
     }
@@ -111,18 +114,19 @@ pub async fn update_sys_dept(req: &mut Request, res: &mut Response) -> AppResult
     if item.status == 1 && ancestors != "0" {
         let ids = ancestors.split(",").map(|s| s.i64()).collect::<Vec<i64>>();
 
-        let update_sql = format!("update sys_dept set status = ? ,update_time = ? where id in ({})", ids.iter().map(|_| "?").collect::<Vec<&str>>().join(", "));
+        let update_sql = format!(
+            "update sys_dept set status = ? ,update_time = ? where id in ({})",
+            ids.iter().map(|_| "?").collect::<Vec<&str>>().join(", ")
+        );
 
-        let mut param = vec![value!(item.status),value!(DateTime::now())];
+        let mut param = vec![value!(item.status), value!(DateTime::now())];
         param.extend(ids.iter().map(|&id| value!(id)));
 
         rb.exec(&update_sql, param).await?;
     }
     item.ancestors = Some(ancestors.clone());
 
-    let mut data = Dept::from(item);
-    data.update_time = Some(DateTime::now());
-    Dept::update_by_map(rb, &data, value! {"id":  &id}).await.map(|_| ok_result(res))?
+    Dept::update_by_map(rb, &Dept::from(item), value! {"id":  &id}).await.map(|_| ok_result(res))?
 }
 
 /*
@@ -142,18 +146,24 @@ pub async fn update_sys_dept_status(req: &mut Request, res: &mut Response) -> Ap
                 let ancestors = x.ancestors.unwrap_or_default();
                 let ids = ancestors.split(",").map(|s| s.i64()).collect::<Vec<i64>>();
 
-                let update_sql = format!("update sys_dept set status = ? ,update_time = ? where id in ({})", ids.iter().map(|_| "?").collect::<Vec<&str>>().join(", "));
+                let update_sql = format!(
+                    "update sys_dept set status = ? ,update_time = ? where id in ({})",
+                    ids.iter().map(|_| "?").collect::<Vec<&str>>().join(", ")
+                );
 
-                let mut param = vec![value!(item.status),value!(DateTime::now())];
+                let mut param = vec![value!(item.status), value!(DateTime::now())];
                 param.extend(ids.iter().map(|&id| value!(id)));
                 rb.exec(&update_sql, param).await?;
             }
         }
     }
 
-    let update_sql = format!("update sys_dept set status = ? ,update_time = ? where id in ({})", item.ids.iter().map(|_| "?").collect::<Vec<&str>>().join(", "));
+    let update_sql = format!(
+        "update sys_dept set status = ? ,update_time = ? where id in ({})",
+        item.ids.iter().map(|_| "?").collect::<Vec<&str>>().join(", ")
+    );
 
-    let mut param = vec![value!(item.status),value!(DateTime::now())];
+    let mut param = vec![value!(item.status), value!(DateTime::now())];
     param.extend(item.ids.iter().map(|&id| value!(id)));
     rb.exec(&update_sql, param).await?;
     ok_result(res)

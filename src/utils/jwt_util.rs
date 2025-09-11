@@ -1,8 +1,6 @@
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
-use jsonwebtoken::{
-    decode, encode, errors::ErrorKind, Algorithm, DecodingKey, EncodingKey, Header, Validation,
-};
+use jsonwebtoken::{decode, encode, errors::ErrorKind, Algorithm, DecodingKey, EncodingKey, Header, Validation};
 use serde::{Deserialize, Serialize};
 
 use crate::common::error::AppError;
@@ -49,11 +47,7 @@ impl JwtToken {
     /// create token
     /// secret: your secret string
     pub fn create_token(&self, secret: &str) -> Result<String, AppError> {
-        return match encode(
-            &Header::default(),
-            self,
-            &EncodingKey::from_secret(secret.as_ref()),
-        ) {
+        return match encode(&Header::default(), self, &EncodingKey::from_secret(secret.as_ref())) {
             Ok(t) => Ok(t),
             Err(_) => Err(JwtTokenError("create token error".to_string())),
         };
@@ -65,19 +59,13 @@ impl JwtToken {
         validation.sub = Some("rust_admin".to_string());
         validation.set_audience(&["rust_admin"]);
         validation.set_required_spec_claims(&["exp", "sub", "aud"]);
-        return match decode::<JwtToken>(
-            &token,
-            &DecodingKey::from_secret(secret.as_ref()),
-            &validation,
-        ) {
+        return match decode::<JwtToken>(&token, &DecodingKey::from_secret(secret.as_ref()), &validation) {
             Ok(c) => Ok(c.claims),
 
             Err(err) => match *err.kind() {
                 ErrorKind::InvalidToken => return Err(JwtTokenError("InvalidToken".to_string())), // Example on how to handle a specific error
                 ErrorKind::InvalidIssuer => return Err(JwtTokenError("InvalidIssuer".to_string())), // Example on how to handle a specific error
-                ErrorKind::ExpiredSignature => {
-                    return Err(JwtTokenError("token 已经超时了".to_string()))
-                } // Example on how to handle a specific error
+                ErrorKind::ExpiredSignature => return Err(JwtTokenError("token 已经超时了".to_string())), // Example on how to handle a specific error
                 // _ => return Err(Error::from("InvalidToken other errors")),
                 _ => Err(JwtTokenError("create token error".to_string())),
             },

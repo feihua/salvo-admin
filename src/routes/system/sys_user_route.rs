@@ -1,5 +1,5 @@
-use salvo::Router;
 use crate::handler::system::sys_user_handler::*;
+use salvo::Router;
 /*
  *构建用户信息路由
  *author：刘飞华
@@ -17,5 +17,5 @@ pub fn build_sys_user_route() -> Router {
         .push(Router::new().path("/system/user/queryUserRole").post(query_user_role))
         .push(Router::new().path("/system/user/updateUserRole").post(update_user_role))
         .push(Router::new().path("/system/user/updateUserPassword").post(update_sys_user_password))
-        //记得在main.rs中的route()函数中添加构建用户信息路由build_sys_user_route()
+    //记得在main.rs中的route()函数中添加构建用户信息路由build_sys_user_route()
 }

@@ -1,9 +1,9 @@
 // author：刘飞华
 // createTime：2024/12/25 10:01:11
 
-use rbatis::PageRequest;
 use crate::common::result::serialize_datetime;
 use rbatis::rbdc::DateTime;
+use rbatis::PageRequest;
 use serde::{Deserialize, Serialize};
 /*
 删除通知公告表请求参数
@@ -19,7 +19,7 @@ pub struct DeleteNoticeReq {
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct NoticeReq {
-    pub id: Option<i64>,                //公告ID
+    pub id: Option<i64>,        //公告ID
     pub notice_title: String,   //公告标题
     pub notice_type: i8,        //公告类型（1:通知,2:公告）
     pub notice_content: String, //公告内容

@@ -21,7 +21,7 @@ use salvo::{Request, Response};
  */
 #[handler]
 pub async fn add_sys_dict_type(req: &mut Request, res: &mut Response) -> AppResult<()> {
-    let item = req.parse_json::<DictTypeReq>().await?;
+    let mut item = req.parse_json::<DictTypeReq>().await?;
     log::info!("add sys_dict_type params: {:?}", &item);
 
     let rb = &mut RB.clone();
@@ -29,6 +29,7 @@ pub async fn add_sys_dict_type(req: &mut Request, res: &mut Response) -> AppResu
         return Err(AppError::BusinessError("字典类型已存在"));
     }
 
+    item.id = None;
     DictType::insert(rb, &DictType::from(item)).await.map(|_| ok_result(res))?
 }
 
@@ -71,6 +72,10 @@ pub async fn update_sys_dict_type(req: &mut Request, res: &mut Response) -> AppR
 
     let rb = &mut RB.clone();
     let id = item.id;
+
+    if id.is_none() {
+        return Err(AppError::BusinessError("主键不能为空"));
+    }
     if DictType::select_by_id(rb, &id.unwrap_or_default()).await?.is_none() {
         return Err(AppError::BusinessError("字典类型不存在"));
     }
@@ -84,9 +89,7 @@ pub async fn update_sys_dict_type(req: &mut Request, res: &mut Response) -> AppR
         update_dict_data_type(rb, &*item.dict_type, &dict_type).await?;
     }
 
-    let mut data = DictType::from(item);
-    data.update_time = Some(DateTime::now());
-    DictType::update_by_map(rb, &data, value! {"id": &id}).await.map(|_| ok_result(res))?
+    DictType::update_by_map(rb, &DictType::from(item), value! {"id": &id}).await.map(|_| ok_result(res))?
 }
 
 /*
@@ -101,9 +104,12 @@ pub async fn update_sys_dict_type_status(req: &mut Request, res: &mut Response) 
     let rb = &mut RB.clone();
     log::info!("update sys_dict_type_status params: {:?}", &item);
 
-    let update_sql = format!("update sys_dict_type set status = ? ,update_time = ? where id in ({})", item.ids.iter().map(|_| "?").collect::<Vec<&str>>().join(", "));
+    let update_sql = format!(
+        "update sys_dict_type set status = ? ,update_time = ? where id in ({})",
+        item.ids.iter().map(|_| "?").collect::<Vec<&str>>().join(", ")
+    );
 
-    let mut param = vec![value!(item.status),value!(DateTime::now())];
+    let mut param = vec![value!(item.status), value!(DateTime::now())];
     param.extend(item.ids.iter().map(|&id| value!(id)));
 
     rb.exec(&update_sql, param).await.map(|_| ok_result(res))?

@@ -1,5 +1,5 @@
-use salvo::Router;
 use crate::handler::system::sys_menu_handler::*;
+use salvo::Router;
 /*
  *构建菜单信息路由
  *author：刘飞华
@@ -14,5 +14,5 @@ pub fn build_sys_menu_route() -> Router {
         .push(Router::new().path("/system/menu/queryMenuDetail").post(query_sys_menu_detail))
         .push(Router::new().path("/system/menu/queryMenuList").post(query_sys_menu_list))
         .push(Router::new().path("/system/menu/queryMenuListSimple").post(query_sys_menu_list_simple))
-        //记得在main.rs中的route()函数中添加构建菜单信息路由build_sys_menu_route()
+    //记得在main.rs中的route()函数中添加构建菜单信息路由build_sys_menu_route()
 }

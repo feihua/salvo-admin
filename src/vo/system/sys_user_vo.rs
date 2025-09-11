@@ -1,10 +1,10 @@
 // author：刘飞华
 // createTime：2024/12/12 14:41:44
 
-use rbatis::PageRequest;
 use crate::common::result::serialize_datetime;
 use crate::vo::system::sys_dept_vo::DeptResp;
 use rbatis::rbdc::DateTime;
+use rbatis::PageRequest;
 use serde::{Deserialize, Serialize};
 
 use crate::vo::system::sys_role_vo::RoleResp;
@@ -22,18 +22,18 @@ pub struct DeleteUserReq {
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct UserReq {
-    pub id: Option<i64>,   //主键
-    pub mobile: String,    //手机
-    pub user_name: String, //用户账号
-    pub nick_name: String, //用户昵称
-    pub password: Option<String>,       //用户密码
-    pub email: String,     //用户邮箱
+    pub id: Option<i64>,          //主键
+    pub mobile: String,           //手机
+    pub user_name: String,        //用户账号
+    pub nick_name: String,        //用户昵称
+    pub password: Option<String>, //用户密码
+    pub email: String,            //用户邮箱
     #[serde(default = "default_avatar")]
     pub avatar: Option<String>, //头像路径
-    pub status: i8,        //状态(1:正常，0:禁用)
-    pub dept_id: i64,      //部门ID
-    pub remark: Option<String>, //备注
-    pub post_ids: Vec<i64>, //岗位ids
+    pub status: i8,               //状态(1:正常，0:禁用)
+    pub dept_id: i64,             //部门ID
+    pub remark: Option<String>,   //备注
+    pub post_ids: Vec<i64>,       //岗位ids
 }
 fn default_avatar() -> Option<String> {
     Some("https://gw.alipayobjects.com/zos/antfincdn/XAosXuNZyF/BiazfanxmamNRoxxVxka.png".to_string())

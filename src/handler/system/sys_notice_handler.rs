@@ -20,7 +20,7 @@ use salvo::{Request, Response};
  */
 #[handler]
 pub async fn add_sys_notice(req: &mut Request, res: &mut Response) -> AppResult<()> {
-    let item = req.parse_json::<NoticeReq>().await?;
+    let mut item = req.parse_json::<NoticeReq>().await?;
     log::info!("add sys_notice params: {:?}", &item);
 
     let rb = &mut RB.clone();
@@ -29,6 +29,7 @@ pub async fn add_sys_notice(req: &mut Request, res: &mut Response) -> AppResult<
         return Err(AppError::BusinessError("公告标题已存在"));
     }
 
+    item.id = None;
     Notice::insert(rb, &Notice::from(item)).await.map(|_| ok_result(res))?
 }
 
@@ -60,7 +61,9 @@ pub async fn update_sys_notice(req: &mut Request, res: &mut Response) -> AppResu
 
     let rb = &mut RB.clone();
     let id = item.id;
-
+    if id.is_none() {
+        return Err(AppError::BusinessError("主键不能为空"));
+    }
     if Notice::select_by_id(rb, &id.unwrap_or_default()).await?.is_none() {
         return Err(AppError::BusinessError("通知公告表不存在"));
     };
@@ -69,9 +72,7 @@ pub async fn update_sys_notice(req: &mut Request, res: &mut Response) -> AppResu
         return Err(AppError::BusinessError("公告标题已存在"));
     }
 
-    let mut data = Notice::from(item);
-    data.update_time = Some(DateTime::now());
-    Notice::update_by_map(rb, &data, value! {"id": &id}).await.map(|_| ok_result(res))?
+    Notice::update_by_map(rb, &Notice::from(item), value! {"id": &id}).await.map(|_| ok_result(res))?
 }
 
 /*

@@ -37,7 +37,7 @@ pub struct User {
 }
 impl From<UserReq> for User {
     fn from(item: UserReq) -> Self {
-        User {
+        let mut model = User {
             id: None,                                    //主键
             mobile: item.mobile,                         //手机
             user_name: item.user_name,                   //用户账号
@@ -57,7 +57,13 @@ impl From<UserReq> for User {
             del_flag: 1,                                 //删除标志（0代表删除 1代表存在）
             create_time: None,                           //创建时间
             update_time: None,                           //修改时间
+        };
+        if let None = item.id {
+            model.create_time = Some(DateTime::now());
+        } else {
+            model.update_time = Some(DateTime::now());
         }
+        model
     }
 }
 

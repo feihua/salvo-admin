@@ -32,7 +32,7 @@ pub struct Post {
 rbatis::crud!(Post {}, "sys_post");
 impl From<PostReq> for Post {
     fn from(item: PostReq) -> Self {
-        Post {
+        let mut model = Post {
             id: item.id,               //岗位id
             post_code: item.post_code, //岗位编码
             post_name: item.post_name, //岗位名称
@@ -41,7 +41,13 @@ impl From<PostReq> for Post {
             remark: item.remark,       //备注
             create_time: None,         //创建时间
             update_time: None,         //更新时间
+        };
+        if let None = item.id {
+            model.create_time = Some(DateTime::now());
+        } else {
+            model.update_time = Some(DateTime::now());
         }
+        model
     }
 }
 

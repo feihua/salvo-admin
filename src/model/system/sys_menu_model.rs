@@ -30,7 +30,7 @@ pub struct Menu {
 }
 impl From<MenuReq> for Menu {
     fn from(item: MenuReq) -> Self {
-        Menu {
+        let mut model = Menu {
             id: item.id,               //主键
             menu_name: item.menu_name, //菜单名称
             menu_type: item.menu_type, //菜单类型(1：目录   2：菜单   3：按钮)
@@ -44,7 +44,13 @@ impl From<MenuReq> for Menu {
             remark: item.remark,       //备注
             create_time: None,         //创建时间
             update_time: None,         //修改时间
+        };
+        if let None = item.id {
+            model.create_time = Some(DateTime::now());
+        } else {
+            model.update_time = Some(DateTime::now());
         }
+        model
     }
 }
 
