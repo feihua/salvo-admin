@@ -1,3 +1,4 @@
+use rbatis::PageRequest;
 // author：刘飞华
 // createTime：2024/12/25 10:01:11
 use crate::common::result::serialize_datetime;
@@ -38,6 +39,11 @@ pub struct QueryLoginLogListReq {
 }
 fn default_status() -> Option<i8> {
     Some(2)
+}
+impl From<&QueryLoginLogListReq> for PageRequest {
+    fn from(value: &QueryLoginLogListReq) -> Self {
+        PageRequest::new(value.page_no, value.page_size)
+    }
 }
 /*
 查询系统访问记录列表响应参数

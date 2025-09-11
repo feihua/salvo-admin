@@ -96,9 +96,12 @@ pub async fn update_sys_dict_data_status(req: &mut Request, res: &mut Response) 
     let item = req.parse_json::<UpdateDictDataStatusReq>().await?;
     log::info!("update sys_dict_data_status params: {:?}", &item);
 
-    let update_sql = format!("update sys_dict_data set status = ? ,update_time = ? where id in ({})", item.ids.iter().map(|_| "?").collect::<Vec<&str>>().join(", "));
+    let update_sql = format!(
+        "update sys_dict_data set status = ? ,update_time = ? where id in ({})",
+        item.ids.iter().map(|_| "?").collect::<Vec<&str>>().join(", ")
+    );
 
-    let mut param = vec![value!(item.status),value!(DateTime::now())];
+    let mut param = vec![value!(item.status), value!(DateTime::now())];
     param.extend(item.ids.iter().map(|&id| value!(id)));
 
     RB.clone().exec(&update_sql, param).await.map(|_| ok_result(res))?
@@ -130,13 +133,13 @@ pub async fn query_sys_dict_data_detail(req: &mut Request, res: &mut Response) -
  */
 #[handler]
 pub async fn query_sys_dict_data_list(req: &mut Request, res: &mut Response) -> AppResult<()> {
-    let item = req.parse_json::<QueryDictDataListReq>().await?;
-    log::info!("query sys_dict_data_list params: {:?}", &item);
+    let req = req.parse_json::<QueryDictDataListReq>().await?;
+    log::info!("query sys_dict_data_list params: {:?}", &req);
 
-    let page = &PageRequest::new(item.page_no, item.page_size);
     let rb = &mut RB.clone();
+    let item = &req;
 
-    DictData::select_dict_data_list(rb, page, &item)
+    DictData::select_dict_data_list(rb, &PageRequest::from(item), item)
         .await
         .map(|x| ok_result_page(res, x.records.into_iter().map(|x| x.into()).collect::<Vec<DictDataResp>>(), x.total))?
 }

@@ -1,10 +1,12 @@
 // author：刘飞华
 // createTime：2024/12/12 14:41:44
 
+use rbatis::PageRequest;
 use crate::common::result::serialize_datetime;
 use crate::vo::system::sys_dept_vo::DeptResp;
 use rbatis::rbdc::DateTime;
 use serde::{Deserialize, Serialize};
+
 use crate::vo::system::sys_role_vo::RoleResp;
 /*
 删除用户信息请求参数
@@ -69,6 +71,11 @@ pub struct QueryUserListReq {
 }
 fn default_status() -> Option<i8> {
     Some(2)
+}
+impl From<&QueryUserListReq> for PageRequest {
+    fn from(value: &QueryUserListReq) -> Self {
+        PageRequest::new(value.page_no, value.page_size)
+    }
 }
 /*
 查询用户信息列表响应参数

@@ -52,13 +52,13 @@ pub async fn query_sys_login_log_detail(req: &mut Request, res: &mut Response) -
  */
 #[handler]
 pub async fn query_sys_login_log_list(req: &mut Request, res: &mut Response) -> AppResult<()> {
-    let item = req.parse_json::<QueryLoginLogListReq>().await?;
-    log::info!("query sys_login_log_list params: {:?}", &item);
+    let req = req.parse_json::<QueryLoginLogListReq>().await?;
+    log::info!("query sys_login_log_list params: {:?}", &req);
 
-    let page = &PageRequest::new(item.page_no, item.page_size);
     let rb = &mut RB.clone();
+    let item = &req;
 
-    LoginLog::select_login_log_list(rb, page, &item)
+    LoginLog::select_login_log_list(rb, &PageRequest::from(item), item)
         .await
         .map(|x| ok_result_page(res, x.records.into_iter().map(|x| x.into()).collect::<Vec<LoginLogResp>>(), x.total))?
 }

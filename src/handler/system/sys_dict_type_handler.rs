@@ -136,13 +136,13 @@ pub async fn query_sys_dict_type_detail(req: &mut Request, res: &mut Response) -
  */
 #[handler]
 pub async fn query_sys_dict_type_list(req: &mut Request, res: &mut Response) -> AppResult<()> {
-    let item = req.parse_json::<QueryDictTypeListReq>().await?;
-    log::info!("query sys_dict_type_list params: {:?}", &item);
+    let req = req.parse_json::<QueryDictTypeListReq>().await?;
+    log::info!("query sys_dict_type_list params: {:?}", &req);
 
-    let page = &PageRequest::new(item.page_no, item.page_size);
     let rb = &mut RB.clone();
+    let item = &req;
 
-    DictType::select_dict_type_list(rb, page, &item)
+    DictType::select_dict_type_list(rb, &PageRequest::from(item), item)
         .await
         .map(|x| ok_result_page(res, x.records.into_iter().map(|x| x.into()).collect::<Vec<DictTypeResp>>(), x.total))?
 }

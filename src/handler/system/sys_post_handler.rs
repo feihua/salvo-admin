@@ -142,13 +142,13 @@ pub async fn query_sys_post_detail(req: &mut Request, res: &mut Response) -> App
  */
 #[handler]
 pub async fn query_sys_post_list(req: &mut Request, res: &mut Response) -> AppResult<()> {
-    let item = req.parse_json::<QueryPostListReq>().await?;
-    log::info!("query sys_post_list params: {:?}", &item);
+    let req = req.parse_json::<QueryPostListReq>().await?;
+    log::info!("query sys_post_list params: {:?}", &req);
 
-    let page = &PageRequest::new(item.page_no, item.page_size);
     let rb = &mut RB.clone();
+    let item = &req;
 
-    Post::select_post_list(rb, page, &item)
+    Post::select_post_list(rb, &PageRequest::from(item), item)
         .await
         .map(|x| ok_result_page(res, x.records.into_iter().map(|x| x.into()).collect::<Vec<PostResp>>(), x.total))?
 }

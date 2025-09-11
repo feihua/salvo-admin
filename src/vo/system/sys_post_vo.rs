@@ -1,6 +1,7 @@
 // author：刘飞华
 // createTime：2024/12/25 10:01:11
 
+use rbatis::PageRequest;
 use crate::common::result::serialize_datetime;
 use rbatis::rbdc::DateTime;
 use serde::{Deserialize, Serialize};
@@ -59,6 +60,11 @@ pub struct QueryPostListReq {
 }
 fn default_status() -> Option<i8> {
     Some(2)
+}
+impl From<&QueryPostListReq> for PageRequest {
+    fn from(value: &QueryPostListReq) -> Self {
+        PageRequest::new(value.page_no, value.page_size)
+    }
 }
 /*
 查询岗位信息表列表响应参数

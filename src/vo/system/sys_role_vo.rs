@@ -1,6 +1,7 @@
 // author：刘飞华
 // createTime：2024/12/12 14:41:44
 
+use rbatis::PageRequest;
 use crate::common::result::serialize_datetime;
 use rbatis::rbdc::DateTime;
 use serde::{Deserialize, Serialize};
@@ -59,6 +60,11 @@ pub struct QueryRoleListReq {
 }
 fn default_status() -> Option<i8> {
     Some(2)
+}
+impl From<&QueryRoleListReq> for PageRequest {
+    fn from(value: &QueryRoleListReq) -> Self {
+        PageRequest::new(value.page_no, value.page_size)
+    }
 }
 /*
 查询角色信息列表响应参数
