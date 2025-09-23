@@ -19,7 +19,7 @@ use salvo::{Request, Response};
  *date：2025/01/08 13:51:14
  */
 #[handler]
-pub async fn add_sys_menu(req: &mut Request, res: &mut Response) -> AppResult<()> {
+pub async fn add_sys_menu(req: &mut Request, res: &mut Response) -> AppResult {
     let mut item = req.parse_json::<MenuReq>().await?;
     log::info!("add sys_menu params: {:?}", &item);
 
@@ -44,7 +44,7 @@ pub async fn add_sys_menu(req: &mut Request, res: &mut Response) -> AppResult<()
  *date：2025/01/08 13:51:14
  */
 #[handler]
-pub async fn delete_sys_menu(req: &mut Request, res: &mut Response) -> AppResult<()> {
+pub async fn delete_sys_menu(req: &mut Request, res: &mut Response) -> AppResult {
     let item = req.parse_json::<DeleteMenuReq>().await?;
     log::info!("delete sys_menu params: {:?}", &item);
 
@@ -67,7 +67,7 @@ pub async fn delete_sys_menu(req: &mut Request, res: &mut Response) -> AppResult
  *date：2025/01/08 13:51:14
  */
 #[handler]
-pub async fn update_sys_menu(req: &mut Request, res: &mut Response) -> AppResult<()> {
+pub async fn update_sys_menu(req: &mut Request, res: &mut Response) -> AppResult {
     let item = req.parse_json::<MenuReq>().await?;
     log::info!("update sys_menu params: {:?}", &item);
 
@@ -107,7 +107,7 @@ pub async fn update_sys_menu(req: &mut Request, res: &mut Response) -> AppResult
  *date：2025/01/08 13:51:14
  */
 #[handler]
-pub async fn update_sys_menu_status(req: &mut Request, res: &mut Response) -> AppResult<()> {
+pub async fn update_sys_menu_status(req: &mut Request, res: &mut Response) -> AppResult {
     let item = req.parse_json::<UpdateMenuStatusReq>().await?;
 
     log::info!("update sys_menu_status params: {:?}", &item);
@@ -129,7 +129,7 @@ pub async fn update_sys_menu_status(req: &mut Request, res: &mut Response) -> Ap
  *date：2025/01/08 13:51:14
  */
 #[handler]
-pub async fn query_sys_menu_detail(req: &mut Request, res: &mut Response) -> AppResult<()> {
+pub async fn query_sys_menu_detail(req: &mut Request, res: &mut Response) -> AppResult {
     let item = req.parse_json::<QueryMenuDetailReq>().await?;
     log::info!("query sys_menu_detail params: {:?}", &item);
 
@@ -148,7 +148,7 @@ pub async fn query_sys_menu_detail(req: &mut Request, res: &mut Response) -> App
  *date：2025/01/08 13:51:14
  */
 #[handler]
-pub async fn query_sys_menu_list(req: &mut Request, res: &mut Response) -> AppResult<()> {
+pub async fn query_sys_menu_list(req: &mut Request, res: &mut Response) -> AppResult {
     let item = req.parse_json::<QueryMenuListReq>().await?;
     log::info!("query sys_menu_list params: {:?}", &item);
 
@@ -163,7 +163,7 @@ pub async fn query_sys_menu_list(req: &mut Request, res: &mut Response) -> AppRe
  *date：2025/01/08 13:51:14
  */
 #[handler]
-pub async fn query_sys_menu_list_simple(res: &mut Response) -> AppResult<()> {
+pub async fn query_sys_menu_list_simple(res: &mut Response) -> AppResult {
     let mut list: Vec<MenuListSimpleDataResp> = Vec::new();
 
     for x in Menu::select_menu_list(&mut RB.clone()).await? {

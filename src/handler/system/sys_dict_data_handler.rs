@@ -19,7 +19,7 @@ use salvo::{Request, Response};
  *date：2025/01/08 13:51:14
  */
 #[handler]
-pub async fn add_sys_dict_data(req: &mut Request, res: &mut Response) -> AppResult<()> {
+pub async fn add_sys_dict_data(req: &mut Request, res: &mut Response) -> AppResult {
     let mut item = req.parse_json::<DictDataReq>().await?;
 
     log::info!("add sys_dict_data params: {:?}", &item);
@@ -43,7 +43,7 @@ pub async fn add_sys_dict_data(req: &mut Request, res: &mut Response) -> AppResu
  *date：2025/01/08 13:51:14
  */
 #[handler]
-pub async fn delete_sys_dict_data(req: &mut Request, res: &mut Response) -> AppResult<()> {
+pub async fn delete_sys_dict_data(req: &mut Request, res: &mut Response) -> AppResult {
     let item = req.parse_json::<DeleteDictDataReq>().await?;
     log::info!("delete sys_dict_data params: {:?}", &item);
 
@@ -58,7 +58,7 @@ pub async fn delete_sys_dict_data(req: &mut Request, res: &mut Response) -> AppR
  *date：2025/01/08 13:51:14
  */
 #[handler]
-pub async fn update_sys_dict_data(req: &mut Request, res: &mut Response) -> AppResult<()> {
+pub async fn update_sys_dict_data(req: &mut Request, res: &mut Response) -> AppResult {
     let item = req.parse_json::<DictDataReq>().await?;
     log::info!("update sys_dict_data params: {:?}", &item);
 
@@ -93,7 +93,7 @@ pub async fn update_sys_dict_data(req: &mut Request, res: &mut Response) -> AppR
  *date：2025/01/08 13:51:14
  */
 #[handler]
-pub async fn update_sys_dict_data_status(req: &mut Request, res: &mut Response) -> AppResult<()> {
+pub async fn update_sys_dict_data_status(req: &mut Request, res: &mut Response) -> AppResult {
     let item = req.parse_json::<UpdateDictDataStatusReq>().await?;
     log::info!("update sys_dict_data_status params: {:?}", &item);
 
@@ -114,7 +114,7 @@ pub async fn update_sys_dict_data_status(req: &mut Request, res: &mut Response) 
  *date：2025/01/08 13:51:14
  */
 #[handler]
-pub async fn query_sys_dict_data_detail(req: &mut Request, res: &mut Response) -> AppResult<()> {
+pub async fn query_sys_dict_data_detail(req: &mut Request, res: &mut Response) -> AppResult {
     let item = req.parse_json::<QueryDictDataDetailReq>().await?;
     log::info!("query sys_dict_data_detail params: {:?}", &item);
 
@@ -133,7 +133,7 @@ pub async fn query_sys_dict_data_detail(req: &mut Request, res: &mut Response) -
  *date：2025/01/08 13:51:14
  */
 #[handler]
-pub async fn query_sys_dict_data_list(req: &mut Request, res: &mut Response) -> AppResult<()> {
+pub async fn query_sys_dict_data_list(req: &mut Request, res: &mut Response) -> AppResult {
     let req = req.parse_json::<QueryDictDataListReq>().await?;
     log::info!("query sys_dict_data_list params: {:?}", &req);
 

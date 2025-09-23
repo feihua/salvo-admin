@@ -24,7 +24,7 @@ use salvo::{Request, Response};
  *date：2025/01/08 13:51:14
  */
 #[handler]
-pub async fn add_sys_role(req: &mut Request, res: &mut Response) -> AppResult<()> {
+pub async fn add_sys_role(req: &mut Request, res: &mut Response) -> AppResult {
     let mut item = req.parse_json::<RoleReq>().await?;
     log::info!("add sys_role params: {:?}", &item);
 
@@ -47,7 +47,7 @@ pub async fn add_sys_role(req: &mut Request, res: &mut Response) -> AppResult<()
  *date：2025/01/08 13:51:14
  */
 #[handler]
-pub async fn delete_sys_role(req: &mut Request, res: &mut Response) -> AppResult<()> {
+pub async fn delete_sys_role(req: &mut Request, res: &mut Response) -> AppResult {
     let item = req.parse_json::<DeleteRoleReq>().await?;
     log::info!("delete sys_role params: {:?}", &item);
 
@@ -80,7 +80,7 @@ pub async fn delete_sys_role(req: &mut Request, res: &mut Response) -> AppResult
  *date：2025/01/08 13:51:14
  */
 #[handler]
-pub async fn update_sys_role(req: &mut Request, res: &mut Response) -> AppResult<()> {
+pub async fn update_sys_role(req: &mut Request, res: &mut Response) -> AppResult {
     let item = req.parse_json::<RoleReq>().await?;
     log::info!("update sys_role params: {:?}", &item);
 
@@ -119,7 +119,7 @@ pub async fn update_sys_role(req: &mut Request, res: &mut Response) -> AppResult
  *date：2025/01/08 13:51:14
  */
 #[handler]
-pub async fn update_sys_role_status(req: &mut Request, res: &mut Response) -> AppResult<()> {
+pub async fn update_sys_role_status(req: &mut Request, res: &mut Response) -> AppResult {
     let item = req.parse_json::<UpdateRoleStatusReq>().await?;
     log::info!("update sys_role_status params: {:?}", &item);
 
@@ -144,7 +144,7 @@ pub async fn update_sys_role_status(req: &mut Request, res: &mut Response) -> Ap
  *date：2025/01/08 13:51:14
  */
 #[handler]
-pub async fn query_sys_role_detail(req: &mut Request, res: &mut Response) -> AppResult<()> {
+pub async fn query_sys_role_detail(req: &mut Request, res: &mut Response) -> AppResult {
     let item = req.parse_json::<QueryRoleDetailReq>().await?;
     log::info!("query sys_role_detail params: {:?}", &item);
 
@@ -163,7 +163,7 @@ pub async fn query_sys_role_detail(req: &mut Request, res: &mut Response) -> App
  *date：2025/01/08 13:51:14
  */
 #[handler]
-pub async fn query_sys_role_list(req: &mut Request, res: &mut Response) -> AppResult<()> {
+pub async fn query_sys_role_list(req: &mut Request, res: &mut Response) -> AppResult {
     let req = req.parse_json::<QueryRoleListReq>().await?;
     log::info!("query sys_role_list params: {:?}", &req);
 
@@ -181,7 +181,7 @@ pub async fn query_sys_role_list(req: &mut Request, res: &mut Response) -> AppRe
  *date：2025/01/08 13:51:14
  */
 #[handler]
-pub async fn query_role_menu(req: &mut Request, res: &mut Response) -> AppResult<()> {
+pub async fn query_role_menu(req: &mut Request, res: &mut Response) -> AppResult {
     let item = req.parse_json::<QueryRoleMenuReq>().await?;
     log::info!("query role_menu params: {:?}", &item);
 
@@ -222,7 +222,7 @@ pub async fn query_role_menu(req: &mut Request, res: &mut Response) -> AppResult
  *date：2025/01/08 13:51:14
  */
 #[handler]
-pub async fn update_role_menu(req: &mut Request, res: &mut Response) -> AppResult<()> {
+pub async fn update_role_menu(req: &mut Request, res: &mut Response) -> AppResult {
     let item = req.parse_json::<UpdateRoleMenuReq>().await?;
     log::info!("update_role_menu params: {:?}", &item);
     let role_id = item.role_id;
@@ -256,7 +256,7 @@ pub async fn update_role_menu(req: &mut Request, res: &mut Response) -> AppResul
  *date：2025/01/08 13:51:14
  */
 #[handler]
-pub async fn query_allocated_list(req: &mut Request, res: &mut Response) -> AppResult<()> {
+pub async fn query_allocated_list(req: &mut Request, res: &mut Response) -> AppResult {
     let item = req.parse_json::<AllocatedListReq>().await?;
     log::info!("update role_menu params: {:?}", &item);
 
@@ -285,7 +285,7 @@ pub async fn query_allocated_list(req: &mut Request, res: &mut Response) -> AppR
  *date：2025/01/08 13:51:14
  */
 #[handler]
-pub async fn query_unallocated_list(req: &mut Request, res: &mut Response) -> AppResult<()> {
+pub async fn query_unallocated_list(req: &mut Request, res: &mut Response) -> AppResult {
     let item = req.parse_json::<UnallocatedListReq>().await?;
     log::info!("update role_menu params: {:?}", &item);
 
@@ -315,7 +315,7 @@ pub async fn query_unallocated_list(req: &mut Request, res: &mut Response) -> Ap
  *date：2025/01/08 13:51:14
  */
 #[handler]
-pub async fn cancel_auth_user(req: &mut Request, res: &mut Response) -> AppResult<()> {
+pub async fn cancel_auth_user(req: &mut Request, res: &mut Response) -> AppResult {
     let item = req.parse_json::<CancelAuthUserReq>().await?;
     log::info!("update role_menu params: {:?}", &item);
 
@@ -331,7 +331,7 @@ pub async fn cancel_auth_user(req: &mut Request, res: &mut Response) -> AppResul
  *date：2025/01/08 13:51:14
  */
 #[handler]
-pub async fn batch_cancel_auth_user(req: &mut Request, res: &mut Response) -> AppResult<()> {
+pub async fn batch_cancel_auth_user(req: &mut Request, res: &mut Response) -> AppResult {
     let item = req.parse_json::<CancelAuthUserAllReq>().await?;
     log::info!("cancel auth_user_all params: {:?}", &item);
 
@@ -353,7 +353,7 @@ pub async fn batch_cancel_auth_user(req: &mut Request, res: &mut Response) -> Ap
  *date：2025/01/08 13:51:14
  */
 #[handler]
-pub async fn batch_auth_user(req: &mut Request, res: &mut Response) -> AppResult<()> {
+pub async fn batch_auth_user(req: &mut Request, res: &mut Response) -> AppResult {
     let item = req.parse_json::<SelectAuthUserAllReq>().await?;
     log::info!("select all_auth_user params: {:?}", &item);
     let role_id = item.role_id;

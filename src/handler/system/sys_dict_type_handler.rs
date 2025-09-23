@@ -20,7 +20,7 @@ use salvo::{Request, Response};
  *date：2025/01/08 13:51:14
  */
 #[handler]
-pub async fn add_sys_dict_type(req: &mut Request, res: &mut Response) -> AppResult<()> {
+pub async fn add_sys_dict_type(req: &mut Request, res: &mut Response) -> AppResult {
     let mut item = req.parse_json::<DictTypeReq>().await?;
     log::info!("add sys_dict_type params: {:?}", &item);
 
@@ -39,7 +39,7 @@ pub async fn add_sys_dict_type(req: &mut Request, res: &mut Response) -> AppResu
  *date：2025/01/08 13:51:14
  */
 #[handler]
-pub async fn delete_sys_dict_type(req: &mut Request, res: &mut Response) -> AppResult<()> {
+pub async fn delete_sys_dict_type(req: &mut Request, res: &mut Response) -> AppResult {
     let item = req.parse_json::<DeleteDictTypeReq>().await?;
     log::info!("delete sys_dict_type params: {:?}", &item);
 
@@ -66,7 +66,7 @@ pub async fn delete_sys_dict_type(req: &mut Request, res: &mut Response) -> AppR
  *date：2025/01/08 13:51:14
  */
 #[handler]
-pub async fn update_sys_dict_type(req: &mut Request, res: &mut Response) -> AppResult<()> {
+pub async fn update_sys_dict_type(req: &mut Request, res: &mut Response) -> AppResult {
     let item = req.parse_json::<DictTypeReq>().await?;
     log::info!("update sys_dict_type params: {:?}", &item);
 
@@ -98,7 +98,7 @@ pub async fn update_sys_dict_type(req: &mut Request, res: &mut Response) -> AppR
  *date：2025/01/08 13:51:14
  */
 #[handler]
-pub async fn update_sys_dict_type_status(req: &mut Request, res: &mut Response) -> AppResult<()> {
+pub async fn update_sys_dict_type_status(req: &mut Request, res: &mut Response) -> AppResult {
     let item = req.parse_json::<UpdateDictTypeStatusReq>().await?;
 
     let rb = &mut RB.clone();
@@ -121,7 +121,7 @@ pub async fn update_sys_dict_type_status(req: &mut Request, res: &mut Response) 
  *date：2025/01/08 13:51:14
  */
 #[handler]
-pub async fn query_sys_dict_type_detail(req: &mut Request, res: &mut Response) -> AppResult<()> {
+pub async fn query_sys_dict_type_detail(req: &mut Request, res: &mut Response) -> AppResult {
     let item = req.parse_json::<QueryDictTypeDetailReq>().await?;
 
     log::info!("query sys_dict_type_detail params: {:?}", &item);
@@ -141,7 +141,7 @@ pub async fn query_sys_dict_type_detail(req: &mut Request, res: &mut Response) -
  *date：2025/01/08 13:51:14
  */
 #[handler]
-pub async fn query_sys_dict_type_list(req: &mut Request, res: &mut Response) -> AppResult<()> {
+pub async fn query_sys_dict_type_list(req: &mut Request, res: &mut Response) -> AppResult {
     let req = req.parse_json::<QueryDictTypeListReq>().await?;
     log::info!("query sys_dict_type_list params: {:?}", &req);
 

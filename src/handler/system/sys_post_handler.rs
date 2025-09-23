@@ -19,7 +19,7 @@ use salvo::{Request, Response};
  *date：2025/01/08 13:51:14
  */
 #[handler]
-pub async fn add_sys_post(req: &mut Request, res: &mut Response) -> AppResult<()> {
+pub async fn add_sys_post(req: &mut Request, res: &mut Response) -> AppResult {
     let mut item = req.parse_json::<PostReq>().await?;
     log::info!("add sys_post params: {:?}", &item);
 
@@ -43,7 +43,7 @@ pub async fn add_sys_post(req: &mut Request, res: &mut Response) -> AppResult<()
  *date：2025/01/08 13:51:14
  */
 #[handler]
-pub async fn delete_sys_post(req: &mut Request, res: &mut Response) -> AppResult<()> {
+pub async fn delete_sys_post(req: &mut Request, res: &mut Response) -> AppResult {
     let item = req.parse_json::<DeletePostReq>().await?;
     log::info!("delete sys_post params: {:?}", &item);
 
@@ -69,7 +69,7 @@ pub async fn delete_sys_post(req: &mut Request, res: &mut Response) -> AppResult
  *date：2025/01/08 13:51:14
  */
 #[handler]
-pub async fn update_sys_post(req: &mut Request, res: &mut Response) -> AppResult<()> {
+pub async fn update_sys_post(req: &mut Request, res: &mut Response) -> AppResult {
     let item = req.parse_json::<PostReq>().await?;
     log::info!("update sys_post params: {:?}", &item);
 
@@ -101,7 +101,7 @@ pub async fn update_sys_post(req: &mut Request, res: &mut Response) -> AppResult
  *date：2025/01/08 13:51:14
  */
 #[handler]
-pub async fn update_sys_post_status(req: &mut Request, res: &mut Response) -> AppResult<()> {
+pub async fn update_sys_post_status(req: &mut Request, res: &mut Response) -> AppResult {
     let item = req.parse_json::<UpdatePostStatusReq>().await?;
     log::info!("update sys_post_status params: {:?}", &item);
 
@@ -122,7 +122,7 @@ pub async fn update_sys_post_status(req: &mut Request, res: &mut Response) -> Ap
  *date：2025/01/08 13:51:14
  */
 #[handler]
-pub async fn query_sys_post_detail(req: &mut Request, res: &mut Response) -> AppResult<()> {
+pub async fn query_sys_post_detail(req: &mut Request, res: &mut Response) -> AppResult {
     let item = req.parse_json::<QueryPostDetailReq>().await?;
     log::info!("query sys_post_detail params: {:?}", &item);
 
@@ -141,7 +141,7 @@ pub async fn query_sys_post_detail(req: &mut Request, res: &mut Response) -> App
  *date：2025/01/08 13:51:14
  */
 #[handler]
-pub async fn query_sys_post_list(req: &mut Request, res: &mut Response) -> AppResult<()> {
+pub async fn query_sys_post_list(req: &mut Request, res: &mut Response) -> AppResult {
     let req = req.parse_json::<QueryPostListReq>().await?;
     log::info!("query sys_post_list params: {:?}", &req);
 
