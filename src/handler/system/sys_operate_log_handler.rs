@@ -17,7 +17,7 @@ use salvo::{Request, Response};
  *date：2025/01/08 13:51:14
  */
 #[handler]
-pub async fn delete_sys_operate_log(req: &mut Request, res: &mut Response) -> AppResult<()> {
+pub async fn delete_sys_operate_log(req: &mut Request, res: &mut Response) -> AppResult {
     let item = req.parse_json::<DeleteOperateLogReq>().await?;
     log::info!("delete sys_operate_log params: {:?}", &item);
 
@@ -32,7 +32,7 @@ pub async fn delete_sys_operate_log(req: &mut Request, res: &mut Response) -> Ap
  *date：2025/01/08 13:51:14
  */
 #[handler]
-pub async fn query_sys_operate_log_detail(req: &mut Request, res: &mut Response) -> AppResult<()> {
+pub async fn query_sys_operate_log_detail(req: &mut Request, res: &mut Response) -> AppResult {
     let item = req.parse_json::<QueryOperateLogDetailReq>().await?;
 
     log::info!("query sys_operate_log_detail params: {:?}", &item);
@@ -52,7 +52,7 @@ pub async fn query_sys_operate_log_detail(req: &mut Request, res: &mut Response)
  *date：2025/01/08 13:51:14
  */
 #[handler]
-pub async fn query_sys_operate_log_list(req: &mut Request, res: &mut Response) -> AppResult<()> {
+pub async fn query_sys_operate_log_list(req: &mut Request, res: &mut Response) -> AppResult {
     let req = req.parse_json::<QueryOperateLogListReq>().await?;
     log::info!("query sys_operate_log_list params: {:?}", &req);
 

@@ -18,7 +18,7 @@ use salvo::{Request, Response};
  *date：2025/01/08 13:51:14
  */
 #[handler]
-pub async fn add_sys_dept(req: &mut Request, res: &mut Response) -> AppResult<()> {
+pub async fn add_sys_dept(req: &mut Request, res: &mut Response) -> AppResult {
     let item = req.parse_json::<DeptReq>().await?;
     log::info!("add sys_dept params: {:?}", &item);
 
@@ -49,7 +49,7 @@ pub async fn add_sys_dept(req: &mut Request, res: &mut Response) -> AppResult<()
  *date：2025/01/08 13:51:14
  */
 #[handler]
-pub async fn delete_sys_dept(req: &mut Request, res: &mut Response) -> AppResult<()> {
+pub async fn delete_sys_dept(req: &mut Request, res: &mut Response) -> AppResult {
     let item = req.parse_json::<DeleteDeptReq>().await?;
     log::info!("delete sys_dept params: {:?}", &item);
 
@@ -71,7 +71,7 @@ pub async fn delete_sys_dept(req: &mut Request, res: &mut Response) -> AppResult
  *date：2025/01/08 13:51:14
  */
 #[handler]
-pub async fn update_sys_dept(req: &mut Request, res: &mut Response) -> AppResult<()> {
+pub async fn update_sys_dept(req: &mut Request, res: &mut Response) -> AppResult {
     let rb = &mut RB.clone();
     let mut item = req.parse_json::<DeptReq>().await?;
     log::info!("update sys_dept params: {:?}", &item);
@@ -135,7 +135,7 @@ pub async fn update_sys_dept(req: &mut Request, res: &mut Response) -> AppResult
  *date：2025/01/08 13:51:14
  */
 #[handler]
-pub async fn update_sys_dept_status(req: &mut Request, res: &mut Response) -> AppResult<()> {
+pub async fn update_sys_dept_status(req: &mut Request, res: &mut Response) -> AppResult {
     let item = req.parse_json::<UpdateDeptStatusReq>().await?;
     log::info!("update sys_dept_status params: {:?}", &item);
 
@@ -175,7 +175,7 @@ pub async fn update_sys_dept_status(req: &mut Request, res: &mut Response) -> Ap
  *date：2025/01/08 13:51:14
  */
 #[handler]
-pub async fn query_sys_dept_detail(req: &mut Request, res: &mut Response) -> AppResult<()> {
+pub async fn query_sys_dept_detail(req: &mut Request, res: &mut Response) -> AppResult {
     let item = req.parse_json::<QueryDeptDetailReq>().await?;
     log::info!("query sys_dept_detail params: {:?}", &item);
 
@@ -194,7 +194,7 @@ pub async fn query_sys_dept_detail(req: &mut Request, res: &mut Response) -> App
  *date：2025/01/08 13:51:14
  */
 #[handler]
-pub async fn query_sys_dept_list(req: &mut Request, res: &mut Response) -> AppResult<()> {
+pub async fn query_sys_dept_list(req: &mut Request, res: &mut Response) -> AppResult {
     let item = req.parse_json::<QueryDeptListReq>().await?;
     log::info!("query sys_dept_list params: {:?}", &item);
 

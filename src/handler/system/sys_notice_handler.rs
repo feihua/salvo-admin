@@ -19,7 +19,7 @@ use salvo::{Request, Response};
  *date：2025/01/08 13:51:14
  */
 #[handler]
-pub async fn add_sys_notice(req: &mut Request, res: &mut Response) -> AppResult<()> {
+pub async fn add_sys_notice(req: &mut Request, res: &mut Response) -> AppResult {
     let mut item = req.parse_json::<NoticeReq>().await?;
     log::info!("add sys_notice params: {:?}", &item);
 
@@ -39,7 +39,7 @@ pub async fn add_sys_notice(req: &mut Request, res: &mut Response) -> AppResult<
  *date：2025/01/08 13:51:14
  */
 #[handler]
-pub async fn delete_sys_notice(req: &mut Request, res: &mut Response) -> AppResult<()> {
+pub async fn delete_sys_notice(req: &mut Request, res: &mut Response) -> AppResult {
     let item = req.parse_json::<DeleteNoticeReq>().await?;
 
     log::info!("delete sys_notice params: {:?}", &item);
@@ -55,7 +55,7 @@ pub async fn delete_sys_notice(req: &mut Request, res: &mut Response) -> AppResu
  *date：2025/01/08 13:51:14
  */
 #[handler]
-pub async fn update_sys_notice(req: &mut Request, res: &mut Response) -> AppResult<()> {
+pub async fn update_sys_notice(req: &mut Request, res: &mut Response) -> AppResult {
     let item = req.parse_json::<NoticeReq>().await?;
     log::info!("update sys_notice params: {:?}", &item);
 
@@ -81,7 +81,7 @@ pub async fn update_sys_notice(req: &mut Request, res: &mut Response) -> AppResu
  *date：2025/01/08 13:51:14
  */
 #[handler]
-pub async fn update_sys_notice_status(req: &mut Request, res: &mut Response) -> AppResult<()> {
+pub async fn update_sys_notice_status(req: &mut Request, res: &mut Response) -> AppResult {
     let item = req.parse_json::<UpdateNoticeStatusReq>().await?;
     log::info!("update sys_notice_status params: {:?}", &item);
 
@@ -102,7 +102,7 @@ pub async fn update_sys_notice_status(req: &mut Request, res: &mut Response) -> 
  *date：2025/01/08 13:51:14
  */
 #[handler]
-pub async fn query_sys_notice_detail(req: &mut Request, res: &mut Response) -> AppResult<()> {
+pub async fn query_sys_notice_detail(req: &mut Request, res: &mut Response) -> AppResult {
     let item = req.parse_json::<QueryNoticeDetailReq>().await?;
 
     log::info!("query sys_notice_detail params: {:?}", &item);
@@ -122,7 +122,7 @@ pub async fn query_sys_notice_detail(req: &mut Request, res: &mut Response) -> A
  *date：2025/01/08 13:51:14
  */
 #[handler]
-pub async fn query_sys_notice_list(req: &mut Request, res: &mut Response) -> AppResult<()> {
+pub async fn query_sys_notice_list(req: &mut Request, res: &mut Response) -> AppResult {
     let req = req.parse_json::<QueryNoticeListReq>().await?;
     log::info!("query sys_notice_list params: {:?}", &req);
 

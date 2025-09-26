@@ -29,7 +29,7 @@ pub enum AppError {
     #[error("业务异常: {0}")]
     BusinessError(&'static str),
 }
-pub type AppResult<T> = Result<T, AppError>;
+pub type AppResult = Result<(), AppError>;
 
 #[async_trait]
 impl Writer for AppError {
