@@ -302,12 +302,12 @@ pub async fn login(depot: &mut Depot, req: &mut Request, res: &mut Response) -> 
     let agent = UserAgentUtil::new(user_agent);
 
     let rb = &mut RB.clone();
-    let user_result = User::select_by_mobile(rb, &item.mobile).await?;
-    log::info!("query user by mobile: {:?}", user_result);
+    let user_result = User::select_by_account(rb, &item.account).await?;
+    log::info!("query user by account: {:?}", user_result);
 
     match user_result {
         None => {
-            add_login_log(item.mobile, 0, "用户不存在", agent).await;
+            add_login_log(item.account, 0, "用户不存在", agent).await;
             Err(AppError::BusinessError("用户不存在"))
         }
         Some(user) => {
@@ -317,14 +317,14 @@ pub async fn login(depot: &mut Depot, req: &mut Request, res: &mut Response) -> 
             let password = user.password;
 
             if password.ne(&item.password) {
-                add_login_log(item.mobile, 0, "密码不正确", agent).await;
+                add_login_log(item.account, 0, "密码不正确", agent).await;
                 return Err(AppError::BusinessError("密码不正确"));
             }
 
             let (btn_menu, is_super) = query_btn_menu(&id).await;
 
             if btn_menu.len() == 0 {
-                add_login_log(item.mobile, 0, "用户没有分配角色或者菜单,不能登录", agent).await;
+                add_login_log(item.account, 0, "用户没有分配角色或者菜单,不能登录", agent).await;
                 return Err(AppError::BusinessError("用户没有分配角色或者菜单,不能登录"));
             }
 
@@ -349,7 +349,7 @@ pub async fn login(depot: &mut Depot, req: &mut Request, res: &mut Response) -> 
                 .query_async::<()>(&mut conn)
                 .await?;
 
-            add_login_log(item.mobile, 1, "登录成功", agent.clone()).await;
+            add_login_log(item.account, 1, "登录成功", agent.clone()).await;
             s_user.login_os = agent.os;
             s_user.login_browser = agent.browser;
             s_user.login_date = Some(DateTime::now());
