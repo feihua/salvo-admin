@@ -11,8 +11,9 @@ use serde::{Deserialize, Serialize};
  */
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct RoleDept {
-    pub role_id: i64, //角色id
-    pub dept_id: i64, //部门id
+    pub id: Option<i64>, //主键
+    pub role_id: i64,    //角色id
+    pub dept_id: i64,    //部门id
 }
 
 /*

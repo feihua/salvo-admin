@@ -54,7 +54,7 @@ pub async fn add_sys_user(req: &mut Request, res: &mut Response) -> AppResult {
 
     let mut user_post_list: Vec<UserPost> = Vec::new();
     for post_id in post_ids {
-        user_post_list.push(UserPost { user_id: id.i64(), post_id })
+        user_post_list.push(UserPost { id: None, user_id: id.i64(), post_id })
     }
 
     let size = user_post_list.len() as u64;
@@ -137,6 +137,7 @@ pub async fn update_sys_user(req: &mut Request, res: &mut Response) -> AppResult
     let mut user_post_list: Vec<UserPost> = Vec::new();
     for post_id in post_ids {
         user_post_list.push(UserPost {
+            id: None,
             user_id: user.id.unwrap_or_default(),
             post_id,
         })
@@ -474,7 +475,6 @@ pub async fn update_user_role(req: &mut Request, res: &mut Response) -> AppResul
         let r_id = role_id.clone();
         list.push(UserRole {
             id: None,
-            create_time: Some(DateTime::now()),
             role_id: r_id,
             user_id: user_id.clone(),
         })

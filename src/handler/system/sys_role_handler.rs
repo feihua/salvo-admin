@@ -240,7 +240,6 @@ pub async fn update_role_menu(req: &mut Request, res: &mut Response) -> AppResul
         let menu_id = id.clone();
         role_menu.push(RoleMenu {
             id: None,
-            create_time: Some(DateTime::now()),
             menu_id,
             role_id: role_id.clone(),
         })
@@ -364,7 +363,6 @@ pub async fn batch_auth_user(req: &mut Request, res: &mut Response) -> AppResult
         let user_id = id.clone();
         user_role.push(UserRole {
             id: None,
-            create_time: Some(DateTime::now()),
             role_id: role_id.clone(),
             user_id,
         })
