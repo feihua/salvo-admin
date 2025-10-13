@@ -165,8 +165,7 @@ pub async fn update_sys_dept_status(req: &mut Request, res: &mut Response) -> Ap
 
     let mut param = vec![value!(item.status), value!(DateTime::now())];
     param.extend(item.ids.iter().map(|&id| value!(id)));
-    rb.exec(&update_sql, param).await?;
-    ok_result(res)
+    rb.exec(&update_sql, param).await.map(|_| ok_result(res))?
 }
 
 /*
@@ -179,13 +178,13 @@ pub async fn query_sys_dept_detail(req: &mut Request, res: &mut Response) -> App
     let item = req.parse_json::<QueryDeptDetailReq>().await?;
     log::info!("query sys_dept_detail params: {:?}", &item);
 
-    Dept::select_by_id(&mut RB.clone(), &item.id).await?.map_or_else(
-        || Err(AppError::BusinessError("部门不存在")),
-        |x| {
+    match Dept::select_by_id(&mut RB.clone(), &item.id).await? {
+        Some(x) => {
             let data: DeptResp = x.into();
             ok_result_data(res, data)
-        },
-    )
+        }
+        None => Err(AppError::BusinessError("部门不存在")),
+    }
 }
 
 /*
