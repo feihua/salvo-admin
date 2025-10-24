@@ -41,7 +41,7 @@ impl Writer for AppError {
 
         res.render(Json(BaseResponse {
             msg: self.to_string(),
-            code: 0,
+            code: 1,
             data: Some("None".to_string()),
         }))
     }
