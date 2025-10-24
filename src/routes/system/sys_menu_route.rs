@@ -14,5 +14,6 @@ pub fn build_sys_menu_route() -> Router {
         .push(Router::new().path("/system/menu/queryMenuDetail").post(query_sys_menu_detail))
         .push(Router::new().path("/system/menu/queryMenuList").post(query_sys_menu_list))
         .push(Router::new().path("/system/menu/queryMenuListSimple").post(query_sys_menu_list_simple))
+        .push(Router::new().path("/system/menu/queryMenuResourceList").post(query_sys_menu_resource_list))
     //记得在main.rs中的route()函数中添加构建菜单信息路由build_sys_menu_route()
 }

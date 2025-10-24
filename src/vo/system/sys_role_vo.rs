@@ -115,6 +115,7 @@ pub struct MenuDataList {
     pub key: String,
     pub label: String,
     pub is_penultimate: bool,
+    pub is_leaf: bool,
 }
 
 /*

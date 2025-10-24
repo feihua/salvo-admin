@@ -3,12 +3,13 @@
 // date：2025/01/08 13:51:14
 
 use crate::common::error::{AppError, AppResult};
-use crate::common::result::{ok_result, ok_result_data};
+use crate::common::result::{ok_result, ok_result_data, ok_result_page};
 use crate::model::system::sys_menu_model::{select_count_menu_by_parent_id, Menu};
 use crate::model::system::sys_role_menu_model::select_count_menu_by_menu_id;
 use crate::vo::system::sys_menu_vo::*;
 use crate::RB;
 use rbatis::rbdc::DateTime;
+use rbatis::PageRequest;
 use rbs::value;
 use salvo::prelude::*;
 use salvo::{Request, Response};
@@ -50,15 +51,18 @@ pub async fn delete_sys_menu(req: &mut Request, res: &mut Response) -> AppResult
 
     let rb = &mut RB.clone();
 
-    if select_count_menu_by_parent_id(rb, &item.id).await? > 0 {
-        return Err(AppError::BusinessError("存在子菜单,不允许删除"));
+    let ids = item.ids;
+    for x in ids.clone() {
+        if select_count_menu_by_parent_id(rb, &x).await? > 0 {
+            return Err(AppError::BusinessError("存在子菜单,不允许删除"));
+        }
+
+        if select_count_menu_by_menu_id(rb, &x).await? > 0 {
+            return Err(AppError::BusinessError("菜单已分配,不允许删除"));
+        }
     }
 
-    if select_count_menu_by_menu_id(rb, &item.id).await? > 0 {
-        return Err(AppError::BusinessError("菜单已分配,不允许删除"));
-    }
-
-    Menu::delete_by_map(rb, value! {"id": &item.id}).await.map(|_| ok_result(res))?
+    Menu::delete_by_map(rb, value! {"id": &ids}).await.map(|_| ok_result(res))?
 }
 
 /*
@@ -154,7 +158,13 @@ pub async fn query_sys_menu_list(req: &mut Request, res: &mut Response) -> AppRe
 
     let rb = &mut RB.clone();
 
-    Menu::select_all(rb).await.map(|x| ok_result_data(res, x.into_iter().map(|x| x.into()).collect::<Vec<MenuResp>>()))?
+    let menu_name = item.menu_name;
+    let parent_id = item.parent_id;
+    let status = item.status;
+
+    Menu::query_sys_menu_list(rb, menu_name, parent_id, status)
+        .await
+        .map(|x| ok_result_data(res, x.into_iter().map(|x| x.into()).collect::<Vec<MenuResp>>()))?
 }
 
 /*
@@ -175,4 +185,26 @@ pub async fn query_sys_menu_list_simple(res: &mut Response) -> AppResult {
     }
 
     ok_result_data(res, list)
+}
+/*
+ *查询菜单信息列表
+ *author：刘飞华
+ *date：2025/01/08 13:51:14
+ */
+#[handler]
+pub async fn query_sys_menu_resource_list(req: &mut Request, res: &mut Response) -> AppResult {
+    let item = req.parse_json::<QueryMenuListReq>().await?;
+    log::info!("query sys_menu_list params: {:?}", &item);
+
+    let rb = &mut RB.clone();
+
+    let menu_name = item.menu_name;
+    let parent_id = item.parent_id;
+    let status = item.status;
+
+    let page = &PageRequest::new(item.page_no, item.page_size);
+
+    Menu::query_sys_menu_resource_list(rb, page, menu_name, parent_id, status)
+        .await
+        .map(|x| ok_result_page(res, x.records.into_iter().map(|x| x.into()).collect::<Vec<MenuResp>>(), x.total))?
 }
