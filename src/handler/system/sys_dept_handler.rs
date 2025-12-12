@@ -13,7 +13,7 @@ use rbs::value;
 use salvo::prelude::*;
 use salvo::{Request, Response};
 /*
- *添加部门表
+ *添加部门
  *author：刘飞华
  *date：2025/01/08 13:51:14
  */
@@ -44,7 +44,7 @@ pub async fn add_sys_dept(req: &mut Request, res: &mut Response) -> AppResult {
 }
 
 /*
- *删除部门表
+ *删除部门
  *author：刘飞华
  *date：2025/01/08 13:51:14
  */
@@ -66,7 +66,7 @@ pub async fn delete_sys_dept(req: &mut Request, res: &mut Response) -> AppResult
 }
 
 /*
- *更新部门表
+ *更新部门
  *author：刘飞华
  *date：2025/01/08 13:51:14
  */
@@ -130,7 +130,7 @@ pub async fn update_sys_dept(req: &mut Request, res: &mut Response) -> AppResult
 }
 
 /*
- *更新部门表状态
+ *更新部门状态
  *author：刘飞华
  *date：2025/01/08 13:51:14
  */
@@ -169,7 +169,7 @@ pub async fn update_sys_dept_status(req: &mut Request, res: &mut Response) -> Ap
 }
 
 /*
- *查询部门表详情
+ *查询部门详情
  *author：刘飞华
  *date：2025/01/08 13:51:14
  */
@@ -188,7 +188,7 @@ pub async fn query_sys_dept_detail(req: &mut Request, res: &mut Response) -> App
 }
 
 /*
- *查询部门表列表
+ *查询部门列表
  *author：刘飞华
  *date：2025/01/08 13:51:14
  */

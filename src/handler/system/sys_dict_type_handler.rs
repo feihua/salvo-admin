@@ -15,7 +15,7 @@ use salvo::prelude::*;
 use salvo::{Request, Response};
 
 /*
- *添加字典类型表
+ *添加字典类型
  *author：刘飞华
  *date：2025/01/08 13:51:14
  */
@@ -34,7 +34,7 @@ pub async fn add_sys_dict_type(req: &mut Request, res: &mut Response) -> AppResu
 }
 
 /*
- *删除字典类型表
+ *删除字典类型
  *author：刘飞华
  *date：2025/01/08 13:51:14
  */
@@ -61,7 +61,7 @@ pub async fn delete_sys_dict_type(req: &mut Request, res: &mut Response) -> AppR
 }
 
 /*
- *更新字典类型表
+ *更新字典类型
  *author：刘飞华
  *date：2025/01/08 13:51:14
  */
@@ -93,7 +93,7 @@ pub async fn update_sys_dict_type(req: &mut Request, res: &mut Response) -> AppR
 }
 
 /*
- *更新字典类型表状态
+ *更新字典类型状态
  *author：刘飞华
  *date：2025/01/08 13:51:14
  */
@@ -116,7 +116,7 @@ pub async fn update_sys_dict_type_status(req: &mut Request, res: &mut Response) 
 }
 
 /*
- *查询字典类型表详情
+ *查询字典类型详情
  *author：刘飞华
  *date：2025/01/08 13:51:14
  */
@@ -136,7 +136,7 @@ pub async fn query_sys_dict_type_detail(req: &mut Request, res: &mut Response) -
 }
 
 /*
- *查询字典类型表列表
+ *查询字典类型列表
  *author：刘飞华
  *date：2025/01/08 13:51:14
  */

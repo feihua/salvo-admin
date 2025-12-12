@@ -14,7 +14,7 @@ use salvo::prelude::*;
 use salvo::{Request, Response};
 
 /*
- *添加通知公告表
+ *添加通知公告
  *author：刘飞华
  *date：2025/01/08 13:51:14
  */
@@ -34,7 +34,7 @@ pub async fn add_sys_notice(req: &mut Request, res: &mut Response) -> AppResult 
 }
 
 /*
- *删除通知公告表
+ *删除通知公告
  *author：刘飞华
  *date：2025/01/08 13:51:14
  */
@@ -50,7 +50,7 @@ pub async fn delete_sys_notice(req: &mut Request, res: &mut Response) -> AppResu
 }
 
 /*
- *更新通知公告表
+ *更新通知公告
  *author：刘飞华
  *date：2025/01/08 13:51:14
  */
@@ -65,7 +65,7 @@ pub async fn update_sys_notice(req: &mut Request, res: &mut Response) -> AppResu
         return Err(AppError::BusinessError("主键不能为空"));
     }
     if Notice::select_by_id(rb, &id.unwrap_or_default()).await?.is_none() {
-        return Err(AppError::BusinessError("通知公告表不存在"));
+        return Err(AppError::BusinessError("通知公告不存在"));
     };
 
     if Notice::exists_by_title_except_id(rb, &item.notice_title, id.unwrap_or_default()).await? {
@@ -76,7 +76,7 @@ pub async fn update_sys_notice(req: &mut Request, res: &mut Response) -> AppResu
 }
 
 /*
- *更新通知公告表状态
+ *更新通知公告状态
  *author：刘飞华
  *date：2025/01/08 13:51:14
  */
@@ -97,7 +97,7 @@ pub async fn update_sys_notice_status(req: &mut Request, res: &mut Response) -> 
 }
 
 /*
- *查询通知公告表详情
+ *查询通知公告详情
  *author：刘飞华
  *date：2025/01/08 13:51:14
  */
@@ -108,7 +108,7 @@ pub async fn query_sys_notice_detail(req: &mut Request, res: &mut Response) -> A
     log::info!("query sys_notice_detail params: {:?}", &item);
 
     Notice::select_by_id(&mut RB.clone(), &item.id).await?.map_or_else(
-        || Err(AppError::BusinessError("通知公告表不存在")),
+        || Err(AppError::BusinessError("通知公告不存在")),
         |x| {
             let notice: NoticeResp = x.into();
             ok_result_data(res, notice)
@@ -117,7 +117,7 @@ pub async fn query_sys_notice_detail(req: &mut Request, res: &mut Response) -> A
 }
 
 /*
- *查询通知公告表列表
+ *查询通知公告列表
  *author：刘飞华
  *date：2025/01/08 13:51:14
  */

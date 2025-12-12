@@ -14,7 +14,7 @@ use salvo::prelude::*;
 use salvo::{Request, Response};
 
 /*
- *添加字典数据表
+ *添加字典数据
  *author：刘飞华
  *date：2025/01/08 13:51:14
  */
@@ -38,7 +38,7 @@ pub async fn add_sys_dict_data(req: &mut Request, res: &mut Response) -> AppResu
 }
 
 /*
- *删除字典数据表
+ *删除字典数据
  *author：刘飞华
  *date：2025/01/08 13:51:14
  */
@@ -53,7 +53,7 @@ pub async fn delete_sys_dict_data(req: &mut Request, res: &mut Response) -> AppR
 }
 
 /*
- *更新字典数据表
+ *更新字典数据
  *author：刘飞华
  *date：2025/01/08 13:51:14
  */
@@ -88,7 +88,7 @@ pub async fn update_sys_dict_data(req: &mut Request, res: &mut Response) -> AppR
 }
 
 /*
- *更新字典数据表状态
+ *更新字典数据状态
  *author：刘飞华
  *date：2025/01/08 13:51:14
  */
@@ -109,7 +109,7 @@ pub async fn update_sys_dict_data_status(req: &mut Request, res: &mut Response) 
 }
 
 /*
- *查询字典数据表详情
+ *查询字典数据详情
  *author：刘飞华
  *date：2025/01/08 13:51:14
  */
@@ -128,7 +128,7 @@ pub async fn query_sys_dict_data_detail(req: &mut Request, res: &mut Response) -
 }
 
 /*
- *查询字典数据表列表
+ *查询字典数据列表
  *author：刘飞华
  *date：2025/01/08 13:51:14
  */

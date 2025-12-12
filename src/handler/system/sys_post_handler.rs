@@ -14,7 +14,7 @@ use rbs::value;
 use salvo::prelude::*;
 use salvo::{Request, Response};
 /*
- *添加岗位信息表
+ *添加岗位信息
  *author：刘飞华
  *date：2025/01/08 13:51:14
  */
@@ -38,7 +38,7 @@ pub async fn add_sys_post(req: &mut Request, res: &mut Response) -> AppResult {
 }
 
 /*
- *删除岗位信息表
+ *删除岗位信息
  *author：刘飞华
  *date：2025/01/08 13:51:14
  */
@@ -64,7 +64,7 @@ pub async fn delete_sys_post(req: &mut Request, res: &mut Response) -> AppResult
 }
 
 /*
- *更新岗位信息表
+ *更新岗位信息
  *author：刘飞华
  *date：2025/01/08 13:51:14
  */
@@ -96,7 +96,7 @@ pub async fn update_sys_post(req: &mut Request, res: &mut Response) -> AppResult
 }
 
 /*
- *更新岗位信息表状态
+ *更新岗位信息状态
  *author：刘飞华
  *date：2025/01/08 13:51:14
  */
@@ -117,7 +117,7 @@ pub async fn update_sys_post_status(req: &mut Request, res: &mut Response) -> Ap
 }
 
 /*
- *查询岗位信息表详情
+ *查询岗位信息详情
  *author：刘飞华
  *date：2025/01/08 13:51:14
  */
@@ -136,7 +136,7 @@ pub async fn query_sys_post_detail(req: &mut Request, res: &mut Response) -> App
 }
 
 /*
- *查询岗位信息表列表
+ *查询岗位信息列表
  *author：刘飞华
  *date：2025/01/08 13:51:14
  */
