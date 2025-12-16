@@ -25,13 +25,15 @@ pub async fn add_sys_menu(req: &mut Request, res: &mut Response) -> AppResult {
     log::info!("add sys_menu params: {:?}", &item);
 
     let rb = &mut RB.clone();
-    if Menu::select_by_menu_name(rb, &item.menu_name).await?.is_some() {
+    if Menu::check_menu_name_unique(rb, &item.menu_name, None).await?.is_some() {
         return Err(AppError::BusinessError("菜单名称已存在"));
     }
 
-    if let Some(x) = item.menu_url.clone() {
-        if Menu::select_by_menu_url(rb, x.as_str()).await?.is_some() {
-            return Err(AppError::BusinessError("路由路径已存在"));
+    if let Some(url) = item.menu_url.clone() {
+        if url != "".to_string() {
+            if Menu::check_menu_url_unique(rb, url.as_str(), None).await?.is_some() {
+                return Err(AppError::BusinessError("路由路径已存在"));
+            }
         }
     }
 
@@ -87,16 +89,13 @@ pub async fn update_sys_menu(req: &mut Request, res: &mut Response) -> AppResult
         return Err(AppError::BusinessError("菜单信息不存在"));
     }
 
-    if let Some(x) = Menu::select_by_menu_name(rb, &item.menu_name).await? {
-        if x.id != id {
-            return Err(AppError::BusinessError("菜单名称已存在"));
-        }
+    if Menu::check_menu_name_unique(rb, &item.menu_name, id).await?.is_some() {
+        return Err(AppError::BusinessError("菜单名称已存在"));
     }
 
-    let menu_url = item.menu_url.clone();
-    if menu_url.is_some() {
-        if let Some(x) = Menu::select_by_menu_url(rb, &menu_url.unwrap()).await? {
-            if x.id != id {
+    if let Some(url) = item.menu_url.clone() {
+        if url != "".to_string() {
+            if Menu::check_menu_url_unique(rb, &url, id).await?.is_some() {
                 return Err(AppError::BusinessError("路由路径已存在"));
             }
         }
@@ -174,18 +173,11 @@ pub async fn query_sys_menu_list(req: &mut Request, res: &mut Response) -> AppRe
  */
 #[handler]
 pub async fn query_sys_menu_list_simple(res: &mut Response) -> AppResult {
-    let mut list: Vec<MenuListSimpleDataResp> = Vec::new();
-
-    for x in Menu::select_menu_list(&mut RB.clone()).await? {
-        list.push(MenuListSimpleDataResp {
-            id: x.id,               //主键
-            menu_name: x.menu_name, //菜单名称
-            parent_id: x.parent_id, //父ID
-        })
-    }
-
-    ok_result_data(res, list)
+    Menu::select_menu_list(&mut RB.clone())
+        .await
+        .map(|x| ok_result_data(res, x.into_iter().map(|x| MenuSimpleResp::from(x)).collect::<Vec<MenuSimpleResp>>()))?
 }
+
 /*
  *查询菜单信息列表
  *author：刘飞华
