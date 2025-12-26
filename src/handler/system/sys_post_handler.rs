@@ -25,11 +25,11 @@ pub async fn add_sys_post(req: &mut Request, res: &mut Response) -> AppResult {
 
     let rb = &mut RB.clone();
 
-    if Post::select_by_name(rb, &item.post_name, None).await?.is_some() {
+    if Post::check_post_name_unique(rb, &item.post_name, None).await?.is_some() {
         return Err(AppError::BusinessError("岗位名称已存在"));
     }
 
-    if Post::select_by_code(rb, &item.post_code, None).await?.is_some() {
+    if Post::check_post_code_unique(rb, &item.post_code, None).await?.is_some() {
         return Err(AppError::BusinessError("岗位编码已存在"));
     }
 
@@ -84,11 +84,11 @@ pub async fn update_sys_post(req: &mut Request, res: &mut Response) -> AppResult
         return Err(AppError::BusinessError("岗位不存在"));
     }
 
-    if Post::select_by_name(rb, &item.post_name, id).await?.is_some() {
+    if Post::check_post_name_unique(rb, &item.post_name, id).await?.is_some() {
         return Err(AppError::BusinessError("岗位名称已存在"));
     }
 
-    if Post::select_by_code(rb, &item.post_code, id).await?.is_some() {
+    if Post::check_post_code_unique(rb, &item.post_code, id).await?.is_some() {
         return Err(AppError::BusinessError("岗位编码已存在"));
     }
 
