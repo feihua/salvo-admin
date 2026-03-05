@@ -52,10 +52,16 @@ pub async fn add_sys_user(req: &mut Request, res: &mut Response) -> AppResult {
     item.id = None;
     let id = User::insert(rb, &User::from(item)).await?.last_insert_id;
 
-    let mut user_post_list: Vec<UserPost> = Vec::new();
-    for post_id in post_ids {
-        user_post_list.push(UserPost { id: None, user_id: id.i64(), post_id })
-    }
+    UserPost::delete_by_map(rb, value! {"user_id": &id}).await?;
+
+    let user_post_list = post_ids
+        .iter()
+        .map(|x| UserPost {
+            id: None,
+            user_id: id.i64(),
+            post_id: *x,
+        })
+        .collect::<Vec<UserPost>>();
 
     let size = user_post_list.len() as u64;
     UserPost::insert_batch(rb, &user_post_list, size).await.map(|_| ok_result(res))?
@@ -133,15 +139,15 @@ pub async fn update_sys_user(req: &mut Request, res: &mut Response) -> AppResult
         }
     }
 
-    let post_ids = item.post_ids.clone();
-    let mut user_post_list: Vec<UserPost> = Vec::new();
-    for post_id in post_ids {
-        user_post_list.push(UserPost {
+    let user_post_list = item
+        .post_ids
+        .iter()
+        .map(|x| UserPost {
             id: None,
             user_id: user.id.unwrap_or_default(),
-            post_id,
+            post_id: *x,
         })
-    }
+        .collect::<Vec<UserPost>>();
 
     UserPost::delete_by_map(rb, value! {"user_id": &item.id}).await?;
     UserPost::insert_batch(rb, &user_post_list, user_post_list.len() as u64).await?;
