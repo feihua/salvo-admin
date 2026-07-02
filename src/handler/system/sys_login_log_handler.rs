@@ -58,7 +58,7 @@ pub async fn query_sys_login_log_list(req: &mut Request, res: &mut Response) -> 
     let rb = &mut RB.clone();
     let item = &req;
 
-    LoginLog::select_login_log_list(rb, &PageRequest::from(item), item)
+    LoginLog::select_by_page(rb, &PageRequest::from(item), item)
         .await
         .map(|x| ok_result_page(res, x.records.into_iter().map(|x| x.into()).collect::<Vec<LoginLogResp>>(), x.total))?
 }

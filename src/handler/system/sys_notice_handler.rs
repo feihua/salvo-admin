@@ -9,7 +9,7 @@ use crate::vo::system::sys_notice_vo::*;
 use crate::RB;
 use rbatis::plugin::page::PageRequest;
 use rbatis::rbdc::DateTime;
-use rbs::value;
+use rbs::{value};
 use salvo::prelude::*;
 use salvo::{Request, Response};
 
@@ -25,7 +25,11 @@ pub async fn add_sys_notice(req: &mut Request, res: &mut Response) -> AppResult 
 
     let rb = &mut RB.clone();
 
-    if Notice::exists_by_title(rb, &item.notice_title).await? {
+    let condition = value! {
+        "notice_title": &item.notice_title,
+    };
+    let list = Notice::select_by_map(rb, condition).await?;
+    if list.len() > 0 {
         return Err(AppError::BusinessError("公告标题已存在"));
     }
 
@@ -64,11 +68,18 @@ pub async fn update_sys_notice(req: &mut Request, res: &mut Response) -> AppResu
     if id.is_none() {
         return Err(AppError::BusinessError("主键不能为空"));
     }
-    if Notice::select_by_id(rb, &id.unwrap_or_default()).await?.is_none() {
+
+    if Notice::select_by_map(rb, value! {"id":id}).await?.len() == 0 {
         return Err(AppError::BusinessError("通知公告不存在"));
     };
 
-    if Notice::exists_by_title_except_id(rb, &item.notice_title, id.unwrap_or_default()).await? {
+    let condition = value! {
+        "notice_title": &item.notice_title,
+        "id!=":id
+    };
+
+    let list = Notice::select_by_map(rb, condition).await?;
+    if list.len() > 0 {
         return Err(AppError::BusinessError("公告标题已存在"));
     }
 
@@ -129,7 +140,7 @@ pub async fn query_sys_notice_list(req: &mut Request, res: &mut Response) -> App
     let rb = &mut RB.clone();
     let item = &req;
 
-    Notice::select_sys_notice_list(rb, &PageRequest::from(item), item)
+    Notice::select_by_page(rb, &PageRequest::from(item), item)
         .await
         .map(|x| ok_result_page(res, x.records.into_iter().map(|x| x.into()).collect::<Vec<NoticeResp>>(), x.total))?
 }

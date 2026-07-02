@@ -59,7 +59,7 @@ pub async fn query_sys_operate_log_list(req: &mut Request, res: &mut Response) -
     let rb = &mut RB.clone();
     let item = &req;
 
-    OperateLog::select_page_by_name(rb, &PageRequest::from(item), item)
+    OperateLog::select_by_page(rb, &PageRequest::from(item), item)
         .await
         .map(|x| ok_result_page(res, x.records.into_iter().map(|x| x.into()).collect::<Vec<OperateLogResp>>(), x.total))?
 }

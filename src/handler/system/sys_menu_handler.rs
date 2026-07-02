@@ -5,15 +5,14 @@
 use crate::common::error::{AppError, AppResult};
 use crate::common::result::{ok_result, ok_result_data, ok_result_page};
 use crate::model::system::sys_menu_model::{select_count_menu_by_parent_id, Menu};
-use crate::model::system::sys_role_menu_model::select_count_menu_by_menu_id;
+use crate::model::system::sys_role_menu_model::RoleMenu;
 use crate::vo::system::sys_menu_vo::*;
 use crate::RB;
+use rbatis::plugin::page::PageRequest;
 use rbatis::rbdc::DateTime;
-use rbatis::PageRequest;
 use rbs::value;
 use salvo::prelude::*;
 use salvo::{Request, Response};
-
 /*
  *添加菜单信息
  *author：刘飞华
@@ -25,13 +24,13 @@ pub async fn add_sys_menu(req: &mut Request, res: &mut Response) -> AppResult {
     log::info!("add sys_menu params: {:?}", &item);
 
     let rb = &mut RB.clone();
-    if Menu::check_menu_name_unique(rb, &item.menu_name, None).await?.is_some() {
+    if Menu::select_by_map(rb, value! {"menu_name": &item.menu_name}).await?.len() > 0 {
         return Err(AppError::BusinessError("菜单名称已存在"));
     }
 
     if let Some(url) = item.menu_url.clone() {
         if url != "".to_string() {
-            if Menu::check_menu_url_unique(rb, url.as_str(), None).await?.is_some() {
+            if Menu::select_by_map(rb, value! {"menu_url": url}).await?.len() > 0 {
                 return Err(AppError::BusinessError("路由路径已存在"));
             }
         }
@@ -59,7 +58,7 @@ pub async fn delete_sys_menu(req: &mut Request, res: &mut Response) -> AppResult
             return Err(AppError::BusinessError("存在子菜单,不允许删除"));
         }
 
-        if select_count_menu_by_menu_id(rb, &x).await? > 0 {
+        if RoleMenu::select_count_menu_by_menu_id(rb, &x).await? > 0 {
             return Err(AppError::BusinessError("菜单已分配,不允许删除"));
         }
     }
@@ -89,13 +88,14 @@ pub async fn update_sys_menu(req: &mut Request, res: &mut Response) -> AppResult
         return Err(AppError::BusinessError("菜单信息不存在"));
     }
 
-    if Menu::check_menu_name_unique(rb, &item.menu_name, id).await?.is_some() {
+    let rb = &mut RB.clone();
+    if Menu::select_by_map(rb, value! {"menu_name": &item.menu_name, "id!=": &id}).await?.len() > 0 {
         return Err(AppError::BusinessError("菜单名称已存在"));
     }
 
     if let Some(url) = item.menu_url.clone() {
         if url != "".to_string() {
-            if Menu::check_menu_url_unique(rb, &url, id).await?.is_some() {
+            if Menu::select_by_map(rb, value! {"menu_url": url, "id!=": &id}).await?.len() > 0 {
                 return Err(AppError::BusinessError("路由路径已存在"));
             }
         }
@@ -154,14 +154,8 @@ pub async fn query_sys_menu_detail(req: &mut Request, res: &mut Response) -> App
 pub async fn query_sys_menu_list(req: &mut Request, res: &mut Response) -> AppResult {
     let item = req.parse_json::<QueryMenuListReq>().await?;
     log::info!("query sys_menu_list params: {:?}", &item);
-
-    let rb = &mut RB.clone();
-
-    let menu_name = item.menu_name;
-    let parent_id = item.parent_id;
-    let status = item.status;
-
-    Menu::query_sys_menu_list(rb, menu_name, parent_id, status)
+    
+    Menu::select_by_map(&mut RB.clone(), value! {})
         .await
         .map(|x| ok_result_data(res, x.into_iter().map(|x| x.into()).collect::<Vec<MenuResp>>()))?
 }
@@ -173,7 +167,7 @@ pub async fn query_sys_menu_list(req: &mut Request, res: &mut Response) -> AppRe
  */
 #[handler]
 pub async fn query_sys_menu_list_simple(res: &mut Response) -> AppResult {
-    Menu::select_menu_list(&mut RB.clone())
+    Menu::select_by_map(&mut RB.clone(), value! {"menu_type!=": 3, "status": 1})
         .await
         .map(|x| ok_result_data(res, x.into_iter().map(|x| MenuSimpleResp::from(x)).collect::<Vec<MenuSimpleResp>>()))?
 }
@@ -185,18 +179,13 @@ pub async fn query_sys_menu_list_simple(res: &mut Response) -> AppResult {
  */
 #[handler]
 pub async fn query_sys_menu_resource_list(req: &mut Request, res: &mut Response) -> AppResult {
-    let item = req.parse_json::<QueryMenuListReq>().await?;
-    log::info!("query sys_menu_list params: {:?}", &item);
+    let req = req.parse_json::<QueryMenuListReq>().await?;
+    log::info!("query sys_menu_list params: {:?}", &req);
 
     let rb = &mut RB.clone();
+    let item = &req;
 
-    let menu_name = item.menu_name;
-    let parent_id = item.parent_id;
-    let status = item.status;
-
-    let page = &PageRequest::new(item.page_no, item.page_size);
-
-    Menu::query_sys_menu_resource_list(rb, page, menu_name, parent_id, status)
+    Menu::select_by_page(rb, &PageRequest::from(item), item)
         .await
         .map(|x| ok_result_page(res, x.records.into_iter().map(|x| x.into()).collect::<Vec<MenuResp>>(), x.total))?
 }

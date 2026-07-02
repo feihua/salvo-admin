@@ -6,7 +6,6 @@ use crate::vo::system::sys_notice_vo::NoticeReq;
 use crate::vo::system::sys_notice_vo::NoticeResp;
 use crate::vo::system::sys_notice_vo::QueryNoticeListReq;
 use rbatis::rbdc::datetime::DateTime;
-use rbatis::{Error, RBatis};
 use serde::{Deserialize, Serialize};
 /*
  *通知公告表
@@ -68,63 +67,45 @@ impl Into<NoticeResp> for Notice {
  */
 rbatis::crud!(Notice {}, "sys_notice");
 
-/*
- *根据id查询通知公告表
- *author：刘飞华
- *date：2024/12/25 10:01:11
- */
-impl_select!(Notice{select_by_id(id:&i64) -> Option => "`where id = #{id} limit 1`"}, "sys_notice");
-
-/*
- *根据公告标题查询通知公告表
- *author：刘飞华
- *date：2024/12/25 10:01:11
- */
-impl_select!(Notice{select_by_title(title:&str) -> Option => "`where notice_title = #{title} limit 1`"}, "sys_notice");
-
-/*
- *根据条件分页查询通知公告表
- *author：刘飞华
- *date：2024/12/25 10:01:11
- */
-impl_select_page!(Notice{select_sys_notice_list(req:&QueryNoticeListReq) =>"
-    where 1=1
-     if req.noticeTitle != '' && req.noticeTitle != null:
-       ` and notice_title like concat('%', #{req.noticeTitle}, '%') `
-     if req.noticeType != 0:
-      ` and notice_type = #{req.noticeType} `
-     if req.status != 2:
-       ` and status = #{req.status} `
-     if !sql.contains('count'):
-       ` order by create_time desc `"
-},"sys_notice");
-
 impl Notice {
-    pub async fn exists_by_title(rb: &mut RBatis, title: &str) -> Result<bool, Error> {
-        let sql = "SELECT COUNT(*) FROM sys_notice WHERE notice_title = ?";
-        let count: i64 = rb.query_decode(sql, vec![title.into()]).await?;
-        Ok(count > 0)
+    /*
+     *根据id查询通知公告表
+     *author：刘飞华
+     *date：2026/07/01 17:49:14
+     */
+    #[html_sql(
+        r#"<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "https://raw.githubusercontent.com/rbatis/rbatis/master/rbatis-codegen/mybatis-3-mapper.dtd">
+      <select id="select_by_id">
+            `select * from sys_notice where id = #{id}`
+      </select>"#
+    )]
+    pub async fn select_by_id(rb: &dyn rbatis::Executor, id: &i64) -> rbatis::Result<Option<Notice>> {
+        impled!()
     }
 
-    pub async fn exists_by_title_except_id(rb: &mut RBatis, title: &str, id: i64) -> Result<bool, Error> {
-        let sql = "SELECT COUNT(*) FROM sys_notice WHERE notice_title = ? and id != ?";
-        let count: i64 = rb.query_decode(sql, vec![title.into(), id.into()]).await?;
-        Ok(count > 0)
+    /*
+     *根据条件分页查询通知公告表
+     *author：刘飞华
+     *date：2026/07/01 17:49:14
+     */
+    #[html_sql(
+        r#"<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "https://raw.githubusercontent.com/rbatis/rbatis/master/rbatis-codegen/mybatis-3-mapper.dtd">
+      <select id="select_by_page">
+            `select * from sys_notice`
+            <where>
+            <if test="req.noticeTitle != '' && req.noticeTitle != null">
+                ` and notice_title like concat('%', #{req.noticeTitle}, '%')`
+            </if>
+            <if test="req.noticeType != 0">
+                ` and notice_type = #{req.noticeType}`
+            </if>
+            <if test="req.status != 2">
+                ` and status = #{req.status}`
+            </if>
+            </where>
+      </select>"#
+    )]
+    pub async fn select_by_page(rb: &dyn rbatis::Executor, page_req: &rbatis::PageRequest, req: &QueryNoticeListReq) -> rbatis::Result<rbatis::Page<Notice>> {
+        impled!()
     }
-    //
-    // pub async fn exists_by_id(rb: &mut RBatis, id: &i32) -> Result<bool, Error> {
-    //     let sql = "SELECT COUNT(*) FROM sys_notice WHERE notice_title = ?";
-    //     let count: i64 = rb.query_decode(sql, vec![title.into()]).await?;
-    //     Ok(count > 0)
-    // }
-    //
-    // pub async fn update_status_by_ids(
-    //     rb: &mut RBatis,
-    //     ids: &[i32],
-    //     status: i32,
-    // ) -> Result<(), Error> {
-    //     let sql = "SELECT COUNT(*) FROM sys_notice WHERE notice_title = ?";
-    //     let count: i64 = rb.query_decode(sql, vec![title.into()]).await?;
-    //     Ok(count > 0)
-    // }
 }

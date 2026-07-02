@@ -4,6 +4,7 @@
 use crate::common::result::serialize_datetime;
 use crate::model::system::sys_menu_model::Menu;
 use rbatis::rbdc::DateTime;
+use rbatis::PageRequest;
 use serde::{Deserialize, Serialize};
 /*
 删除菜单信息请求参数
@@ -66,6 +67,11 @@ pub struct QueryMenuListReq {
     pub api_url: Option<String>,   //接口URL
 }
 
+impl From<&QueryMenuListReq> for PageRequest {
+    fn from(value: &QueryMenuListReq) -> Self {
+        PageRequest::new(value.page_no, value.page_size)
+    }
+}
 /*
 查询菜单信息列表响应参数
 */

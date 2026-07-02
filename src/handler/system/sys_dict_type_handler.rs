@@ -4,7 +4,7 @@
 
 use crate::common::error::{AppError, AppResult};
 use crate::common::result::{ok_result, ok_result_data, ok_result_page};
-use crate::model::system::sys_dict_data_model::{count_dict_data_by_type, update_dict_data_type};
+use crate::model::system::sys_dict_data_model::DictData;
 use crate::model::system::sys_dict_type_model::DictType;
 use crate::vo::system::sys_dict_type_vo::*;
 use crate::RB;
@@ -13,7 +13,6 @@ use rbatis::rbdc::DateTime;
 use rbs::value;
 use salvo::prelude::*;
 use salvo::{Request, Response};
-
 /*
  *添加字典类型
  *author：刘飞华
@@ -25,7 +24,7 @@ pub async fn add_sys_dict_type(req: &mut Request, res: &mut Response) -> AppResu
     log::info!("add sys_dict_type params: {:?}", &item);
 
     let rb = &mut RB.clone();
-    if DictType::select_by_dict_type(rb, &item.dict_type).await?.is_some() {
+    if DictType::select_by_map(rb, value! {"dict_type": &item.dict_type}).await?.len() > 0 {
         return Err(AppError::BusinessError("字典类型已存在"));
     }
 
@@ -51,7 +50,7 @@ pub async fn delete_sys_dict_type(req: &mut Request, res: &mut Response) -> AppR
             Some(x) => x,
         };
 
-        let res_count = count_dict_data_by_type(rb, &p.dict_type).await?;
+        let res_count = DictData::count_dict_data_by_type(rb, &p.dict_type).await?;
         if res_count > 0 {
             return Err(AppError::BusinessError("已分配,不能删除"));
         }
@@ -76,18 +75,17 @@ pub async fn update_sys_dict_type(req: &mut Request, res: &mut Response) -> AppR
     if id.is_none() {
         return Err(AppError::BusinessError("主键不能为空"));
     }
-    if DictType::select_by_id(rb, &id.unwrap_or_default()).await?.is_none() {
+    let option = DictType::select_by_id(rb, &id.unwrap_or_default()).await?;
+    if option.is_none() {
         return Err(AppError::BusinessError("字典类型不存在"));
     }
 
-    if let Some(x) = DictType::select_by_dict_type(rb, &item.dict_type).await? {
-        if x.id != id {
-            return Err(AppError::BusinessError("字典类型已存在"));
-        }
-
-        let dict_type = x.dict_type;
-        update_dict_data_type(rb, &*item.dict_type, &dict_type).await?;
+    if DictType::select_by_map(rb, value! {"dict_type": &item.dict_type,"id!=": &id}).await?.len() > 0 {
+        return Err(AppError::BusinessError("字典类型已存在"));
     }
+
+    let dict_type = option.unwrap().dict_type;
+    DictData::update_dict_data_type(rb, &*item.dict_type, &dict_type).await?;
 
     DictType::update_by_map(rb, &DictType::from(item), value! {"id": &id}).await.map(|_| ok_result(res))?
 }
@@ -148,7 +146,7 @@ pub async fn query_sys_dict_type_list(req: &mut Request, res: &mut Response) -> 
     let rb = &mut RB.clone();
     let item = &req;
 
-    DictType::select_dict_type_list(rb, &PageRequest::from(item), item)
+    DictType::select_by_page(rb, &PageRequest::from(item), item)
         .await
         .map(|x| ok_result_page(res, x.records.into_iter().map(|x| x.into()).collect::<Vec<DictTypeResp>>(), x.total))?
 }

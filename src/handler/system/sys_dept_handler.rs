@@ -4,7 +4,7 @@
 
 use crate::common::error::{AppError, AppResult};
 use crate::common::result::{ok_result, ok_result_data};
-use crate::model::system::sys_dept_model::{check_dept_exist_user, select_children_dept_by_id, select_dept_count, select_normal_children_dept_by_id, Dept};
+use crate::model::system::sys_dept_model::Dept;
 use crate::vo::system::sys_dept_vo::*;
 use crate::RB;
 use rbatis::rbatis_codegen::ops::AsProxy;
@@ -24,7 +24,8 @@ pub async fn add_sys_dept(req: &mut Request, res: &mut Response) -> AppResult {
 
     let rb = &mut RB.clone();
 
-    if Dept::select_by_dept_name(rb, &item.dept_name, item.parent_id).await?.is_some() {
+    let condition = value! {"dept_name":&item.dept_name,"parent_id":&item.parent_id};
+    if Dept::select_by_map(rb, condition).await?.len() > 0 {
         return Err(AppError::BusinessError("部门名称已存在"));
     }
 
@@ -54,11 +55,11 @@ pub async fn delete_sys_dept(req: &mut Request, res: &mut Response) -> AppResult
     log::info!("delete sys_dept params: {:?}", &item);
 
     let rb = &mut RB.clone();
-    if select_dept_count(rb, &item.id).await? > 0 {
+    if Dept::select_dept_count(rb, &item.id).await? > 0 {
         return Err(AppError::BusinessError("存在下级部门,不允许删除"));
     }
 
-    if check_dept_exist_user(rb, &item.id).await? > 0 {
+    if Dept::check_dept_exist_user(rb, &item.id).await? > 0 {
         return Err(AppError::BusinessError("部门存在用户,不允许删除"));
     }
 
@@ -96,17 +97,16 @@ pub async fn update_sys_dept(req: &mut Request, res: &mut Response) -> AppResult
         }
     };
 
-    if let Some(dept) = Dept::select_by_dept_name(rb, &item.dept_name, item.parent_id).await? {
-        if dept.id != id {
-            return Err(AppError::BusinessError("部门名称已存在"));
-        }
+    let condition = value! {"dept_name":&item.dept_name,"parent_id":&item.parent_id,"id!=":&id};
+    if Dept::select_by_map(rb, condition).await?.len() > 0 {
+        return Err(AppError::BusinessError("部门名称已存在"));
     }
 
-    if select_normal_children_dept_by_id(rb, &id.unwrap_or_default()).await? > 0 && item.status == 0 {
+    if Dept::select_normal_children_dept_by_id(rb, &id.unwrap_or_default()).await? > 0 && item.status == 0 {
         return Err(AppError::BusinessError("该部门包含未停用的子部门"));
     }
 
-    for mut x in select_children_dept_by_id(rb, &id.unwrap_or_default()).await? {
+    for mut x in Dept::select_children_dept_by_id(rb, &id.unwrap_or_default()).await? {
         x.ancestors = Some(x.ancestors.unwrap_or_default().replace(old_ancestors.as_str(), ancestors.as_str()));
         Dept::update_by_map(rb, &x, value! {"id": &x.id}).await?;
     }
@@ -199,7 +199,7 @@ pub async fn query_sys_dept_list(req: &mut Request, res: &mut Response) -> AppRe
 
     let rb = &mut RB.clone();
 
-    Dept::select_page_dept_list(rb, &item)
+    Dept::select_by_page(rb, &item)
         .await
         .map(|x| ok_result_data(res, x.into_iter().map(|x| x.into()).collect::<Vec<DeptResp>>()))?
 }

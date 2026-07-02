@@ -64,55 +64,6 @@ impl Into<OperateLogResp> for OperateLog {
 rbatis::crud!(OperateLog {}, "sys_operate_log");
 
 /*
- *根据id查询操作日志记录
- *author：刘飞华
- *date：2024/12/25 10:01:11
- */
-impl_select!(OperateLog{select_by_id(id:&i64) -> Option => "`where id = #{id} limit 1`"}, "sys_operate_log");
-
-/*
- *分页查询操作日志记录
- *author：刘飞华
- *date：2024/12/25 10:01:11
- */
-impl_select_page!(OperateLog{select_page() =>"
-     if !sql.contains('count'):
-       order by operate_time desc"
-},"sys_operate_log");
-
-/*
- *根据条件分页查询操作日志记录
- *author：刘飞华
- *date：2024/12/25 10:01:11
- */
-impl_select_page!(OperateLog{select_page_by_name(
-    req:&QueryOperateLogListReq) =>"
-    where 1=1
-     if req.title != '' && req.title != null:
-       ` and title like concat('%', #{req.title}, '%') `
-     if req.businessType != 4:
-       ` and business_type = #{req.businessType} `
-     if req.method != '' && req.method != null:
-       ` and method = #{req.method} `
-     if req.requestMethod != '' && req.requestMethod != null:
-       ` and request_method = #{req.requestMethod} `
-     if req.operatorType != 3:
-       ` and operator_type = #{req.operatorType} `
-     if req.operateName != '' && req.operateName != null:
-       ` and operate_name = #{req.operateName} `
-     if req.deptName != '' && req.deptName != null:
-       ` and dept_name = #{req.deptName} `
-     if req.operateUrl != '' && req.operateUrl != null:
-       ` and operate_url = #{req.operateUrl} `
-     if req.operateIp != '' && req.operateUrl != null:
-       ` and operate_ip = #{req.operateUrl} `
-     if req.status != 2:
-       ` and status = #{req.status} `
-     if !sql.contains('count'):
-       ` order by operate_time desc `"
-},"sys_operate_log");
-
-/*
  *清空操作日志
  *author：刘飞华
  *date：2024/12/12 14:41:44
@@ -120,4 +71,69 @@ impl_select_page!(OperateLog{select_page_by_name(
 #[sql("truncate table sys_operate_log")]
 pub async fn clean_operate_log(rb: &RBatis) -> Option<i64> {
     impled!()
+}
+impl OperateLog {
+    /*
+     *根据id查询操作日志记录
+     *author：刘飞华
+     *date：2026/07/01 17:49:14
+     */
+    #[html_sql(
+        r#"<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "https://raw.githubusercontent.com/rbatis/rbatis/master/rbatis-codegen/mybatis-3-mapper.dtd">
+      <select id="select_by_id">
+            `select * from sys_operate_log where id = #{id}`
+      </select>"#
+    )]
+    pub async fn select_by_id(rb: &dyn rbatis::Executor, id: &i64) -> rbatis::Result<Option<OperateLog>> {
+        impled!()
+    }
+
+    /*
+     *根据条件分页查询操作日志记录
+     *author：刘飞华
+     *date：2026/07/01 17:49:14
+     */
+    #[html_sql(
+        r#"<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "https://raw.githubusercontent.com/rbatis/rbatis/master/rbatis-codegen/mybatis-3-mapper.dtd">
+      <select id="select_by_page">
+            `select * from sys_operate_log`
+            <where>
+            <if test="req.title != '' && req.title != null">
+                ` and title like concat('%', #{req.title}, '%')`
+            </if>
+            <if test="req.businessType != 4">
+                ` and business_type = #{req.businessType}`
+            </if>
+            <if test="req.method != '' && req.method != null">
+                ` and method like concat('%', #{req.method}, '%')`
+            </if>
+            <if test="req.requestMethod != '' && req.requestMethod != null">
+                ` and request_method like concat('%', #{req.requestMethod}, '%')`
+            </if>
+            <if test="req.operatorType != 3">
+                ` and operator_type = #{req.operatorType}`
+            </if>
+            <if test="req.operateName != '' && req.operateName != null">
+                ` and operate_name like concat('%', #{req.operateName}, '%')`
+            </if>
+            <if test="req.deptName != '' && req.deptName != null">
+                ` and dept_name like concat('%', #{req.deptName}, '%')`
+            </if>
+            <if test="req.operateUrl != '' && req.operateUrl != null">
+                ` and operate_url like concat('%', #{req.operateUrl}, '%')`
+            </if>
+            <if test="req.operateIp != '' && req.operateIp != null">
+                ` and operate_ip like concat('%', #{req.operateIp}, '%')`
+            </if>
+
+            <if test="req.status != 2">
+                ` and status = #{req.status}`
+            </if>
+
+            </where>
+      </select>"#
+    )]
+    pub async fn select_by_page(rb: &dyn rbatis::Executor, page_req: &rbatis::PageRequest, req: &QueryOperateLogListReq) -> rbatis::Result<rbatis::Page<OperateLog>> {
+        impled!()
+    }
 }

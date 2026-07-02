@@ -66,49 +66,47 @@ impl Into<RoleResp> for Role {
         }
     }
 }
-/*
- *根据id查询角色信息
- *author：刘飞华
- *date：2024/12/12 14:41:44
- */
-impl_select!(Role{select_by_id(id:&i64) -> Option => "`where id = #{id} limit 1`"}, "sys_role");
 
-/*
- *根据role_name查询角色信息
- *author：刘飞华
- *date：2024/12/12 14:41:44
- */
-impl_select!(Role{select_by_role_name(role_name:&str) -> Option => "`where role_name = #{role_name} limit 1`"}, "sys_role");
+impl Role {
+    /*
+     *根据id查询角色信息
+     *author：刘飞华
+     *date：2026/07/01 17:49:14
+     */
+    #[html_sql(
+        r#"<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "https://raw.githubusercontent.com/rbatis/rbatis/master/rbatis-codegen/mybatis-3-mapper.dtd">
+      <select id="select_by_id">
+            `select * from sys_role where id = #{id}`
+      </select>"#
+    )]
+    pub async fn select_by_id(rb: &dyn rbatis::Executor, id: &i64) -> rbatis::Result<Option<Role>> {
+        impled!()
+    }
 
-/*
- *根据role_key查询角色信息
- *author：刘飞华
- *date：2024/12/12 14:41:44
- */
-impl_select!(Role{select_by_role_key(role_key:&str) -> Option => "`where role_key = #{role_key} limit 1`"}, "sys_role");
+    /*
+     *根据条件分页查询角色信息
+     *author：刘飞华
+     *date：2026/07/01 17:49:14
+     */
+    #[html_sql(
+        r#"<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "https://raw.githubusercontent.com/rbatis/rbatis/master/rbatis-codegen/mybatis-3-mapper.dtd">
+      <select id="select_by_page">
+            `select * from sys_role`
+            <where>
+            <if test="req.roleName != '' && req.roleName != null">
+                ` and role_name like concat('%', #{req.roleName}, '%')`
+            </if>
+            <if test="req.roleKey != '' && req.roleKey != null">
+                ` and role_key like concat('%', #{req.roleKey}, '%')`
+            </if>
+            <if test="req.status != 2">
+                ` and status = #{req.status}`
+            </if>
+            </where>
+      </select>"#
+    )]
+    pub async fn select_by_page(rb: &dyn rbatis::Executor, page_req: &rbatis::PageRequest, req: &QueryRoleListReq) -> rbatis::Result<rbatis::Page<Role>> {
+        impled!()
+    }
+}
 
-/*
- *分页查询角色信息
- *author：刘飞华
- *date：2024/12/12 14:41:44
- */
-impl_select_page!(Role{select_page() =>"
-     if !sql.contains('count'):
-       order by create_time desc"
-},"sys_role");
-
-/*
- *根据条件分页查询角色信息
- *author：刘飞华
- *date：2024/12/12 14:41:44
- */
-impl_select_page!(Role{select_sys_role_list(req:&QueryRoleListReq) =>"
-      where 1=1
-     if req.roleName != null && req.roleName != '':
-       ` and role_name like concat('%', #{req.roleName}, '%') `
-     if req.roleKey != null && req.roleKey != '':
-       ` and role_key like concat('%', #{req.roleKey}, '%') `
-     if req.status != 2:
-       ` and status = #{req.status} `
-     if !sql.contains('count'):
-        ` order by create_time desc `"},"sys_role");

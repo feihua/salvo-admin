@@ -99,131 +99,130 @@ impl Into<UserResp> for User {
  */
 rbatis::crud!(User {}, "sys_user");
 
-/*
- *根据id查询用户信息
- *author：刘飞华
- *date：2024/12/12 14:41:44
- */
-impl_select!(User{select_by_id(id:i64) -> Option => "`where id = #{id} limit 1`"}, "sys_user");
+impl User {
 
-/*
- *根据account查询用户信息
- *author：刘飞华
- *date：2025/09/26 13:42:44
- */
-impl_select!(User{select_by_account(account:&str) -> Option => "`where user_name = #{account} or mobile = #{account} or email = #{account} limit 1`"},"sys_user");
+    #[html_sql(
+        r#"<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "https://raw.githubusercontent.com/rbatis/rbatis/master/rbatis-codegen/mybatis-3-mapper.dtd">
+      <select id="select_by_account">
+            `select * from sys_user where user_name = #{account} or mobile = #{account} or email = #{account} limit 1`
+      </select>"#
+    )]
+    pub async fn select_by_account(rb: &dyn rbatis::Executor, account: &str) -> rbatis::Result<Vec<User>> {
+        impled!()
+    }
 
-/*
- *根据mobile查询用户信息
- *author：刘飞华
- *date：2024/12/12 14:41:44
- */
-impl_select!(User{select_by_mobile(mobile:&str) -> Option => "`where mobile = #{mobile} limit 1`"},"sys_user");
+    /*
+     *根据id查询用户信息
+     *author：刘飞华
+     *date：2026/07/01 17:49:14
+     */
+    #[html_sql(
+        r#"<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "https://raw.githubusercontent.com/rbatis/rbatis/master/rbatis-codegen/mybatis-3-mapper.dtd">
+      <select id="select_by_id">
+            `select * from sys_user where id = #{id}`
+      </select>"#
+    )]
+    pub async fn select_by_id(rb: &dyn rbatis::Executor, id: &i64) -> rbatis::Result<Option<User>> {
+        impled!()
+    }
 
-/*
- *根据user_name查询用户信息
- *author：刘飞华
- *date：2024/12/12 14:41:44
- */
-impl_select!(User{select_by_user_name(user_name:&str) -> Option => "`where user_name = #{user_name} limit 1`"}, "sys_user");
+    /*
+     *根据条件分页查询用户信息
+     *author：刘飞华
+     *date：2026/07/01 17:49:14
+     */
+    #[html_sql(
+        r#"<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "https://raw.githubusercontent.com/rbatis/rbatis/master/rbatis-codegen/mybatis-3-mapper.dtd">
+      <select id="select_by_page">
+            `select * from sys_user`
+            <where>
+            <if test="req.mobile != '' && req.mobile != null">
+                ` and mobile like concat('%', #{req.mobile}, '%')`
+            </if>
+            <if test="req.userName != '' && req.userName != null">
+                ` and user_name like concat('%', #{req.userName}, '%')`
+            </if>
+            <if test="req.email != '' && req.email != null">
+                ` and email like concat('%', #{req.email}, '%')`
+            </if>
+            <if test="req.status != 2">
+                ` and status = #{req.status}`
+            </if>
+            <if test="req.deptId != 0">
+                 ` and (dept_id = #{req.deptId} OR dept_id IN (SELECT id FROM sys_dept WHERE find_in_set(#{req.deptId}, ancestors))) `
+            </if>
 
-/*
- *根据email查询用户信息
- *author：刘飞华
- *date：2024/12/12 14:41:44
- */
-impl_select!(User{select_by_email(email:&str) -> Option => "`where email = #{email} limit 1`"}, "sys_user");
+            </where>
+      </select>"#
+    )]
+    pub async fn select_by_page(rb: &dyn rbatis::Executor, page_req: &rbatis::PageRequest, req: &QueryUserListReq) -> rbatis::Result<rbatis::Page<User>> {
+        impled!()
+    }
 
-/*
- *分页查询用户信息
- *author：刘飞华
- *date：2024/12/12 14:41:44
- */
-impl_select_page!(User{select_page() =>"
-     if !sql.contains('count'):
-       order by create_time desc"
-},"sys_user");
-
-/*
- *根据条件分页查询用户信息
- *author：刘飞华
- *date：2024/12/12 14:41:44
- */
-impl_select_page!(User{select_sys_user_list(req:&QueryUserListReq) =>"
-      where 1=1
-      if req.mobile != null && req.mobile != '':
-       ` and mobile like concat('%', #{req.mobile}, '%') `
-     if req.userName != null && req.userName != '':
-       ` and user_name like concat('%', #{req.userName}, '%') `
-     if req.status != 2:
-       ` and status = #{req.status} `
-     if req.deptId != 0:
-       ` and (dept_id = #{req.deptId} OR dept_id IN (SELECT id FROM sys_dept WHERE find_in_set(#{req.deptId}, ancestors))) `
-     if !sql.contains('count'):
-        ` order by create_time desc `"},"sys_user");
-
-/*
+    /*
  *根据条件分页查询已配用户角色列表
  *author：刘飞华
  *date：2024/12/12 14:41:44
  */
-#[py_sql(
-    "`select u.* from sys_user u left join sys_user_role ur on u.id = ur.user_id where u.del_flag = 1 and ur.role_id = #{role_id} `
+    #[py_sql(
+        "`select u.* from sys_user u left join sys_user_role ur on u.id = ur.user_id where u.del_flag = 1 and ur.role_id = #{role_id} `
             if mobile != '':
                 ` and u.mobile = #{mobile} `
             if user_name != '':
                 ` and u.user_name = #{user_name} `
             limit #{page_no},#{page_size}` "
-)]
-async fn select_allocated_list(rb: &dyn Executor, role_id: i64, user_name: &str, mobile: &str, page_no: u64, page_size: u64) -> Result<Vec<User>, Error> {
-    impled!()
-}
+    )]
+    async fn select_allocated_list(rb: &dyn Executor, role_id: i64, user_name: &str, mobile: &str, page_no: u64, page_size: u64) -> Result<Vec<User>, Error> {
+        impled!()
+    }
 
-/*
- * 描述：根据条件分页查询已配用户角色数量
- * author：刘飞华
- * date：2025/1/6 16:13
- */
-#[py_sql(
-    "`select count(1) from sys_user u left join sys_user_role ur on u.id = ur.user_id where u.del_flag = 1 and ur.role_id = #{role_id} `
+    /*
+     * 描述：根据条件分页查询已配用户角色数量
+     * author：刘飞华
+     * date：2025/1/6 16:13
+     */
+    #[py_sql(
+        "`select count(1) from sys_user u left join sys_user_role ur on u.id = ur.user_id where u.del_flag = 1 and ur.role_id = #{role_id} `
             if mobile != '':
                 ` and u.mobile = #{mobile} `
             if user_name != '':
                 ` and u.user_name = #{user_name} `"
-)]
-async fn count_allocated_list(rb: &dyn Executor, role_id: i64, user_name: &str, mobile: &str) -> Result<u64, Error> {
-    impled!()
-}
+    )]
+    async fn count_allocated_list(rb: &dyn Executor, role_id: i64, user_name: &str, mobile: &str) -> Result<u64, Error> {
+        impled!()
+    }
 
-/*
- * 描述：根据条件分页查询未分配用户角色列表
- * author：刘飞华
- * date：2025/1/6 16:17
- */
-#[py_sql(
-    "`select u.* from sys_user u left join sys_user_role ur on u.id = ur.user_id where u.del_flag = 1 and (ur.role_id != #{role_id} or ur.role_id is null) `
+    /*
+     * 描述：根据条件分页查询未分配用户角色列表
+     * author：刘飞华
+     * date：2025/1/6 16:17
+     */
+    #[py_sql(
+        "`select u.* from sys_user u left join sys_user_role ur on u.id = ur.user_id where u.del_flag = 1 and (ur.role_id != #{role_id} or ur.role_id is null) `
             if mobile != '':
                 ` and u.mobile = #{mobile} `
             if user_name != '':
                 ` and u.user_name = #{user_name} `
             limit #{page_no},#{page_size}` "
-)]
-pub async fn select_unallocated_list(rb: &dyn Executor, role_id: i64, user_name: &str, mobile: &str, page_no: u64, page_size: u64) -> rbatis::Result<Vec<User>> {
-    impled!()
-}
+    )]
+    pub async fn select_unallocated_list(rb: &dyn Executor, role_id: i64, user_name: &str, mobile: &str, page_no: u64, page_size: u64) -> rbatis::Result<Vec<User>> {
+        impled!()
+    }
 
-/*
- * 描述：根据条件分页查询未分配用户角色数量
- * author：刘飞华
- * date：2025/1/6 16:17
- */
-#[py_sql(
-    "`select count(1) from sys_user u left join sys_user_role ur on u.id = ur.user_id where u.del_flag = 1 and (ur.role_id != #{role_id} or ur.role_id is null) `
+    /*
+     * 描述：根据条件分页查询未分配用户角色数量
+     * author：刘飞华
+     * date：2025/1/6 16:17
+     */
+    #[py_sql(
+        "`select count(1) from sys_user u left join sys_user_role ur on u.id = ur.user_id where u.del_flag = 1 and (ur.role_id != #{role_id} or ur.role_id is null) `
             if mobile != '':
                 ` and u.mobile = #{mobile} `
             if user_name != '':
                 ` and u.user_name = #{user_name} `"
-)]
-pub async fn count_unallocated_list(rb: &dyn Executor, role_id: i64, user_name: &str, mobile: &str) -> rbatis::Result<u64> {
-    impled!()
+    )]
+    pub async fn count_unallocated_list(rb: &dyn Executor, role_id: i64, user_name: &str, mobile: &str) -> rbatis::Result<u64> {
+        impled!()
+    }
+
 }
