@@ -75,7 +75,7 @@ pub async fn update_sys_notice(req: &mut Request, res: &mut Response) -> AppResu
 
     let condition = value! {
         "notice_title": &item.notice_title,
-        "id!=":id
+        "id !=":id
     };
 
     let list = Notice::select_by_map(rb, condition).await?;

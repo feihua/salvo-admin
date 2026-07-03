@@ -98,11 +98,11 @@ pub async fn update_sys_role(req: &mut Request, res: &mut Response) -> AppResult
         return Err(AppError::BusinessError("角色不存在"));
     }
 
-    if Role::select_by_map(rb, value! {"role_name": &item.role_name,"id!=": &id}).await?.len() > 0 {
+    if Role::select_by_map(rb, value! {"role_name": &item.role_name,"id !=": &id}).await?.len() > 0 {
         return Err(AppError::BusinessError("角色名称已存在"));
     }
 
-    if Role::select_by_map(rb, value! {"role_key": &item.role_key,"id!=": &id}).await?.len() > 0 {
+    if Role::select_by_map(rb, value! {"role_key": &item.role_key,"id !=": &id}).await?.len() > 0 {
         return Err(AppError::BusinessError("角色权限已存在"));
     }
 

@@ -80,7 +80,7 @@ pub async fn update_sys_dict_type(req: &mut Request, res: &mut Response) -> AppR
         return Err(AppError::BusinessError("字典类型不存在"));
     }
 
-    if DictType::select_by_map(rb, value! {"dict_type": &item.dict_type,"id!=": &id}).await?.len() > 0 {
+    if DictType::select_by_map(rb, value! {"dict_type": &item.dict_type,"id !=": &id}).await?.len() > 0 {
         return Err(AppError::BusinessError("字典类型已存在"));
     }
 

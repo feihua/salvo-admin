@@ -84,11 +84,11 @@ pub async fn update_sys_post(req: &mut Request, res: &mut Response) -> AppResult
         return Err(AppError::BusinessError("岗位不存在"));
     }
 
-    if Post::select_by_map(rb, value! {"post_name": &item.post_name, "id!=": &id}).await?.len() > 0 {
+    if Post::select_by_map(rb, value! {"post_name": &item.post_name, "id !=": &id}).await?.len() > 0 {
         return Err(AppError::BusinessError("岗位名称已存在"));
     }
 
-    if Post::select_by_map(rb, value! {"post_code": &item.post_code, "id!=": &id}).await?.len() > 0 {
+    if Post::select_by_map(rb, value! {"post_code": &item.post_code, "id !=": &id}).await?.len() > 0 {
         return Err(AppError::BusinessError("岗位编码已存在"));
     }
 
