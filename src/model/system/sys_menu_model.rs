@@ -1,10 +1,11 @@
 // author：刘飞华
 // createTime：2024/12/12 14:41:44
 
-use crate::vo::system::sys_menu_vo::{MenuReq, QueryMenuListReq};
 use crate::vo::system::sys_menu_vo::MenuResp;
+use crate::vo::system::sys_menu_vo::{MenuReq, QueryMenuListReq};
 use rbatis::rbdc::datetime::DateTime;
 use rbatis::RBatis;
+use rbs::value;
 use serde::{Deserialize, Serialize};
 /*
  *菜单信息
@@ -89,21 +90,14 @@ pub async fn select_count_menu_by_parent_id(rb: &RBatis, parent_id: &i64) -> rba
     impled!()
 }
 
-
 impl Menu {
     /*
      *根据id查询菜单信息
      *author：刘飞华
      *date：2026/07/01 17:49:14
      */
-    #[html_sql(
-        r#"<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "https://raw.githubusercontent.com/rbatis/rbatis/master/rbatis-codegen/mybatis-3-mapper.dtd">
-      <select id="select_by_id">
-            `select * from sys_menu where id = #{id}`
-      </select>"#
-    )]
-    pub async fn select_by_id(rb: &dyn rbatis::Executor, id: &i64) -> rbatis::Result<Option<Menu>> {
-        impled!()
+    pub async fn select_by_id(rb: &RBatis, id: &i64) -> rbatis::Result<Option<Menu>> {
+        Ok(Menu::select_by_map(rb, value! {"id": id}).await?.first().cloned())
     }
 
     /*

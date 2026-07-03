@@ -9,7 +9,7 @@ use crate::vo::system::sys_notice_vo::*;
 use crate::RB;
 use rbatis::plugin::page::PageRequest;
 use rbatis::rbdc::DateTime;
-use rbs::{value};
+use rbs::value;
 use salvo::prelude::*;
 use salvo::{Request, Response};
 

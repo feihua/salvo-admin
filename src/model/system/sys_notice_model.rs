@@ -6,6 +6,8 @@ use crate::vo::system::sys_notice_vo::NoticeReq;
 use crate::vo::system::sys_notice_vo::NoticeResp;
 use crate::vo::system::sys_notice_vo::QueryNoticeListReq;
 use rbatis::rbdc::datetime::DateTime;
+use rbatis::RBatis;
+use rbs::value;
 use serde::{Deserialize, Serialize};
 /*
  *通知公告表
@@ -73,14 +75,8 @@ impl Notice {
      *author：刘飞华
      *date：2026/07/01 17:49:14
      */
-    #[html_sql(
-        r#"<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "https://raw.githubusercontent.com/rbatis/rbatis/master/rbatis-codegen/mybatis-3-mapper.dtd">
-      <select id="select_by_id">
-            `select * from sys_notice where id = #{id}`
-      </select>"#
-    )]
-    pub async fn select_by_id(rb: &dyn rbatis::Executor, id: &i64) -> rbatis::Result<Option<Notice>> {
-        impled!()
+    pub async fn select_by_id(rb: &RBatis, id: &i64) -> rbatis::Result<Option<Notice>> {
+        Ok(Notice::select_by_map(rb, value! {"id": id}).await?.first().cloned())
     }
 
     /*

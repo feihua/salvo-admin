@@ -5,6 +5,7 @@
 use crate::common::error::{AppError, AppResult};
 use crate::common::result::{ok_result, ok_result_data, ok_result_page};
 use crate::model::system::sys_post_model::Post;
+use crate::model::system::sys_user_post_model::UserPost;
 use crate::vo::system::sys_post_vo::*;
 use crate::RB;
 use rbatis::plugin::page::PageRequest;
@@ -12,7 +13,6 @@ use rbatis::rbdc::DateTime;
 use rbs::value;
 use salvo::prelude::*;
 use salvo::{Request, Response};
-use crate::model::system::sys_user_post_model::UserPost;
 /*
  *添加岗位信息
  *author：刘飞华

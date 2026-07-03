@@ -7,7 +7,10 @@ use crate::vo::system::sys_user_vo::UserResp;
 use rbatis::executor::Executor;
 use rbatis::rbdc::datetime::DateTime;
 use rbatis::rbdc::Error;
+use rbatis::RBatis;
+use rbs::value;
 use serde::{Deserialize, Serialize};
+
 /*
  *用户信息
  *author：刘飞华
@@ -100,14 +103,13 @@ impl Into<UserResp> for User {
 rbatis::crud!(User {}, "sys_user");
 
 impl User {
-
     #[html_sql(
         r#"<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "https://raw.githubusercontent.com/rbatis/rbatis/master/rbatis-codegen/mybatis-3-mapper.dtd">
       <select id="select_by_account">
             `select * from sys_user where user_name = #{account} or mobile = #{account} or email = #{account} limit 1`
       </select>"#
     )]
-    pub async fn select_by_account(rb: &dyn rbatis::Executor, account: &str) -> rbatis::Result<Vec<User>> {
+    pub async fn select_by_account(rb: &dyn Executor, account: &str) -> rbatis::Result<Vec<User>> {
         impled!()
     }
 
@@ -116,14 +118,8 @@ impl User {
      *author：刘飞华
      *date：2026/07/01 17:49:14
      */
-    #[html_sql(
-        r#"<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "https://raw.githubusercontent.com/rbatis/rbatis/master/rbatis-codegen/mybatis-3-mapper.dtd">
-      <select id="select_by_id">
-            `select * from sys_user where id = #{id}`
-      </select>"#
-    )]
-    pub async fn select_by_id(rb: &dyn rbatis::Executor, id: &i64) -> rbatis::Result<Option<User>> {
-        impled!()
+    pub async fn select_by_id(rb: &RBatis, id: &i64) -> rbatis::Result<Option<User>> {
+        Ok(User::select_by_map(rb, value! {"id": id}).await?.first().cloned())
     }
 
     /*
@@ -160,10 +156,10 @@ impl User {
     }
 
     /*
- *根据条件分页查询已配用户角色列表
- *author：刘飞华
- *date：2024/12/12 14:41:44
- */
+     *根据条件分页查询已配用户角色列表
+     *author：刘飞华
+     *date：2024/12/12 14:41:44
+     */
     #[py_sql(
         "`select u.* from sys_user u left join sys_user_role ur on u.id = ur.user_id where u.del_flag = 1 and ur.role_id = #{role_id} `
             if mobile != '':
@@ -224,5 +220,4 @@ impl User {
     pub async fn count_unallocated_list(rb: &dyn Executor, role_id: i64, user_name: &str, mobile: &str) -> rbatis::Result<u64> {
         impled!()
     }
-
 }

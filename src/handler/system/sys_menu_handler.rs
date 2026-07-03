@@ -154,7 +154,7 @@ pub async fn query_sys_menu_detail(req: &mut Request, res: &mut Response) -> App
 pub async fn query_sys_menu_list(req: &mut Request, res: &mut Response) -> AppResult {
     let item = req.parse_json::<QueryMenuListReq>().await?;
     log::info!("query sys_menu_list params: {:?}", &item);
-    
+
     Menu::select_by_map(&mut RB.clone(), value! {})
         .await
         .map(|x| ok_result_data(res, x.into_iter().map(|x| x.into()).collect::<Vec<MenuResp>>()))?

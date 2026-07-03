@@ -7,6 +7,7 @@ use crate::vo::system::sys_dict_data_vo::DictDataResp;
 use crate::vo::system::sys_dict_data_vo::QueryDictDataListReq;
 use rbatis::rbdc::datetime::DateTime;
 use rbatis::RBatis;
+use rbs::value;
 use serde::{Deserialize, Serialize};
 /*
  *字典数据表
@@ -86,14 +87,8 @@ impl DictData {
      *author：刘飞华
      *date：2026/07/01 17:45:52
      */
-    #[html_sql(
-        r#"<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "https://raw.githubusercontent.com/rbatis/rbatis/master/rbatis-codegen/mybatis-3-mapper.dtd">
-      <select id="select_by_id">
-            `select * from sys_dict_data where id = #{id}`
-      </select>"#
-    )]
-    pub async fn select_by_id(rb: &dyn rbatis::Executor, id: &i64) -> rbatis::Result<Option<DictData>> {
-        impled!()
+    pub async fn select_by_id(rb: &RBatis, id: &i64) -> rbatis::Result<Option<DictData>> {
+        Ok(DictData::select_by_map(rb, value! {"id": id}).await?.first().cloned())
     }
 
     /*
@@ -123,10 +118,10 @@ impl DictData {
     }
 
     /*
- *同步修改字典类型
- *author：刘飞华
- *date：2024/12/25 10:01:11
- */
+     *同步修改字典类型
+     *author：刘飞华
+     *date：2024/12/25 10:01:11
+     */
     #[sql("update sys_dict_data set dict_type = ? where dict_type = ?")]
     pub async fn update_dict_data_type(rb: &RBatis, new_dict_type: &str, old_dict_type: &str) -> Option<i64> {
         impled!()
@@ -141,6 +136,4 @@ impl DictData {
     pub async fn count_dict_data_by_type(rb: &RBatis, dict_type: &str) -> rbatis::Result<i64> {
         impled!()
     }
-
 }
-

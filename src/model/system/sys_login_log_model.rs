@@ -6,6 +6,7 @@ use crate::vo::system::sys_login_log_vo::LoginLogResp;
 use crate::vo::system::sys_login_log_vo::QueryLoginLogListReq;
 use rbatis::rbdc::datetime::DateTime;
 use rbatis::RBatis;
+use rbs::value;
 use serde::{Deserialize, Serialize};
 /*
  *系统访问记录
@@ -76,14 +77,8 @@ impl LoginLog {
      *author：刘飞华
      *date：2026/07/01 17:45:52
      */
-    #[html_sql(
-        r#"<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "https://raw.githubusercontent.com/rbatis/rbatis/master/rbatis-codegen/mybatis-3-mapper.dtd">
-      <select id="select_by_id">
-            `select * from sys_login_log where id = #{id}`
-      </select>"#
-    )]
-    pub async fn select_by_id(rb: &dyn rbatis::Executor,id: &i64) -> rbatis::Result<Option<LoginLog>> {
-        impled!()
+    pub async fn select_by_id(rb: &RBatis, id: &i64) -> rbatis::Result<Option<LoginLog>> {
+        Ok(LoginLog::select_by_map(rb, value! {"id": id}).await?.first().cloned())
     }
 
     /*
