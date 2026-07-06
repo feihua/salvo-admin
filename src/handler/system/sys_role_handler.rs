@@ -160,13 +160,12 @@ pub async fn query_sys_role_detail(req: &mut Request, res: &mut Response) -> App
  */
 #[handler]
 pub async fn query_sys_role_list(req: &mut Request, res: &mut Response) -> AppResult {
-    let req = req.parse_json::<QueryRoleListReq>().await?;
-    log::info!("query sys_role_list params: {:?}", &req);
+    let item = req.parse_json::<QueryRoleListReq>().await?;
+    log::info!("query sys_role_list params: {:?}", &item);
 
     let rb = &mut RB.clone();
-    let item = &req;
 
-    Role::select_by_page(rb, &PageRequest::from(item), item)
+    Role::select_by_page(rb, &PageRequest::from(&item), &item)
         .await
         .map(|x| ok_result_page(res, x.records.into_iter().map(|x| x.into()).collect::<Vec<RoleResp>>(), x.total))?
 }

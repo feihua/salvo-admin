@@ -179,13 +179,12 @@ pub async fn query_sys_menu_list_simple(res: &mut Response) -> AppResult {
  */
 #[handler]
 pub async fn query_sys_menu_resource_list(req: &mut Request, res: &mut Response) -> AppResult {
-    let req = req.parse_json::<QueryMenuListReq>().await?;
-    log::info!("query sys_menu_list params: {:?}", &req);
+    let item = req.parse_json::<QueryMenuListReq>().await?;
+    log::info!("query sys_menu_list params: {:?}", &item);
 
     let rb = &mut RB.clone();
-    let item = &req;
 
-    Menu::select_by_page(rb, &PageRequest::from(item), item)
+    Menu::select_by_page(rb, &PageRequest::from(&item), &item)
         .await
         .map(|x| ok_result_page(res, x.records.into_iter().map(|x| x.into()).collect::<Vec<MenuResp>>(), x.total))?
 }

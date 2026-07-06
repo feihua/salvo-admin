@@ -3,7 +3,7 @@
 // date：2025/01/08 13:51:14
 
 use crate::common::error::{AppError, AppResult};
-use crate::common::result::{ok_result, ok_result_data, ok_result_page};
+use crate::common::result::{ok_result_data, ok_result_page};
 use crate::model::system::sys_login_log_model::LoginLog;
 use crate::vo::system::sys_login_log_vo::*;
 use crate::RB;
@@ -52,13 +52,12 @@ pub async fn query_sys_login_log_detail(req: &mut Request, res: &mut Response) -
  */
 #[handler]
 pub async fn query_sys_login_log_list(req: &mut Request, res: &mut Response) -> AppResult {
-    let req = req.parse_json::<QueryLoginLogListReq>().await?;
-    log::info!("query sys_login_log_list params: {:?}", &req);
+    let item = req.parse_json::<QueryLoginLogListReq>().await?;
+    log::info!("query sys_login_log_list params: {:?}", &item);
 
     let rb = &mut RB.clone();
-    let item = &req;
 
-    LoginLog::select_by_page(rb, &PageRequest::from(item), item)
+    LoginLog::select_by_page(rb, &PageRequest::from(&item), &item)
         .await
         .map(|x| ok_result_page(res, x.records.into_iter().map(|x| x.into()).collect::<Vec<LoginLogResp>>(), x.total))?
 }

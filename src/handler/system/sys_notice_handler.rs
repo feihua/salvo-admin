@@ -133,13 +133,12 @@ pub async fn query_sys_notice_detail(req: &mut Request, res: &mut Response) -> A
  */
 #[handler]
 pub async fn query_sys_notice_list(req: &mut Request, res: &mut Response) -> AppResult {
-    let req = req.parse_json::<QueryNoticeListReq>().await?;
-    log::info!("query sys_notice_list params: {:?}", &req);
+    let item = req.parse_json::<QueryNoticeListReq>().await?;
+    log::info!("query sys_notice_list params: {:?}", &item);
 
     let rb = &mut RB.clone();
-    let item = &req;
 
-    Notice::select_by_page(rb, &PageRequest::from(item), item)
+    Notice::select_by_page(rb, &PageRequest::from(&item), &item)
         .await
         .map(|x| ok_result_page(res, x.records.into_iter().map(|x| x.into()).collect::<Vec<NoticeResp>>(), x.total))?
 }

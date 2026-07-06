@@ -135,13 +135,12 @@ pub async fn query_sys_dict_data_detail(req: &mut Request, res: &mut Response) -
  */
 #[handler]
 pub async fn query_sys_dict_data_list(req: &mut Request, res: &mut Response) -> AppResult {
-    let req = req.parse_json::<QueryDictDataListReq>().await?;
-    log::info!("query sys_dict_data_list params: {:?}", &req);
+    let item = req.parse_json::<QueryDictDataListReq>().await?;
+    log::info!("query sys_dict_data_list params: {:?}", &item);
 
     let rb = &mut RB.clone();
-    let item = &req;
 
-    DictData::select_by_page(rb, &PageRequest::from(item), item)
+    DictData::select_by_page(rb, &PageRequest::from(&item), &item)
         .await
         .map(|x| ok_result_page(res, x.records.into_iter().map(|x| x.into()).collect::<Vec<DictDataResp>>(), x.total))?
 }
