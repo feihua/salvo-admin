@@ -107,15 +107,17 @@ pub async fn update_sys_user(req: &mut Request, res: &mut Response) -> AppResult
     let item = req.parse_json::<UserReq>().await?;
     log::info!("update sys_user params: {:?}", &item);
 
+    let rb = &mut RB.clone();
+
     let id = item.id;
     if id.is_none() {
         return Err(AppError::BusinessError("主键不能为空"));
     }
-    if id == Some(1) {
+
+    if UserRole::is_admin(rb, &id.unwrap_or_default()).await? > 0 {
         return Err(AppError::BusinessError("不允许操作超级管理员用户"));
     }
 
-    let rb = &mut RB.clone();
     let user = match User::select_by_id(rb, &id.unwrap_or_default()).await? {
         None => return Err(AppError::BusinessError("用户不存在")),
         Some(x) => x,
@@ -185,12 +187,12 @@ pub async fn reset_sys_user_password(req: &mut Request, res: &mut Response) -> A
     let item = req.parse_json::<ResetUserPwdReq>().await?;
     log::info!("update sys_user_password params: {:?}", &item);
 
+    let rb = &mut RB.clone();
+
     let id = item.id.clone();
-    if id == 1 {
+    if UserRole::is_admin(rb, &id).await? > 0 {
         return Err(AppError::BusinessError("不允许操作超级管理员用户"));
     }
-
-    let rb = &mut RB.clone();
 
     match User::select_by_id(rb, &item.id).await? {
         None => Err(AppError::BusinessError("用户不存在")),
@@ -398,8 +400,8 @@ async fn add_login_log(name: String, status: i8, msg: &str, agent: UserAgentUtil
 async fn query_btn_menu(id: &i64) -> (Vec<String>, bool) {
     let mut btn_menu: Vec<String> = Vec::new();
     let rb = &mut RB.clone();
-    let count = UserRole::is_admin(rb, id).await.unwrap_or_default();
-    if count == 1 {
+
+    if UserRole::is_admin(rb, id).await.unwrap_or_default() > 0 {
         for x in Menu::select_by_map(rb, value! {}).await.unwrap_or_default() {
             if let Some(a) = x.api_url {
                 if a != "" {
@@ -462,11 +464,11 @@ pub async fn update_user_role(req: &mut Request, res: &mut Response) -> AppResul
     let role_ids = &item.role_ids;
     let len = item.role_ids.len();
 
-    if user_id.clone() == 1 {
+    let rb = &mut RB.clone();
+
+    if UserRole::is_admin(rb, &user_id).await? > 0 {
         return Err(AppError::BusinessError("不能修改超级管理员的角色"));
     }
-
-    let rb = &mut RB.clone();
 
     UserRole::delete_by_map(rb, value! {"user_id": user_id.clone()}).await?;
 
@@ -502,12 +504,9 @@ pub async fn query_user_menu(depot: &mut Depot, res: &mut Response) -> AppResult
     match User::select_by_id(rb, &user_id).await? {
         None => Err(AppError::BusinessError("用户不存在")),
         Some(user) => {
-            //role_id为1是超级管理员--判断是不是超级管理员
-            let count = UserRole::is_admin(rb, &user_id).await?;
-
             let sys_menu_list: Vec<Menu>;
 
-            if count == 1 {
+            if UserRole::is_admin(rb, &user_id).await? > 0 {
                 log::info!("The current user is a super administrator");
                 sys_menu_list = Menu::select_by_map(rb, value! {}).await?;
             } else {
