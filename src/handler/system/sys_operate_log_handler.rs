@@ -23,7 +23,7 @@ pub async fn delete_sys_operate_log(req: &mut Request, res: &mut Response) -> Ap
 
     let rb = &mut RB.clone();
 
-    OperateLog::delete_by_map(rb, value! {"id": &item.ids}).await.map(|_| ok_result(res))?
+    OperateLog::delete_by_map(rb, value! {"id": &item.ids}).await.map(|x| ok_result_data(res, x))?
 }
 
 /*

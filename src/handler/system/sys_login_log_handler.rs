@@ -23,7 +23,7 @@ pub async fn delete_sys_login_log(req: &mut Request, res: &mut Response) -> AppR
 
     let rb = &mut RB.clone();
 
-    LoginLog::delete_by_map(rb, value! {"id": &item.ids}).await.map(|_| ok_result(res))?
+    LoginLog::delete_by_map(rb, value! {"id": &item.ids}).await.map(|x| ok_result_data(res, x))?
 }
 
 /*

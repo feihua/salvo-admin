@@ -28,8 +28,8 @@ pub async fn add_sys_notice(req: &mut Request, res: &mut Response) -> AppResult 
     let condition = value! {
         "notice_title": &item.notice_title,
     };
-    let list = Notice::select_by_map(rb, condition).await?;
-    if list.len() > 0 {
+
+    if Notice::select_by_map(rb, condition).await?.len() > 0 {
         return Err(AppError::BusinessError("公告标题已存在"));
     }
 
@@ -45,7 +45,6 @@ pub async fn add_sys_notice(req: &mut Request, res: &mut Response) -> AppResult 
 #[handler]
 pub async fn delete_sys_notice(req: &mut Request, res: &mut Response) -> AppResult {
     let item = req.parse_json::<DeleteNoticeReq>().await?;
-
     log::info!("delete sys_notice params: {:?}", &item);
 
     let rb = &mut RB.clone();
@@ -78,8 +77,7 @@ pub async fn update_sys_notice(req: &mut Request, res: &mut Response) -> AppResu
         "id !=":id
     };
 
-    let list = Notice::select_by_map(rb, condition).await?;
-    if list.len() > 0 {
+    if Notice::select_by_map(rb, condition).await?.len() > 0 {
         return Err(AppError::BusinessError("公告标题已存在"));
     }
 
@@ -115,16 +113,17 @@ pub async fn update_sys_notice_status(req: &mut Request, res: &mut Response) -> 
 #[handler]
 pub async fn query_sys_notice_detail(req: &mut Request, res: &mut Response) -> AppResult {
     let item = req.parse_json::<QueryNoticeDetailReq>().await?;
-
     log::info!("query sys_notice_detail params: {:?}", &item);
 
-    Notice::select_by_id(&mut RB.clone(), &item.id).await?.map_or_else(
-        || Err(AppError::BusinessError("通知公告不存在")),
-        |x| {
+    match Notice::select_by_id(&mut RB.clone(), &item.id).await? {
+        None => {
+            Err(AppError::BusinessError("通知公告不存在"))
+        }
+        Some(x) => {
             let notice: NoticeResp = x.into();
             ok_result_data(res, notice)
-        },
-    )
+        }
+    }
 }
 
 /*
