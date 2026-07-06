@@ -101,7 +101,7 @@ impl Dept {
       <select id="select_by_page">
             `select * from sys_dept`
             <where>
-            <if test="req.parentId != 2">
+            <if test="req.parentId != 0">
                 ` and parent_id = #{req.parentId}`
             </if>
             <if test="req.ancestors != '' && req.ancestors != null">
@@ -121,9 +121,6 @@ impl Dept {
             </if>
             <if test="req.status != 2">
                 ` and status = #{req.status}`
-            </if>
-            <if test="req.delFlag != 2">
-                ` and del_flag = #{req.delFlag}`
             </if>
             </where>
       </select>"#
