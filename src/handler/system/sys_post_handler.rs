@@ -92,7 +92,7 @@ pub async fn update_sys_post(req: &mut Request, res: &mut Response) -> AppResult
         return Err(AppError::BusinessError("岗位编码已存在"));
     }
 
-    Post::update_by_map(rb, &Post::from(item), value! {"id": &id}).await.map(|_| ok_result(res))?
+    Post::update_by_map(rb, &Post::from(item), value! {"id": id}).await.map(|_| ok_result(res))?
 }
 
 /*

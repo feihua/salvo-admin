@@ -148,7 +148,7 @@ pub async fn update_sys_user(req: &mut Request, res: &mut Response) -> AppResult
     UserPost::delete_by_map(rb, value! {"user_id": &item.id}).await?;
     UserPost::insert_batch(rb, &user_post_list, user_post_list.len() as u64).await?;
 
-    User::update_by_map(rb, &User::from(item), value! {"id": &id}).await.map(|_| ok_result(res))?
+    User::update_by_map(rb, &User::from(item), value! {"id": id}).await.map(|_| ok_result(res))?
 }
 
 /*
@@ -199,7 +199,7 @@ pub async fn reset_sys_user_password(req: &mut Request, res: &mut Response) -> A
         Some(x) => {
             let mut user = x;
             user.password = item.password;
-            User::update_by_map(rb, &user, value! {"id": &user.id}).await.map(|_| ok_result(res))?
+            User::update_by_map(rb, &user, value! {"id": user.id}).await.map(|_| ok_result(res))?
         }
     }
 }
@@ -226,7 +226,7 @@ pub async fn update_sys_user_password(req: &mut Request, depot: &mut Depot, res:
                 }
                 user.password = item.re_pwd;
 
-                User::update_by_map(rb, &user, value! {"id": &user.id}).await.map(|_| ok_result(res))?
+                User::update_by_map(rb, &user, value! {"id": user.id}).await.map(|_| ok_result(res))?
             }
         }
     } else {
@@ -355,7 +355,7 @@ pub async fn login(depot: &mut Depot, req: &mut Request, res: &mut Response) -> 
             s_user.login_browser = agent.browser;
             s_user.login_date = Some(DateTime::now());
 
-            User::update_by_map(rb, &s_user, value! {"id": &s_user.id}).await?;
+            User::update_by_map(rb, &s_user, value! {"id": s_user.id}).await?;
             ok_result_data(res, token)
         }
     }

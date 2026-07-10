@@ -87,7 +87,7 @@ pub async fn update_sys_dict_type(req: &mut Request, res: &mut Response) -> AppR
     let dict_type = option.unwrap().dict_type;
     DictData::update_dict_data_type(rb, &*item.dict_type, &dict_type).await?;
 
-    DictType::update_by_map(rb, &DictType::from(item), value! {"id": &id}).await.map(|_| ok_result(res))?
+    DictType::update_by_map(rb, &DictType::from(item), value! {"id": id}).await.map(|_| ok_result(res))?
 }
 
 /*

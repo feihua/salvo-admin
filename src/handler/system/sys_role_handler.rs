@@ -106,7 +106,7 @@ pub async fn update_sys_role(req: &mut Request, res: &mut Response) -> AppResult
         return Err(AppError::BusinessError("角色权限已存在"));
     }
 
-    Role::update_by_map(rb, &Role::from(item), value! {"id": &id}).await.map(|_| ok_result(res))?
+    Role::update_by_map(rb, &Role::from(item), value! {"id": id}).await.map(|_| ok_result(res))?
 }
 
 /*

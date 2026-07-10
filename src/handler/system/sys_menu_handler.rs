@@ -101,7 +101,7 @@ pub async fn update_sys_menu(req: &mut Request, res: &mut Response) -> AppResult
         }
     }
 
-    Menu::update_by_map(rb, &Menu::from(item), value! {"id": &id}).await.map(|_| ok_result(res))?
+    Menu::update_by_map(rb, &Menu::from(item), value! {"id": id}).await.map(|_| ok_result(res))?
 }
 
 /*

@@ -24,7 +24,7 @@ pub async fn add_sys_dept(req: &mut Request, res: &mut Response) -> AppResult {
 
     let rb = &mut RB.clone();
 
-    let condition = value! {"dept_name":&item.dept_name,"parent_id":&item.parent_id};
+    let condition = value! {"dept_name":&item.dept_name,"parent_id":item.parent_id};
     if Dept::select_by_map(rb, condition).await?.len() > 0 {
         return Err(AppError::BusinessError("部门名称已存在"));
     }
@@ -35,7 +35,7 @@ pub async fn add_sys_dept(req: &mut Request, res: &mut Response) -> AppResult {
             if dept.status == 0 {
                 return Err(AppError::BusinessError("部门停用，不允许添加"));
             }
-            let ancestors = format!("{},{}", dept.ancestors.unwrap_or_default(), &item.parent_id);
+            let ancestors = format!("{},{}", dept.ancestors.unwrap_or_default(), item.parent_id);
             // item.ancestors = Some(ancestors);
             let mut sys_dept = Dept::from(item);
             sys_dept.ancestors = Some(ancestors);
@@ -126,7 +126,7 @@ pub async fn update_sys_dept(req: &mut Request, res: &mut Response) -> AppResult
     }
     item.ancestors = Some(ancestors.clone());
 
-    Dept::update_by_map(rb, &Dept::from(item), value! {"id":  &id}).await.map(|_| ok_result(res))?
+    Dept::update_by_map(rb, &Dept::from(item), value! {"id":  id}).await.map(|_| ok_result(res))?
 }
 
 /*

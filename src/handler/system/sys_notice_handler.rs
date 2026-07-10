@@ -81,7 +81,7 @@ pub async fn update_sys_notice(req: &mut Request, res: &mut Response) -> AppResu
         return Err(AppError::BusinessError("公告标题已存在"));
     }
 
-    Notice::update_by_map(rb, &Notice::from(item), value! {"id": &id}).await.map(|_| ok_result(res))?
+    Notice::update_by_map(rb, &Notice::from(item), value! {"id": id}).await.map(|_| ok_result(res))?
 }
 
 /*

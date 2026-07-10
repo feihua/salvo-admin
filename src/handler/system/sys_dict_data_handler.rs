@@ -85,7 +85,7 @@ pub async fn update_sys_dict_data(req: &mut Request, res: &mut Response) -> AppR
         return Err(AppError::BusinessError("字典键值已存在"));
     }
 
-    DictData::update_by_map(rb, &DictData::from(item), value! {"id": &id}).await.map(|_| ok_result(res))?
+    DictData::update_by_map(rb, &DictData::from(item), value! {"id": id}).await.map(|_| ok_result(res))?
 }
 
 /*
