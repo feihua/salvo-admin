@@ -459,7 +459,7 @@ pub async fn update_user_role(req: &mut Request, res: &mut Response) -> AppResul
     let item = req.parse_json::<UpdateUserRoleReq>().await?;
     log::info!("update_user_role params: {:?}", item);
 
-    let user_id = item.user_id.clone();
+    let user_id = item.user_id;
 
     let rb = &mut RB.clone();
 
@@ -467,7 +467,7 @@ pub async fn update_user_role(req: &mut Request, res: &mut Response) -> AppResul
         return Err(AppError::BusinessError("不能修改超级管理员的角色"));
     }
 
-    UserRole::delete_by_map(rb, value! {"user_id": user_id.clone()}).await?;
+    UserRole::delete_by_map(rb, value! {"user_id": user_id}).await?;
 
     let list: Vec<UserRole> = item.role_ids.into_iter().map(|role_id| UserRole { id: None, role_id, user_id }).collect();
 
