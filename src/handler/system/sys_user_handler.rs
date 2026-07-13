@@ -481,7 +481,6 @@ pub async fn update_user_role(req: &mut Request, res: &mut Response) -> AppResul
  */
 #[handler]
 pub async fn query_user_menu(depot: &mut Depot, res: &mut Response) -> AppResult {
-    log::info!("query user menu params {:?}", depot);
     let user_id = depot.get::<i64>("userId").copied().unwrap();
     let user_name = depot.get::<String>("username").unwrap();
     log::info!("query user menu params user_id {:?}", user_id);
@@ -511,11 +510,9 @@ pub async fn query_user_menu(depot: &mut Depot, res: &mut Response) -> AppResult
             for x in sys_menu_list {
                 if x.menu_type != 3 {
                     sys_menu_ids.insert(x.id.unwrap_or_default());
-                    sys_menu_ids.insert(x.parent_id.unwrap_or_default().clone());
+                    sys_menu_ids.insert(x.parent_id.unwrap_or_default());
                 }
-                if x.api_url.clone().unwrap_or_default().len() > 0 {
-                    btn_menu.push(x.api_url.unwrap_or_default());
-                }
+                btn_menu.push(x.api_url.unwrap_or_default());
             }
 
             let mut menu_ids = Vec::new();
@@ -533,21 +530,16 @@ pub async fn query_user_menu(depot: &mut Depot, res: &mut Response) -> AppResult
                     menu_type: menu.menu_type,
                     path: menu.menu_url.unwrap_or_default(),
                 });
-
-                if api_url.len() > 0 {
-                    btn_menu.push(api_url);
-                }
+                btn_menu.push(api_url);
             }
 
-            ok_result_data(
-                res,
-                QueryUserMenuResp {
-                    sys_menu,
-                    btn_menu,
-                    avatar: "https://gw.alipayobjects.com/zos/antfincdn/XAosXuNZyF/BiazfanxmamNRoxxVxka.png".to_string(),
-                    name: user.user_name,
-                },
-            )
+            let data = QueryUserMenuResp {
+                sys_menu,
+                btn_menu: btn_menu.into_iter().filter(|x| x != "").collect(),
+                avatar: "https://gw.alipayobjects.com/zos/antfincdn/XAosXuNZyF/BiazfanxmamNRoxxVxka.png".to_string(),
+                name: user.user_name,
+            };
+            ok_result_data(res, data)
         }
     }
 }

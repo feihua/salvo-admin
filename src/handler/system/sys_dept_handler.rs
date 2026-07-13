@@ -124,7 +124,7 @@ pub async fn update_sys_dept(req: &mut Request, res: &mut Response) -> AppResult
 
         rb.exec(&update_sql, param).await?;
     }
-    item.ancestors = Some(ancestors.clone());
+    item.ancestors = Some(ancestors);
 
     Dept::update_by_map(rb, &Dept::from(item), value! {"id":  id}).await.map(|_| ok_result(res))?
 }
