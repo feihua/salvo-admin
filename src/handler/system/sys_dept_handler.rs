@@ -36,9 +36,9 @@ pub async fn add_sys_dept(req: &mut Request, res: &mut Response) -> AppResult {
                 return Err(AppError::BusinessError("部门停用，不允许添加"));
             }
             let ancestors = format!("{},{}", dept.ancestors.unwrap_or_default(), item.parent_id);
-            // item.ancestors = Some(ancestors);
             let mut sys_dept = Dept::from(item);
             sys_dept.ancestors = Some(ancestors);
+            sys_dept.id = None;
             Dept::insert(rb, &sys_dept).await.map(|_| ok_result(res))?
         }
     }
@@ -63,7 +63,7 @@ pub async fn delete_sys_dept(req: &mut Request, res: &mut Response) -> AppResult
         return Err(AppError::BusinessError("部门存在用户,不允许删除"));
     }
 
-    Dept::delete_by_map(rb, value! {"id": &item.id}).await.map(|_| ok_result(res))?
+    Dept::delete_by_map(rb, value! {"id": item.id}).await.map(|_| ok_result(res))?
 }
 
 /*
@@ -97,7 +97,7 @@ pub async fn update_sys_dept(req: &mut Request, res: &mut Response) -> AppResult
         }
     };
 
-    let condition = value! {"dept_name":&item.dept_name,"parent_id":&item.parent_id,"id !=":&id};
+    let condition = value! {"dept_name":&item.dept_name,"parent_id":item.parent_id,"id !=":id};
     if Dept::select_by_map(rb, condition).await?.len() > 0 {
         return Err(AppError::BusinessError("部门名称已存在"));
     }
@@ -140,9 +140,11 @@ pub async fn update_sys_dept_status(req: &mut Request, res: &mut Response) -> Ap
     log::info!("update sys_dept_status params: {:?}", &item);
 
     let rb = &mut RB.clone();
+    
+    let ids=item.ids;
     if item.status == 1 {
-        for id in item.ids.clone() {
-            if let Some(x) = Dept::select_by_id(rb, &id).await? {
+        for id in &ids {
+            if let Some(x) = Dept::select_by_id(rb, id).await? {
                 let ancestors = x.ancestors.unwrap_or_default();
                 let ids = ancestors.split(",").map(|s| s.i64()).collect::<Vec<i64>>();
 
@@ -160,11 +162,11 @@ pub async fn update_sys_dept_status(req: &mut Request, res: &mut Response) -> Ap
 
     let update_sql = format!(
         "update sys_dept set status = ? ,update_time = ? where id in ({})",
-        item.ids.iter().map(|_| "?").collect::<Vec<&str>>().join(", ")
+        ids.iter().map(|_| "?").collect::<Vec<&str>>().join(", ")
     );
 
     let mut param = vec![value!(item.status), value!(DateTime::now())];
-    param.extend(item.ids.iter().map(|&id| value!(id)));
+    param.extend(ids.iter().map(|&id| value!(id)));
     rb.exec(&update_sql, param).await.map(|_| ok_result(res))?
 }
 

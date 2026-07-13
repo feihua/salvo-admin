@@ -49,7 +49,7 @@ pub async fn delete_sys_notice(req: &mut Request, res: &mut Response) -> AppResu
 
     let rb = &mut RB.clone();
 
-    Notice::delete_by_map(rb, value! {"id": &item.ids}).await.map(|_| ok_result(res))?
+    Notice::delete_by_map(rb, value! {"id": item.ids}).await.map(|_| ok_result(res))?
 }
 
 /*

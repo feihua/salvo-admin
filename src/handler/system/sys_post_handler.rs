@@ -47,10 +47,11 @@ pub async fn delete_sys_post(req: &mut Request, res: &mut Response) -> AppResult
     let item = req.parse_json::<DeletePostReq>().await?;
     log::info!("delete sys_post params: {:?}", &item);
 
-    let ids = item.ids.clone();
     let rb = &mut RB.clone();
-    for id in ids {
-        match Post::select_by_id(rb, &id).await? {
+    
+    let ids = item.ids;
+    for id in &ids {
+        match Post::select_by_id(rb, id).await? {
             None => return Err(AppError::BusinessError("不能删除")),
             Some(_) => {
                 if UserPost::count_user_post_by_id(rb, id).await? > 0 {
@@ -60,7 +61,7 @@ pub async fn delete_sys_post(req: &mut Request, res: &mut Response) -> AppResult
         };
     }
 
-    Post::delete_by_map(rb, value! {"id": &item.ids}).await.map(|_| ok_result(res))?
+    Post::delete_by_map(rb, value! {"id": ids}).await.map(|_| ok_result(res))?
 }
 
 /*
@@ -84,11 +85,11 @@ pub async fn update_sys_post(req: &mut Request, res: &mut Response) -> AppResult
         return Err(AppError::BusinessError("岗位不存在"));
     }
 
-    if Post::select_by_map(rb, value! {"post_name": &item.post_name, "id !=": &id}).await?.len() > 0 {
+    if Post::select_by_map(rb, value! {"post_name": &item.post_name, "id !=": id}).await?.len() > 0 {
         return Err(AppError::BusinessError("岗位名称已存在"));
     }
 
-    if Post::select_by_map(rb, value! {"post_code": &item.post_code, "id !=": &id}).await?.len() > 0 {
+    if Post::select_by_map(rb, value! {"post_code": &item.post_code, "id !=": id}).await?.len() > 0 {
         return Err(AppError::BusinessError("岗位编码已存在"));
     }
 

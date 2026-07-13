@@ -78,7 +78,7 @@ pub async fn delete_sys_user(depot: &mut Depot, req: &mut Request, res: &mut Res
     log::info!("delete sys_user params: {:?}", &item);
 
     if let Ok(user_id) = depot.get::<i64>("userId").copied() {
-        let ids = item.ids.clone();
+        let ids = item.ids;
         if ids.contains(&user_id) {
             return Err(AppError::BusinessError("当前用户不能删除"));
         }
@@ -91,7 +91,7 @@ pub async fn delete_sys_user(depot: &mut Depot, req: &mut Request, res: &mut Res
 
         UserPost::delete_by_map(rb, value! {"user_id": &ids}).await?;
 
-        User::delete_by_map(rb, value! {"id": &item.ids}).await.map(|_| ok_result(res))?
+        User::delete_by_map(rb, value! {"id": ids}).await.map(|_| ok_result(res))?
     } else {
         Err(AppError::BusinessError("参数错误"))
     }
@@ -123,15 +123,15 @@ pub async fn update_sys_user(req: &mut Request, res: &mut Response) -> AppResult
         Some(x) => x,
     };
 
-    if User::select_by_map(rb, value! {"user_name": &item.user_name,"id !=": &id}).await?.len() > 0 {
+    if User::select_by_map(rb, value! {"user_name": &item.user_name,"id !=": id}).await?.len() > 0 {
         return Err(AppError::BusinessError("登录账号已存在"));
     }
 
-    if User::select_by_map(rb, value! {"mobile": &item.mobile,"id !=": &id}).await?.len() > 0 {
+    if User::select_by_map(rb, value! {"mobile": &item.mobile,"id !=": id}).await?.len() > 0 {
         return Err(AppError::BusinessError("手机号码已存在"));
     }
 
-    if User::select_by_map(rb, value! {"email": &item.email,"id !=": &id}).await?.len() > 0 {
+    if User::select_by_map(rb, value! {"email": &item.email,"id !=": id}).await?.len() > 0 {
         return Err(AppError::BusinessError("邮箱账号已存在"));
     }
 
@@ -161,18 +161,18 @@ pub async fn update_sys_user_status(req: &mut Request, res: &mut Response) -> Ap
     let item = req.parse_json::<UpdateUserStatusReq>().await?;
     log::info!("update sys_user_status params: {:?}", &item);
 
-    let ids = item.ids.clone();
+    let ids = item.ids;
     if ids.contains(&1) {
         return Err(AppError::BusinessError("不允许操作超级管理员用户"));
     }
 
     let update_sql = format!(
         "update sys_user set status = ? ,update_time = ? where id in ({})",
-        item.ids.iter().map(|_| "?").collect::<Vec<&str>>().join(", ")
+        ids.iter().map(|_| "?").collect::<Vec<&str>>().join(", ")
     );
 
     let mut param = vec![value!(item.status), value!(DateTime::now())];
-    param.extend(item.ids.iter().map(|&id| value!(id)));
+    param.extend(ids.iter().map(|&id| value!(id)));
 
     RB.clone().exec(&update_sql, param).await.map(|_| ok_result(res))?
 }
@@ -460,8 +460,6 @@ pub async fn update_user_role(req: &mut Request, res: &mut Response) -> AppResul
     log::info!("update_user_role params: {:?}", item);
 
     let user_id = item.user_id.clone();
-    let role_ids = &item.role_ids;
-    let len = item.role_ids.len();
 
     let rb = &mut RB.clone();
 
@@ -471,17 +469,9 @@ pub async fn update_user_role(req: &mut Request, res: &mut Response) -> AppResul
 
     UserRole::delete_by_map(rb, value! {"user_id": user_id.clone()}).await?;
 
-    let mut list: Vec<UserRole> = Vec::new();
-    for role_id in role_ids {
-        let r_id = role_id.clone();
-        list.push(UserRole {
-            id: None,
-            role_id: r_id,
-            user_id: user_id.clone(),
-        })
-    }
+    let list: Vec<UserRole> = item.role_ids.into_iter().map(|role_id| UserRole { id: None, role_id, user_id }).collect();
 
-    UserRole::insert_batch(rb, &list, len as u64).await.map(|_| ok_result(res))?
+    UserRole::insert_batch(rb, &list, list.len() as u64).await.map(|_| ok_result(res))?
 }
 
 /*

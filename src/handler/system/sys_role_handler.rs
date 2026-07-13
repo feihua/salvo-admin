@@ -51,15 +51,15 @@ pub async fn delete_sys_role(req: &mut Request, res: &mut Response) -> AppResult
     let item = req.parse_json::<DeleteRoleReq>().await?;
     log::info!("delete sys_role params: {:?}", &item);
 
-    let ids = item.ids.clone();
+    let ids = item.ids;
 
     if ids.contains(&1) {
         return Err(AppError::BusinessError("不允许操作超级管理员角色"));
     }
 
     let rb = &mut RB.clone();
-    for id in ids {
-        if let None = Role::select_by_id(rb, &id).await? {
+    for id in &ids {
+        if let None = Role::select_by_id(rb, id).await? {
             return Err(AppError::BusinessError("角色不存在,不能删除"));
         }
 
@@ -68,10 +68,10 @@ pub async fn delete_sys_role(req: &mut Request, res: &mut Response) -> AppResult
         }
     }
 
-    RoleMenu::delete_by_map(rb, value! {"role_id": &item.ids}).await?;
-    RoleDept::delete_by_map(rb, value! {"role_id": &item.ids}).await?;
+    RoleMenu::delete_by_map(rb, value! {"role_id": &ids}).await?;
+    RoleDept::delete_by_map(rb, value! {"role_id": &ids}).await?;
 
-    Role::delete_by_map(rb, value! {"id": &item.ids}).await.map(|_| ok_result(res))?
+    Role::delete_by_map(rb, value! {"id": ids}).await.map(|_| ok_result(res))?
 }
 
 /*
@@ -98,11 +98,11 @@ pub async fn update_sys_role(req: &mut Request, res: &mut Response) -> AppResult
         return Err(AppError::BusinessError("角色不存在"));
     }
 
-    if Role::select_by_map(rb, value! {"role_name": &item.role_name,"id !=": &id}).await?.len() > 0 {
+    if Role::select_by_map(rb, value! {"role_name": &item.role_name,"id !=": id}).await?.len() > 0 {
         return Err(AppError::BusinessError("角色名称已存在"));
     }
 
-    if Role::select_by_map(rb, value! {"role_key": &item.role_key,"id !=": &id}).await?.len() > 0 {
+    if Role::select_by_map(rb, value! {"role_key": &item.role_key,"id !=": id}).await?.len() > 0 {
         return Err(AppError::BusinessError("角色权限已存在"));
     }
 
@@ -233,12 +233,7 @@ pub async fn update_role_menu(req: &mut Request, res: &mut Response) -> AppResul
     let mut role_menu: Vec<RoleMenu> = Vec::new();
 
     for id in &item.menu_ids {
-        let menu_id = id.clone();
-        role_menu.push(RoleMenu {
-            id: None,
-            menu_id,
-            role_id: role_id.clone(),
-        })
+        role_menu.push(RoleMenu { id: None, menu_id: *id, role_id })
     }
 
     RoleMenu::insert_batch(rb, &role_menu, item.menu_ids.len() as u64).await?;
@@ -353,19 +348,10 @@ pub async fn batch_auth_user(req: &mut Request, res: &mut Response) -> AppResult
     log::info!("select all_auth_user params: {:?}", &item);
     let role_id = item.role_id;
 
-    let mut user_role: Vec<UserRole> = Vec::new();
-
-    for id in &item.user_ids {
-        let user_id = id.clone();
-        user_role.push(UserRole {
-            id: None,
-            role_id: role_id.clone(),
-            user_id,
-        })
-    }
+    let user_role: Vec<UserRole> = item.user_ids.into_iter().map(|user_id| UserRole { id: None, role_id, user_id }).collect();
 
     let rb = &mut RB.clone();
 
-    UserRole::insert_batch(rb, &user_role, item.user_ids.len() as u64).await?;
+    UserRole::insert_batch(rb, &user_role, user_role.len() as u64).await?;
     ok_result(res)
 }
