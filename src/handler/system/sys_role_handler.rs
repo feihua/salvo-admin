@@ -18,14 +18,15 @@ use rbatis::rbdc::datetime::DateTime;
 use rbs::value;
 use salvo::prelude::*;
 use salvo::{Request, Response};
+use salvo::oapi::extract::JsonBody;
 /*
  *添加角色信息
  *author：刘飞华
  *date：2025/01/08 13:51:14
  */
 #[handler]
-pub async fn add_sys_role(req: &mut Request, res: &mut Response) -> AppResult {
-    let mut item = req.parse_json::<RoleReq>().await?;
+pub async fn add_sys_role(req: JsonBody<RoleReq>, res: &mut Response) -> AppResult {
+    let mut item = req.into_inner();
     log::info!("add sys_role params: {:?}", &item);
 
     let rb = &mut RB.clone();
@@ -47,8 +48,8 @@ pub async fn add_sys_role(req: &mut Request, res: &mut Response) -> AppResult {
  *date：2025/01/08 13:51:14
  */
 #[handler]
-pub async fn delete_sys_role(req: &mut Request, res: &mut Response) -> AppResult {
-    let item = req.parse_json::<DeleteRoleReq>().await?;
+pub async fn delete_sys_role(req: JsonBody<DeleteRoleReq>, res: &mut Response) -> AppResult {
+    let item = req.into_inner();
     log::info!("delete sys_role params: {:?}", &item);
 
     let ids = item.ids;
@@ -80,8 +81,8 @@ pub async fn delete_sys_role(req: &mut Request, res: &mut Response) -> AppResult
  *date：2025/01/08 13:51:14
  */
 #[handler]
-pub async fn update_sys_role(req: &mut Request, res: &mut Response) -> AppResult {
-    let item = req.parse_json::<RoleReq>().await?;
+pub async fn update_sys_role(req: JsonBody<RoleReq>, res: &mut Response) -> AppResult {
+    let item = req.into_inner();
     log::info!("update sys_role params: {:?}", &item);
 
     let rb = &mut RB.clone();
@@ -115,8 +116,8 @@ pub async fn update_sys_role(req: &mut Request, res: &mut Response) -> AppResult
  *date：2025/01/08 13:51:14
  */
 #[handler]
-pub async fn update_sys_role_status(req: &mut Request, res: &mut Response) -> AppResult {
-    let item = req.parse_json::<UpdateRoleStatusReq>().await?;
+pub async fn update_sys_role_status(req: JsonBody<UpdateRoleStatusReq>, res: &mut Response) -> AppResult {
+    let item = req.into_inner();
     log::info!("update sys_role_status params: {:?}", &item);
 
     if item.ids.contains(&1) {
@@ -140,8 +141,8 @@ pub async fn update_sys_role_status(req: &mut Request, res: &mut Response) -> Ap
  *date：2025/01/08 13:51:14
  */
 #[handler]
-pub async fn query_sys_role_detail(req: &mut Request, res: &mut Response) -> AppResult {
-    let item = req.parse_json::<QueryRoleDetailReq>().await?;
+pub async fn query_sys_role_detail(req: JsonBody<QueryRoleDetailReq>, res: &mut Response) -> AppResult {
+    let item = req.into_inner();
     log::info!("query sys_role_detail params: {:?}", &item);
 
     Role::select_by_id(&mut RB.clone(), &item.id).await?.map_or_else(
@@ -159,8 +160,8 @@ pub async fn query_sys_role_detail(req: &mut Request, res: &mut Response) -> App
  *date：2025/01/08 13:51:14
  */
 #[handler]
-pub async fn query_sys_role_list(req: &mut Request, res: &mut Response) -> AppResult {
-    let item = req.parse_json::<QueryRoleListReq>().await?;
+pub async fn query_sys_role_list(req: JsonBody<QueryRoleListReq>, res: &mut Response) -> AppResult {
+    let item = req.into_inner();
     log::info!("query sys_role_list params: {:?}", &item);
 
     let rb = &mut RB.clone();
@@ -176,8 +177,8 @@ pub async fn query_sys_role_list(req: &mut Request, res: &mut Response) -> AppRe
  *date：2025/01/08 13:51:14
  */
 #[handler]
-pub async fn query_role_menu(req: &mut Request, res: &mut Response) -> AppResult {
-    let item = req.parse_json::<QueryRoleMenuReq>().await?;
+pub async fn query_role_menu(req: JsonBody<QueryRoleMenuReq>, res: &mut Response) -> AppResult {
+    let item = req.into_inner();
     log::info!("query role_menu params: {:?}", &item);
 
     let rb = &mut RB.clone();
@@ -218,8 +219,8 @@ pub async fn query_role_menu(req: &mut Request, res: &mut Response) -> AppResult
  *date：2025/01/08 13:51:14
  */
 #[handler]
-pub async fn update_role_menu(req: &mut Request, res: &mut Response) -> AppResult {
-    let item = req.parse_json::<UpdateRoleMenuReq>().await?;
+pub async fn update_role_menu(req: JsonBody<UpdateRoleMenuReq>, res: &mut Response) -> AppResult {
+    let item = req.into_inner();
     log::info!("update_role_menu params: {:?}", &item);
     let role_id = item.role_id;
 
@@ -246,8 +247,8 @@ pub async fn update_role_menu(req: &mut Request, res: &mut Response) -> AppResul
  *date：2025/01/08 13:51:14
  */
 #[handler]
-pub async fn query_allocated_list(req: &mut Request, res: &mut Response) -> AppResult {
-    let item = req.parse_json::<AllocatedListReq>().await?;
+pub async fn query_allocated_list(req: JsonBody<AllocatedListReq>, res: &mut Response) -> AppResult {
+    let item = req.into_inner();
     log::info!("update role_menu params: {:?}", &item);
 
     let page_no = item.page_no;
@@ -275,8 +276,8 @@ pub async fn query_allocated_list(req: &mut Request, res: &mut Response) -> AppR
  *date：2025/01/08 13:51:14
  */
 #[handler]
-pub async fn query_unallocated_list(req: &mut Request, res: &mut Response) -> AppResult {
-    let item = req.parse_json::<UnallocatedListReq>().await?;
+pub async fn query_unallocated_list(req: JsonBody<UnallocatedListReq>, res: &mut Response) -> AppResult {
+    let item = req.into_inner();
     log::info!("update role_menu params: {:?}", &item);
 
     let page_no = item.page_no;
@@ -305,8 +306,8 @@ pub async fn query_unallocated_list(req: &mut Request, res: &mut Response) -> Ap
  *date：2025/01/08 13:51:14
  */
 #[handler]
-pub async fn cancel_auth_user(req: &mut Request, res: &mut Response) -> AppResult {
-    let item = req.parse_json::<CancelAuthUserReq>().await?;
+pub async fn cancel_auth_user(req: JsonBody<CancelAuthUserReq>, res: &mut Response) -> AppResult {
+    let item = req.into_inner();
     log::info!("update role_menu params: {:?}", &item);
 
     let rb = &mut RB.clone();
@@ -321,8 +322,8 @@ pub async fn cancel_auth_user(req: &mut Request, res: &mut Response) -> AppResul
  *date：2025/01/08 13:51:14
  */
 #[handler]
-pub async fn batch_cancel_auth_user(req: &mut Request, res: &mut Response) -> AppResult {
-    let item = req.parse_json::<CancelAuthUserAllReq>().await?;
+pub async fn batch_cancel_auth_user(req: JsonBody<CancelAuthUserAllReq>, res: &mut Response) -> AppResult {
+    let item = req.into_inner();
     log::info!("cancel auth_user_all params: {:?}", &item);
 
     let update_sql = format!(
@@ -343,8 +344,8 @@ pub async fn batch_cancel_auth_user(req: &mut Request, res: &mut Response) -> Ap
  *date：2025/01/08 13:51:14
  */
 #[handler]
-pub async fn batch_auth_user(req: &mut Request, res: &mut Response) -> AppResult {
-    let item = req.parse_json::<SelectAuthUserAllReq>().await?;
+pub async fn batch_auth_user(req: JsonBody<SelectAuthUserAllReq>, res: &mut Response) -> AppResult {
+    let item = req.into_inner();
     log::info!("select all_auth_user params: {:?}", &item);
     let role_id = item.role_id;
 

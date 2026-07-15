@@ -11,14 +11,15 @@ use rbatis::plugin::page::PageRequest;
 use rbs::value;
 use salvo::prelude::*;
 use salvo::{Request, Response};
+use salvo::oapi::extract::JsonBody;
 /*
  *删除系统访问记录
  *author：刘飞华
  *date：2025/01/08 13:51:14
  */
 #[handler]
-pub async fn delete_sys_login_log(req: &mut Request, res: &mut Response) -> AppResult {
-    let item = req.parse_json::<DeleteLoginLogReq>().await?;
+pub async fn delete_sys_login_log(req: JsonBody<DeleteLoginLogReq>, res: &mut Response) -> AppResult {
+    let item = req.into_inner();
     log::info!("delete sys_login_log params: {:?}", &item);
 
     let rb = &mut RB.clone();
@@ -32,8 +33,8 @@ pub async fn delete_sys_login_log(req: &mut Request, res: &mut Response) -> AppR
  *date：2025/01/08 13:51:14
  */
 #[handler]
-pub async fn query_sys_login_log_detail(req: &mut Request, res: &mut Response) -> AppResult {
-    let item = req.parse_json::<QueryLoginLogDetailReq>().await?;
+pub async fn query_sys_login_log_detail(req: JsonBody<QueryLoginLogDetailReq>, res: &mut Response) -> AppResult {
+    let item = req.into_inner();
     log::info!("query sys_login_log_detail params: {:?}", &item);
 
     LoginLog::select_by_id(&mut RB.clone(), &item.id).await?.map_or_else(
@@ -51,8 +52,8 @@ pub async fn query_sys_login_log_detail(req: &mut Request, res: &mut Response) -
  *date：2025/01/08 13:51:14
  */
 #[handler]
-pub async fn query_sys_login_log_list(req: &mut Request, res: &mut Response) -> AppResult {
-    let item = req.parse_json::<QueryLoginLogListReq>().await?;
+pub async fn query_sys_login_log_list(req: JsonBody<QueryLoginLogListReq>, res: &mut Response) -> AppResult {
+    let item = req.into_inner();
     log::info!("query sys_login_log_list params: {:?}", &item);
 
     let rb = &mut RB.clone();

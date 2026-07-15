@@ -13,14 +13,15 @@ use rbatis::rbdc::DateTime;
 use rbs::value;
 use salvo::prelude::*;
 use salvo::{Request, Response};
+use salvo::oapi::extract::JsonBody;
 /*
  *添加岗位信息
  *author：刘飞华
  *date：2025/01/08 13:51:14
  */
 #[handler]
-pub async fn add_sys_post(req: &mut Request, res: &mut Response) -> AppResult {
-    let mut item = req.parse_json::<PostReq>().await?;
+pub async fn add_sys_post(req: JsonBody<PostReq>, res: &mut Response) -> AppResult {
+    let mut item = req.into_inner();
     log::info!("add sys_post params: {:?}", &item);
 
     let rb = &mut RB.clone();
@@ -43,8 +44,8 @@ pub async fn add_sys_post(req: &mut Request, res: &mut Response) -> AppResult {
  *date：2025/01/08 13:51:14
  */
 #[handler]
-pub async fn delete_sys_post(req: &mut Request, res: &mut Response) -> AppResult {
-    let item = req.parse_json::<DeletePostReq>().await?;
+pub async fn delete_sys_post(req: JsonBody<DeletePostReq>, res: &mut Response) -> AppResult {
+    let item = req.into_inner();
     log::info!("delete sys_post params: {:?}", &item);
 
     let rb = &mut RB.clone();
@@ -70,8 +71,8 @@ pub async fn delete_sys_post(req: &mut Request, res: &mut Response) -> AppResult
  *date：2025/01/08 13:51:14
  */
 #[handler]
-pub async fn update_sys_post(req: &mut Request, res: &mut Response) -> AppResult {
-    let item = req.parse_json::<PostReq>().await?;
+pub async fn update_sys_post(req: JsonBody<PostReq>, res: &mut Response) -> AppResult {
+    let item = req.into_inner();
     log::info!("update sys_post params: {:?}", &item);
 
     let rb = &mut RB.clone();
@@ -102,8 +103,8 @@ pub async fn update_sys_post(req: &mut Request, res: &mut Response) -> AppResult
  *date：2025/01/08 13:51:14
  */
 #[handler]
-pub async fn update_sys_post_status(req: &mut Request, res: &mut Response) -> AppResult {
-    let item = req.parse_json::<UpdatePostStatusReq>().await?;
+pub async fn update_sys_post_status(req: JsonBody<UpdatePostStatusReq>, res: &mut Response) -> AppResult {
+    let item = req.into_inner();
     log::info!("update sys_post_status params: {:?}", &item);
 
     let update_sql = format!(
@@ -123,8 +124,8 @@ pub async fn update_sys_post_status(req: &mut Request, res: &mut Response) -> Ap
  *date：2025/01/08 13:51:14
  */
 #[handler]
-pub async fn query_sys_post_detail(req: &mut Request, res: &mut Response) -> AppResult {
-    let item = req.parse_json::<QueryPostDetailReq>().await?;
+pub async fn query_sys_post_detail(req: JsonBody<QueryPostDetailReq>, res: &mut Response) -> AppResult {
+    let item = req.into_inner();
     log::info!("query sys_post_detail params: {:?}", &item);
 
     Post::select_by_id(&mut RB.clone(), &item.id).await?.map_or_else(
@@ -142,8 +143,8 @@ pub async fn query_sys_post_detail(req: &mut Request, res: &mut Response) -> App
  *date：2025/01/08 13:51:14
  */
 #[handler]
-pub async fn query_sys_post_list(req: &mut Request, res: &mut Response) -> AppResult {
-    let item = req.parse_json::<QueryPostListReq>().await?;
+pub async fn query_sys_post_list(req: JsonBody<QueryPostListReq>, res: &mut Response) -> AppResult {
+    let item = req.into_inner();
     log::info!("query sys_post_list params: {:?}", &item);
 
     let rb = &mut RB.clone();

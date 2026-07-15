@@ -12,14 +12,15 @@ use rbatis::rbdc::DateTime;
 use rbs::value;
 use salvo::prelude::*;
 use salvo::{Request, Response};
+use salvo::oapi::extract::JsonBody;
 /*
  *添加部门
  *author：刘飞华
  *date：2025/01/08 13:51:14
  */
 #[handler]
-pub async fn add_sys_dept(req: &mut Request, res: &mut Response) -> AppResult {
-    let item = req.parse_json::<DeptReq>().await?;
+pub async fn add_sys_dept(req: JsonBody<DeptReq>, res: &mut Response) -> AppResult {
+    let item = req.into_inner();
     log::info!("add sys_dept params: {:?}", &item);
 
     let rb = &mut RB.clone();
@@ -50,8 +51,8 @@ pub async fn add_sys_dept(req: &mut Request, res: &mut Response) -> AppResult {
  *date：2025/01/08 13:51:14
  */
 #[handler]
-pub async fn delete_sys_dept(req: &mut Request, res: &mut Response) -> AppResult {
-    let item = req.parse_json::<DeleteDeptReq>().await?;
+pub async fn delete_sys_dept(req: JsonBody<DeleteDeptReq>, res: &mut Response) -> AppResult {
+    let item = req.into_inner();
     log::info!("delete sys_dept params: {:?}", &item);
 
     let rb = &mut RB.clone();
@@ -72,9 +73,9 @@ pub async fn delete_sys_dept(req: &mut Request, res: &mut Response) -> AppResult
  *date：2025/01/08 13:51:14
  */
 #[handler]
-pub async fn update_sys_dept(req: &mut Request, res: &mut Response) -> AppResult {
+pub async fn update_sys_dept(req: JsonBody<DeptReq>, res: &mut Response) -> AppResult {
     let rb = &mut RB.clone();
-    let mut item = req.parse_json::<DeptReq>().await?;
+    let mut item = req.into_inner();
     log::info!("update sys_dept params: {:?}", &item);
 
     let id = item.id;
@@ -135,8 +136,8 @@ pub async fn update_sys_dept(req: &mut Request, res: &mut Response) -> AppResult
  *date：2025/01/08 13:51:14
  */
 #[handler]
-pub async fn update_sys_dept_status(req: &mut Request, res: &mut Response) -> AppResult {
-    let item = req.parse_json::<UpdateDeptStatusReq>().await?;
+pub async fn update_sys_dept_status(req: JsonBody<UpdateDeptStatusReq>, res: &mut Response) -> AppResult {
+    let item = req.into_inner();
     log::info!("update sys_dept_status params: {:?}", &item);
 
     let rb = &mut RB.clone();
@@ -176,8 +177,8 @@ pub async fn update_sys_dept_status(req: &mut Request, res: &mut Response) -> Ap
  *date：2025/01/08 13:51:14
  */
 #[handler]
-pub async fn query_sys_dept_detail(req: &mut Request, res: &mut Response) -> AppResult {
-    let item = req.parse_json::<QueryDeptDetailReq>().await?;
+pub async fn query_sys_dept_detail(req: JsonBody<QueryDeptDetailReq>, res: &mut Response) -> AppResult {
+    let item = req.into_inner();
     log::info!("query sys_dept_detail params: {:?}", &item);
 
     match Dept::select_by_id(&mut RB.clone(), &item.id).await? {
@@ -195,8 +196,8 @@ pub async fn query_sys_dept_detail(req: &mut Request, res: &mut Response) -> App
  *date：2025/01/08 13:51:14
  */
 #[handler]
-pub async fn query_sys_dept_list(req: &mut Request, res: &mut Response) -> AppResult {
-    let item = req.parse_json::<QueryDeptListReq>().await?;
+pub async fn query_sys_dept_list(req: JsonBody<QueryDeptListReq>, res: &mut Response) -> AppResult {
+    let item = req.into_inner();
     log::info!("query sys_dept_list params: {:?}", &item);
 
     let rb = &mut RB.clone();

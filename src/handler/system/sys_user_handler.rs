@@ -25,14 +25,15 @@ use rbs::value;
 use salvo::prelude::*;
 use salvo::{Request, Response};
 use std::collections::{HashMap, HashSet};
+use salvo::oapi::extract::JsonBody;
 /*
  *添加用户信息
  *author：刘飞华
  *date：2025/01/08 13:51:14
  */
 #[handler]
-pub async fn add_sys_user(req: &mut Request, res: &mut Response) -> AppResult {
-    let mut item = req.parse_json::<UserReq>().await?;
+pub async fn add_sys_user(req: JsonBody<UserReq>, res: &mut Response) -> AppResult {
+    let mut item = req.into_inner();
     log::info!("add sys_user params: {:?}", &item);
 
     let rb = &mut RB.clone();
@@ -73,8 +74,8 @@ pub async fn add_sys_user(req: &mut Request, res: &mut Response) -> AppResult {
  *date：2025/01/08 13:51:14
  */
 #[handler]
-pub async fn delete_sys_user(depot: &mut Depot, req: &mut Request, res: &mut Response) -> AppResult {
-    let item = req.parse_json::<DeleteUserReq>().await?;
+pub async fn delete_sys_user(depot: &mut Depot, req: JsonBody<DeleteUserReq>, res: &mut Response) -> AppResult {
+    let item = req.into_inner();
     log::info!("delete sys_user params: {:?}", &item);
 
     if let Ok(user_id) = depot.get::<i64>("userId").copied() {
@@ -103,8 +104,8 @@ pub async fn delete_sys_user(depot: &mut Depot, req: &mut Request, res: &mut Res
  *date：2025/01/08 13:51:14
  */
 #[handler]
-pub async fn update_sys_user(req: &mut Request, res: &mut Response) -> AppResult {
-    let item = req.parse_json::<UserReq>().await?;
+pub async fn update_sys_user(req: JsonBody<UserReq>, res: &mut Response) -> AppResult {
+    let item = req.into_inner();
     log::info!("update sys_user params: {:?}", &item);
 
     let rb = &mut RB.clone();
@@ -157,8 +158,8 @@ pub async fn update_sys_user(req: &mut Request, res: &mut Response) -> AppResult
  *date：2025/01/08 13:51:14
  */
 #[handler]
-pub async fn update_sys_user_status(req: &mut Request, res: &mut Response) -> AppResult {
-    let item = req.parse_json::<UpdateUserStatusReq>().await?;
+pub async fn update_sys_user_status(req: JsonBody<UpdateUserStatusReq>, res: &mut Response) -> AppResult {
+    let item = req.into_inner();
     log::info!("update sys_user_status params: {:?}", &item);
 
     let ids = item.ids;
@@ -183,8 +184,8 @@ pub async fn update_sys_user_status(req: &mut Request, res: &mut Response) -> Ap
  *date：2025/01/08 13:51:14
  */
 #[handler]
-pub async fn reset_sys_user_password(req: &mut Request, res: &mut Response) -> AppResult {
-    let item = req.parse_json::<ResetUserPwdReq>().await?;
+pub async fn reset_sys_user_password(req: JsonBody<ResetUserPwdReq>, res: &mut Response) -> AppResult {
+    let item = req.into_inner();
     log::info!("update sys_user_password params: {:?}", &item);
 
     let rb = &mut RB.clone();
@@ -210,8 +211,8 @@ pub async fn reset_sys_user_password(req: &mut Request, res: &mut Response) -> A
  *date：2025/01/08 13:51:14
  */
 #[handler]
-pub async fn update_sys_user_password(req: &mut Request, depot: &mut Depot, res: &mut Response) -> AppResult {
-    let item = req.parse_json::<UpdateUserPwdReq>().await?;
+pub async fn update_sys_user_password(req: JsonBody<UpdateUserPwdReq>, depot: &mut Depot, res: &mut Response) -> AppResult {
+    let item = req.into_inner();
     log::info!("update sys_user_password params: {:?}", &item);
 
     if let Ok(user_id) = depot.get::<i64>("userId").copied() {
@@ -240,8 +241,8 @@ pub async fn update_sys_user_password(req: &mut Request, depot: &mut Depot, res:
  *date：2025/01/08 13:51:14
  */
 #[handler]
-pub async fn query_sys_user_detail(req: &mut Request, res: &mut Response) -> AppResult {
-    let item = req.parse_json::<QueryUserDetailReq>().await?;
+pub async fn query_sys_user_detail(req: JsonBody<QueryUserDetailReq>, res: &mut Response) -> AppResult {
+    let item = req.into_inner();
     log::info!("query sys_user_detail params: {:?}", &item);
 
     let rb = &mut RB.clone();
@@ -277,8 +278,8 @@ pub async fn query_sys_user_detail(req: &mut Request, res: &mut Response) -> App
  *date：2025/01/08 13:51:14
  */
 #[handler]
-pub async fn query_sys_user_list(req: &mut Request, res: &mut Response) -> AppResult {
-    let item = req.parse_json::<QueryUserListReq>().await?;
+pub async fn query_sys_user_list(req: JsonBody<QueryUserListReq>, res: &mut Response) -> AppResult {
+    let item = req.into_inner();
     log::info!("query sys_user_list params: {:?}", &item);
 
     let rb = &mut RB.clone();
@@ -432,8 +433,8 @@ async fn query_btn_menu(id: &i64) -> (Vec<String>, bool) {
  *date：2025/01/08 13:51:14
  */
 #[handler]
-pub async fn query_user_role(req: &mut Request, res: &mut Response) -> AppResult {
-    let item = req.parse_json::<QueryUserRoleReq>().await?;
+pub async fn query_user_role(req: JsonBody<QueryUserRoleReq>, res: &mut Response) -> AppResult {
+    let item = req.into_inner();
     log::info!("query_user_role params: {:?}", item);
 
     let rb = &mut RB.clone();
@@ -455,8 +456,8 @@ pub async fn query_user_role(req: &mut Request, res: &mut Response) -> AppResult
  *date：2025/01/08 13:51:14
  */
 #[handler]
-pub async fn update_user_role(req: &mut Request, res: &mut Response) -> AppResult {
-    let item = req.parse_json::<UpdateUserRoleReq>().await?;
+pub async fn update_user_role(req: JsonBody<UpdateUserRoleReq>, res: &mut Response) -> AppResult {
+    let item = req.into_inner();
     log::info!("update_user_role params: {:?}", item);
 
     let user_id = item.user_id;

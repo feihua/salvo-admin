@@ -13,14 +13,15 @@ use rbatis::rbdc::DateTime;
 use rbs::value;
 use salvo::prelude::*;
 use salvo::{Request, Response};
+use salvo::oapi::extract::JsonBody;
 /*
  *添加字典类型
  *author：刘飞华
  *date：2025/01/08 13:51:14
  */
 #[handler]
-pub async fn add_sys_dict_type(req: &mut Request, res: &mut Response) -> AppResult {
-    let mut item = req.parse_json::<DictTypeReq>().await?;
+pub async fn add_sys_dict_type(req: JsonBody<DictTypeReq>, res: &mut Response) -> AppResult {
+    let mut item = req.into_inner();
     log::info!("add sys_dict_type params: {:?}", &item);
 
     let rb = &mut RB.clone();
@@ -38,8 +39,8 @@ pub async fn add_sys_dict_type(req: &mut Request, res: &mut Response) -> AppResu
  *date：2025/01/08 13:51:14
  */
 #[handler]
-pub async fn delete_sys_dict_type(req: &mut Request, res: &mut Response) -> AppResult {
-    let item = req.parse_json::<DeleteDictTypeReq>().await?;
+pub async fn delete_sys_dict_type(req: JsonBody<DeleteDictTypeReq>, res: &mut Response) -> AppResult {
+    let item = req.into_inner();
     log::info!("delete sys_dict_type params: {:?}", &item);
 
     let rb = &mut RB.clone();
@@ -64,8 +65,8 @@ pub async fn delete_sys_dict_type(req: &mut Request, res: &mut Response) -> AppR
  *date：2025/01/08 13:51:14
  */
 #[handler]
-pub async fn update_sys_dict_type(req: &mut Request, res: &mut Response) -> AppResult {
-    let item = req.parse_json::<DictTypeReq>().await?;
+pub async fn update_sys_dict_type(req: JsonBody<DictTypeReq>, res: &mut Response) -> AppResult {
+    let item = req.into_inner();
     log::info!("update sys_dict_type params: {:?}", &item);
 
     let rb = &mut RB.clone();
@@ -97,8 +98,8 @@ pub async fn update_sys_dict_type(req: &mut Request, res: &mut Response) -> AppR
  *date：2025/01/08 13:51:14
  */
 #[handler]
-pub async fn update_sys_dict_type_status(req: &mut Request, res: &mut Response) -> AppResult {
-    let item = req.parse_json::<UpdateDictTypeStatusReq>().await?;
+pub async fn update_sys_dict_type_status(req: JsonBody<UpdateDictTypeStatusReq>, res: &mut Response) -> AppResult {
+    let item = req.into_inner();
 
     let rb = &mut RB.clone();
     log::info!("update sys_dict_type_status params: {:?}", &item);
@@ -120,8 +121,8 @@ pub async fn update_sys_dict_type_status(req: &mut Request, res: &mut Response) 
  *date：2025/01/08 13:51:14
  */
 #[handler]
-pub async fn query_sys_dict_type_detail(req: &mut Request, res: &mut Response) -> AppResult {
-    let item = req.parse_json::<QueryDictTypeDetailReq>().await?;
+pub async fn query_sys_dict_type_detail(req: JsonBody<QueryDictTypeDetailReq>, res: &mut Response) -> AppResult {
+    let item = req.into_inner();
 
     log::info!("query sys_dict_type_detail params: {:?}", &item);
 
@@ -140,8 +141,8 @@ pub async fn query_sys_dict_type_detail(req: &mut Request, res: &mut Response) -
  *date：2025/01/08 13:51:14
  */
 #[handler]
-pub async fn query_sys_dict_type_list(req: &mut Request, res: &mut Response) -> AppResult {
-    let item = req.parse_json::<QueryDictTypeListReq>().await?;
+pub async fn query_sys_dict_type_list(req: JsonBody<QueryDictTypeListReq>, res: &mut Response) -> AppResult {
+    let item = req.into_inner();
 
     let rb = &mut RB.clone();
 

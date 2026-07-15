@@ -13,14 +13,15 @@ use rbatis::rbdc::DateTime;
 use rbs::value;
 use salvo::prelude::*;
 use salvo::{Request, Response};
+use salvo::oapi::extract::JsonBody;
 /*
  *添加菜单信息
  *author：刘飞华
  *date：2025/01/08 13:51:14
  */
 #[handler]
-pub async fn add_sys_menu(req: &mut Request, res: &mut Response) -> AppResult {
-    let mut item = req.parse_json::<MenuReq>().await?;
+pub async fn add_sys_menu(req: JsonBody<MenuReq>, res: &mut Response) -> AppResult {
+    let mut item = req.into_inner();
     log::info!("add sys_menu params: {:?}", &item);
 
     let rb = &mut RB.clone();
@@ -46,8 +47,8 @@ pub async fn add_sys_menu(req: &mut Request, res: &mut Response) -> AppResult {
  *date：2025/01/08 13:51:14
  */
 #[handler]
-pub async fn delete_sys_menu(req: &mut Request, res: &mut Response) -> AppResult {
-    let item = req.parse_json::<DeleteMenuReq>().await?;
+pub async fn delete_sys_menu(req: JsonBody<DeleteMenuReq>, res: &mut Response) -> AppResult {
+    let item = req.into_inner();
     log::info!("delete sys_menu params: {:?}", &item);
 
     let rb = &mut RB.clone();
@@ -72,8 +73,8 @@ pub async fn delete_sys_menu(req: &mut Request, res: &mut Response) -> AppResult
  *date：2025/01/08 13:51:14
  */
 #[handler]
-pub async fn update_sys_menu(req: &mut Request, res: &mut Response) -> AppResult {
-    let item = req.parse_json::<MenuReq>().await?;
+pub async fn update_sys_menu(req: JsonBody<MenuReq>, res: &mut Response) -> AppResult {
+    let item = req.into_inner();
     log::info!("update sys_menu params: {:?}", &item);
 
     let rb = &mut RB.clone();
@@ -110,8 +111,8 @@ pub async fn update_sys_menu(req: &mut Request, res: &mut Response) -> AppResult
  *date：2025/01/08 13:51:14
  */
 #[handler]
-pub async fn update_sys_menu_status(req: &mut Request, res: &mut Response) -> AppResult {
-    let item = req.parse_json::<UpdateMenuStatusReq>().await?;
+pub async fn update_sys_menu_status(req: JsonBody<UpdateMenuStatusReq>, res: &mut Response) -> AppResult {
+    let item = req.into_inner();
 
     log::info!("update sys_menu_status params: {:?}", &item);
 
@@ -132,8 +133,8 @@ pub async fn update_sys_menu_status(req: &mut Request, res: &mut Response) -> Ap
  *date：2025/01/08 13:51:14
  */
 #[handler]
-pub async fn query_sys_menu_detail(req: &mut Request, res: &mut Response) -> AppResult {
-    let item = req.parse_json::<QueryMenuDetailReq>().await?;
+pub async fn query_sys_menu_detail(req: JsonBody<QueryMenuDetailReq>, res: &mut Response) -> AppResult {
+    let item = req.into_inner();
     log::info!("query sys_menu_detail params: {:?}", &item);
 
     Menu::select_by_id(&mut RB.clone(), &item.id).await?.map_or_else(
@@ -151,8 +152,8 @@ pub async fn query_sys_menu_detail(req: &mut Request, res: &mut Response) -> App
  *date：2025/01/08 13:51:14
  */
 #[handler]
-pub async fn query_sys_menu_list(req: &mut Request, res: &mut Response) -> AppResult {
-    let item = req.parse_json::<QueryMenuListReq>().await?;
+pub async fn query_sys_menu_list(req: JsonBody<QueryMenuListReq>, res: &mut Response) -> AppResult {
+    let item = req.into_inner();
     log::info!("query sys_menu_list params: {:?}", &item);
 
     Menu::select_by_map(&mut RB.clone(), value! {})
@@ -178,8 +179,8 @@ pub async fn query_sys_menu_list_simple(res: &mut Response) -> AppResult {
  *date：2025/01/08 13:51:14
  */
 #[handler]
-pub async fn query_sys_menu_resource_list(req: &mut Request, res: &mut Response) -> AppResult {
-    let item = req.parse_json::<QueryMenuListReq>().await?;
+pub async fn query_sys_menu_resource_list(req: JsonBody<QueryMenuListReq>, res: &mut Response) -> AppResult {
+    let item = req.into_inner();
     log::info!("query sys_menu_list params: {:?}", &item);
 
     let rb = &mut RB.clone();

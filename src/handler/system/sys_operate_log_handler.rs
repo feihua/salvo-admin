@@ -11,14 +11,15 @@ use rbatis::PageRequest;
 use rbs::value;
 use salvo::prelude::*;
 use salvo::{Request, Response};
+use salvo::oapi::extract::JsonBody;
 /*
  *删除操作日志记录
  *author：刘飞华
  *date：2025/01/08 13:51:14
  */
 #[handler]
-pub async fn delete_sys_operate_log(req: &mut Request, res: &mut Response) -> AppResult {
-    let item = req.parse_json::<DeleteOperateLogReq>().await?;
+pub async fn delete_sys_operate_log(req: JsonBody<DeleteOperateLogReq>, res: &mut Response) -> AppResult {
+    let item = req.into_inner();
     log::info!("delete sys_operate_log params: {:?}", &item);
 
     let rb = &mut RB.clone();
@@ -32,8 +33,8 @@ pub async fn delete_sys_operate_log(req: &mut Request, res: &mut Response) -> Ap
  *date：2025/01/08 13:51:14
  */
 #[handler]
-pub async fn query_sys_operate_log_detail(req: &mut Request, res: &mut Response) -> AppResult {
-    let item = req.parse_json::<QueryOperateLogDetailReq>().await?;
+pub async fn query_sys_operate_log_detail(req: JsonBody<QueryOperateLogDetailReq>, res: &mut Response) -> AppResult {
+    let item = req.into_inner();
 
     log::info!("query sys_operate_log_detail params: {:?}", &item);
 
@@ -52,8 +53,8 @@ pub async fn query_sys_operate_log_detail(req: &mut Request, res: &mut Response)
  *date：2025/01/08 13:51:14
  */
 #[handler]
-pub async fn query_sys_operate_log_list(req: &mut Request, res: &mut Response) -> AppResult {
-    let item = req.parse_json::<QueryOperateLogListReq>().await?;
+pub async fn query_sys_operate_log_list(req: JsonBody<QueryOperateLogListReq>, res: &mut Response) -> AppResult {
+    let item = req.into_inner();
     log::info!("query sys_operate_log_list params: {:?}", &item);
 
     let rb = &mut RB.clone();
