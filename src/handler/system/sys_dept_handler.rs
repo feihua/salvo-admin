@@ -11,7 +11,7 @@ use rbatis::rbatis_codegen::ops::AsProxy;
 use rbatis::rbdc::DateTime;
 use rbs::value;
 use salvo::prelude::*;
-use salvo::{Request, Response};
+use salvo::Response;
 use salvo::oapi::extract::JsonBody;
 /*
  *添加部门

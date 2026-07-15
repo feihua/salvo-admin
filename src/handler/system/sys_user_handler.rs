@@ -23,7 +23,7 @@ use rbatis::rbatis_codegen::ops::AsProxy;
 use rbatis::rbdc::datetime::DateTime;
 use rbs::value;
 use salvo::prelude::*;
-use salvo::{Request, Response};
+use salvo::Response;
 use std::collections::{HashMap, HashSet};
 use salvo::oapi::extract::JsonBody;
 /*

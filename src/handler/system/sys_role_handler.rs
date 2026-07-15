@@ -17,7 +17,7 @@ use rbatis::plugin::page::PageRequest;
 use rbatis::rbdc::datetime::DateTime;
 use rbs::value;
 use salvo::prelude::*;
-use salvo::{Request, Response};
+use salvo::Response;
 use salvo::oapi::extract::JsonBody;
 /*
  *添加角色信息

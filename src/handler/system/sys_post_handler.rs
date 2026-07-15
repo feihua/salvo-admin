@@ -12,7 +12,7 @@ use rbatis::plugin::page::PageRequest;
 use rbatis::rbdc::DateTime;
 use rbs::value;
 use salvo::prelude::*;
-use salvo::{Request, Response};
+use salvo::Response;
 use salvo::oapi::extract::JsonBody;
 /*
  *添加岗位信息

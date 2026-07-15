@@ -10,9 +10,9 @@ use crate::RB;
 use rbatis::plugin::page::PageRequest;
 use rbatis::rbdc::DateTime;
 use rbs::value;
-use salvo::prelude::*;
-use salvo::{Request, Response};
 use salvo::oapi::extract::JsonBody;
+use salvo::prelude::*;
+use salvo::Response;
 /*
  *添加通知公告
  *author：刘飞华
@@ -116,9 +116,7 @@ pub async fn query_sys_notice_detail(req: JsonBody<QueryNoticeDetailReq>, res: &
     log::info!("query sys_notice_detail params: {:?}", &item);
 
     match Notice::select_by_id(&mut RB.clone(), &item.id).await? {
-        None => {
-            Err(AppError::BusinessError("通知公告不存在"))
-        }
+        None => Err(AppError::BusinessError("通知公告不存在")),
         Some(x) => {
             let notice: NoticeResp = x.into();
             ok_result_data(res, notice)
