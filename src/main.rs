@@ -20,6 +20,7 @@ pub mod model;
 pub mod routes;
 pub mod utils;
 pub mod vo;
+pub mod service;
 
 pub static RB: Lazy<RBatis> = Lazy::new(RBatis::new);
 
