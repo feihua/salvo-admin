@@ -22,10 +22,10 @@ use rbatis::plugin::page::PageRequest;
 use rbatis::rbatis_codegen::ops::AsProxy;
 use rbatis::rbdc::datetime::DateTime;
 use rbs::value;
+use salvo::oapi::extract::JsonBody;
 use salvo::prelude::*;
 use salvo::Response;
 use std::collections::{HashMap, HashSet};
-use salvo::oapi::extract::JsonBody;
 /*
  *添加用户信息
  *author：刘飞华
@@ -402,24 +402,17 @@ async fn query_btn_menu(id: &i64) -> (Vec<String>, bool) {
     let rb = &mut RB.clone();
 
     if UserRole::is_admin(rb, id).await.unwrap_or_default() > 0 {
-        for x in Menu::select_by_map(rb, value! {}).await.unwrap_or_default() {
-            if let Some(a) = x.api_url {
-                if a != "" {
-                    btn_menu.push(a);
-                }
-            }
+        for x in Menu::select_by_map(rb, value! {"api_url !=":""}).await.unwrap_or_default() {
+            btn_menu.push(x.api_url.unwrap_or_default());
         }
-
         log::info!("The current user is a super administrator");
         (btn_menu, true)
     } else {
-        let sql_str = "select distinct u.api_url from sys_user_role t left join sys_role usr on t.role_id = usr.id left join sys_role_menu srm on usr.id = srm.role_id left join sys_menu u on srm.menu_id = u.id where t.user_id = ?";
+        let sql_str = "select distinct u.api_url from sys_user_role t left join sys_role usr on t.role_id = usr.id left join sys_role_menu srm on usr.id = srm.role_id left join sys_menu u on srm.menu_id = u.id where u.api_url !='' and t.user_id = ?";
         let btn_menu_map = rb.exec_decode::<Vec<HashMap<String, String>>>(sql_str, vec![value!(id)]).await.unwrap_or_default();
         for x in btn_menu_map {
-            if let Some(a) = x.get("api_url") {
-                if a.to_string() != "" {
-                    btn_menu.push(a.to_string());
-                }
+            if let Some(api_url) = x.get("api_url") {
+                btn_menu.push(api_url.to_string());
             }
         }
         log::info!("The current user is not a super administrator");
