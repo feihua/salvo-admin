@@ -2,20 +2,10 @@
 // author：刘飞华
 // date：2025/01/08 13:51:14
 
-use crate::common::error::{AppError, AppResult, AppResultPage};
-use crate::common::result::{ok_result, ok_result_data, ok_result_page};
-use crate::model::system::sys_menu_model::Menu;
-use crate::model::system::sys_role_dept_model::RoleDept;
-use crate::model::system::sys_role_menu_model::RoleMenu;
-use crate::model::system::sys_role_model::Role;
-use crate::model::system::sys_user_model::User;
-use crate::model::system::sys_user_role_model::UserRole;
+use crate::common::error::{AppResult, AppResultPage};
+use crate::service::system::sys_role_service::RoleService;
 use crate::vo::system::sys_role_vo::*;
 use crate::vo::system::sys_user_vo::UserResp;
-use crate::RB;
-use rbatis::plugin::page::PageRequest;
-use rbatis::rbdc::datetime::DateTime;
-use rbs::value;
 use salvo::oapi::extract::JsonBody;
 use salvo::prelude::*;
 /*
@@ -25,20 +15,10 @@ use salvo::prelude::*;
  */
 #[handler]
 pub async fn add_sys_role(req: JsonBody<RoleReq>) -> AppResult<String> {
-    let mut item = req.into_inner();
+    let item = req.into_inner();
     log::info!("add sys_role params: {:?}", &item);
 
-    let rb = &mut RB.clone();
-    if Role::select_by_map(rb, value! {"role_name": &item.role_name}).await?.len() > 0 {
-        return Err(AppError::BusinessError("角色名称已存在"));
-    }
-
-    if Role::select_by_map(rb, value! {"role_key": &item.role_key}).await?.len() > 0 {
-        return Err(AppError::BusinessError("角色权限已存在"));
-    }
-
-    item.id = None;
-    Role::insert(rb, &Role::from(item)).await.map(|_| ok_result())?
+    RoleService::add_sys_role(item).await
 }
 
 /*
@@ -51,27 +31,7 @@ pub async fn delete_sys_role(req: JsonBody<DeleteRoleReq>) -> AppResult<String> 
     let item = req.into_inner();
     log::info!("delete sys_role params: {:?}", &item);
 
-    let ids = item.ids;
-
-    if ids.contains(&1) {
-        return Err(AppError::BusinessError("不允许操作超级管理员角色"));
-    }
-
-    let rb = &mut RB.clone();
-    for id in &ids {
-        if let None = Role::select_by_id(rb, id).await? {
-            return Err(AppError::BusinessError("角色不存在,不能删除"));
-        }
-
-        if UserRole::count_user_role_by_role_id(rb, id).await? > 0 {
-            return Err(AppError::BusinessError("已分配,不能删除"));
-        }
-    }
-
-    RoleMenu::delete_by_map(rb, value! {"role_id": &ids}).await?;
-    RoleDept::delete_by_map(rb, value! {"role_id": &ids}).await?;
-
-    Role::delete_by_map(rb, value! {"id": ids}).await.map(|_| ok_result())?
+    RoleService::delete_sys_role(item).await
 }
 
 /*
@@ -84,29 +44,7 @@ pub async fn update_sys_role(req: JsonBody<RoleReq>) -> AppResult<String> {
     let item = req.into_inner();
     log::info!("update sys_role params: {:?}", &item);
 
-    let rb = &mut RB.clone();
-
-    let id = item.id;
-    if id.is_none() {
-        return Err(AppError::BusinessError("主键不能为空"));
-    }
-    if id.unwrap_or_default() == 1 {
-        return Err(AppError::BusinessError("不允许操作超级管理员角色"));
-    }
-
-    if Role::select_by_id(rb, &id.unwrap_or_default()).await?.is_none() {
-        return Err(AppError::BusinessError("角色不存在"));
-    }
-
-    if Role::select_by_map(rb, value! {"role_name": &item.role_name,"id !=": id}).await?.len() > 0 {
-        return Err(AppError::BusinessError("角色名称已存在"));
-    }
-
-    if Role::select_by_map(rb, value! {"role_key": &item.role_key,"id !=": id}).await?.len() > 0 {
-        return Err(AppError::BusinessError("角色权限已存在"));
-    }
-
-    Role::update_by_map(rb, &Role::from(item), value! {"id": id}).await.map(|_| ok_result())?
+    RoleService::update_sys_role(item).await
 }
 
 /*
@@ -119,19 +57,7 @@ pub async fn update_sys_role_status(req: JsonBody<UpdateRoleStatusReq>) -> AppRe
     let item = req.into_inner();
     log::info!("update sys_role_status params: {:?}", &item);
 
-    if item.ids.contains(&1) {
-        return Err(AppError::BusinessError("不允许操作超级管理员角色"));
-    }
-
-    let update_sql = format!(
-        "update sys_role set status = ? ,update_time = ? where id in ({})",
-        item.ids.iter().map(|_| "?").collect::<Vec<&str>>().join(", ")
-    );
-
-    let mut param = vec![value!(item.status), value!(DateTime::now())];
-    param.extend(item.ids.iter().map(|&id| value!(id)));
-
-    RB.clone().exec(&update_sql, param).await.map(|_| ok_result())?
+    RoleService::update_sys_role_status(item).await
 }
 
 /*
@@ -144,9 +70,7 @@ pub async fn query_sys_role_detail(req: JsonBody<QueryRoleDetailReq>) -> AppResu
     let item = req.into_inner();
     log::info!("query sys_role_detail params: {:?}", &item);
 
-    Role::select_by_id(&mut RB.clone(), &item.id)
-        .await?
-        .map_or_else(|| Err(AppError::BusinessError("角色不存在")), |x| ok_result_data(x.into()))
+    RoleService::query_sys_role_detail(item).await
 }
 
 /*
@@ -159,11 +83,7 @@ pub async fn query_sys_role_list(req: JsonBody<QueryRoleListReq>) -> AppResultPa
     let item = req.into_inner();
     log::info!("query sys_role_list params: {:?}", &item);
 
-    let rb = &mut RB.clone();
-
-    Role::select_by_page(rb, &PageRequest::from(&item), &item)
-        .await
-        .map(|x| ok_result_page(x.records.into_iter().map(|x| x.into()).collect::<Vec<RoleResp>>(), x.total))?
+    RoleService::query_sys_role_list(item).await
 }
 
 /*
@@ -176,36 +96,7 @@ pub async fn query_role_menu(req: JsonBody<QueryRoleMenuReq>) -> AppResult<Query
     let item = req.into_inner();
     log::info!("query role_menu params: {:?}", &item);
 
-    let rb = &mut RB.clone();
-    let menu_list_all = Menu::select_by_map(rb, value! {}).await?;
-
-    let mut menu_list: Vec<MenuDataList> = Vec::new();
-    let mut menu_ids: Vec<Option<i64>> = Vec::new();
-
-    for y in menu_list_all {
-        let x = y.clone();
-        menu_list.push(MenuDataList {
-            id: x.id,
-            parent_id: x.parent_id,
-            title: x.menu_name,
-            key: y.id.unwrap_or_default().to_string(),
-            label: y.menu_name,
-            is_penultimate: y.parent_id == Some(2),
-            is_leaf: x.menu_type == 3,
-        });
-        menu_ids.push(x.id)
-    }
-
-    if item.role_id != 1 {
-        menu_ids.clear();
-
-        for x in RoleMenu::query_menu_by_role(rb, item.role_id).await? {
-            let m_id = x.get("menu_id").unwrap().clone();
-            menu_ids.push(Some(m_id))
-        }
-    }
-
-    ok_result_data(QueryRoleMenuData { menu_ids, menu_list })
+    RoleService::query_role_menu(item).await
 }
 
 /*
@@ -217,23 +108,8 @@ pub async fn query_role_menu(req: JsonBody<QueryRoleMenuReq>) -> AppResult<Query
 pub async fn update_role_menu(req: JsonBody<UpdateRoleMenuReq>) -> AppResult<String> {
     let item = req.into_inner();
     log::info!("update_role_menu params: {:?}", &item);
-    let role_id = item.role_id;
 
-    if role_id == 1 {
-        return Err(AppError::BusinessError("不允许操作超级管理员角色"));
-    }
-
-    let rb = &mut RB.clone();
-
-    RoleMenu::delete_by_map(rb, value! {"role_id": &role_id}).await?;
-    let mut role_menu: Vec<RoleMenu> = Vec::new();
-
-    for id in &item.menu_ids {
-        role_menu.push(RoleMenu { id: None, menu_id: *id, role_id })
-    }
-
-    RoleMenu::insert_batch(rb, &role_menu, item.menu_ids.len() as u64).await?;
-    ok_result()
+    RoleService::update_role_menu(item).await
 }
 
 /*
@@ -246,23 +122,7 @@ pub async fn query_allocated_list(req: JsonBody<AllocatedListReq>) -> AppResultP
     let item = req.into_inner();
     log::info!("update role_menu params: {:?}", &item);
 
-    let page_no = item.page_no;
-    let page_size = item.page_size;
-    let role_id = item.role_id;
-    let mobile = item.mobile.as_deref().unwrap_or_default();
-    let user_name = item.user_name.as_deref().unwrap_or_default();
-
-    let page_no = (page_no - 1) * page_size;
-    let rb = &mut RB.clone();
-    let p = User::select_allocated_list(rb, role_id, user_name, mobile, page_no, page_size).await?;
-
-    let mut list: Vec<UserResp> = Vec::new();
-    for x in p {
-        list.push(x.into())
-    }
-
-    let total = User::count_allocated_list(rb, role_id, user_name, mobile).await?;
-    ok_result_page(list, total)
+    RoleService::query_allocated_list(item).await
 }
 
 /*
@@ -275,24 +135,7 @@ pub async fn query_unallocated_list(req: JsonBody<UnallocatedListReq>) -> AppRes
     let item = req.into_inner();
     log::info!("update role_menu params: {:?}", &item);
 
-    let page_no = item.page_no;
-    let page_size = item.page_size;
-    let role_id = item.role_id;
-    let mobile = item.mobile.as_deref().unwrap_or_default();
-    let user_name = item.user_name.as_deref().unwrap_or_default();
-
-    let page_no = (page_no - 1) * page_size;
-
-    let rb = &mut RB.clone();
-    let d = User::select_unallocated_list(rb, role_id, user_name, mobile, page_no, page_size).await?;
-
-    let mut list: Vec<UserResp> = Vec::new();
-    for x in d {
-        list.push(x.into())
-    }
-
-    let total = User::count_unallocated_list(rb, role_id, user_name, mobile).await?;
-    ok_result_page(list, total)
+    RoleService::query_unallocated_list(item).await
 }
 
 /*
@@ -305,10 +148,7 @@ pub async fn cancel_auth_user(req: JsonBody<CancelAuthUserReq>) -> AppResult<Str
     let item = req.into_inner();
     log::info!("update role_menu params: {:?}", &item);
 
-    let rb = &mut RB.clone();
-
-    UserRole::delete_user_role_by_role_id_user_id(rb, item.role_id, item.user_id).await?;
-    ok_result()
+    RoleService::cancel_auth_user(item).await
 }
 
 /*
@@ -321,16 +161,7 @@ pub async fn batch_cancel_auth_user(req: JsonBody<CancelAuthUserAllReq>) -> AppR
     let item = req.into_inner();
     log::info!("cancel auth_user_all params: {:?}", &item);
 
-    let update_sql = format!(
-        "delete from sys_user_role where role_id = ? and user_id in ({})",
-        item.user_ids.iter().map(|_| "?").collect::<Vec<&str>>().join(", ")
-    );
-
-    let mut param = vec![value!(item.role_id)];
-    param.extend(item.user_ids.iter().map(|&id| value!(id)));
-
-    let _ = &mut RB.clone().exec(&update_sql, param).await?;
-    ok_result()
+    RoleService::batch_cancel_auth_user(item).await
 }
 
 /*
@@ -342,12 +173,6 @@ pub async fn batch_cancel_auth_user(req: JsonBody<CancelAuthUserAllReq>) -> AppR
 pub async fn batch_auth_user(req: JsonBody<SelectAuthUserAllReq>) -> AppResult<String> {
     let item = req.into_inner();
     log::info!("select all_auth_user params: {:?}", &item);
-    let role_id = item.role_id;
 
-    let user_role: Vec<UserRole> = item.user_ids.into_iter().map(|user_id| UserRole { id: None, role_id, user_id }).collect();
-
-    let rb = &mut RB.clone();
-
-    UserRole::insert_batch(rb, &user_role, user_role.len() as u64).await?;
-    ok_result()
+    RoleService::batch_auth_user(item).await
 }

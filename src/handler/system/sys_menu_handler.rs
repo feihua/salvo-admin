@@ -2,17 +2,11 @@
 // author：刘飞华
 // date：2025/01/08 13:51:14
 
-use crate::common::error::{AppError, AppResult, AppResultPage};
-use crate::common::result::{ok_result, ok_result_data, ok_result_page};
-use crate::model::system::sys_menu_model::{select_count_menu_by_parent_id, Menu};
-use crate::model::system::sys_role_menu_model::RoleMenu;
+use crate::common::error::{AppResult, AppResultPage};
 use crate::vo::system::sys_menu_vo::*;
-use crate::RB;
-use rbatis::plugin::page::PageRequest;
-use rbatis::rbdc::DateTime;
-use rbs::value;
 use salvo::oapi::extract::JsonBody;
 use salvo::prelude::*;
+use crate::service::system::sys_menu_service::MenuService;
 /*
  *添加菜单信息
  *author：刘飞华
@@ -20,24 +14,10 @@ use salvo::prelude::*;
  */
 #[handler]
 pub async fn add_sys_menu(req: JsonBody<MenuReq>) -> AppResult<String> {
-    let mut item = req.into_inner();
+    let item = req.into_inner();
     log::info!("add sys_menu params: {:?}", &item);
 
-    let rb = &mut RB.clone();
-    if Menu::select_by_map(rb, value! {"menu_name": &item.menu_name}).await?.len() > 0 {
-        return Err(AppError::BusinessError("菜单名称已存在"));
-    }
-
-    if let Some(url) = item.menu_url.clone() {
-        if url != "".to_string() {
-            if Menu::select_by_map(rb, value! {"menu_url": url}).await?.len() > 0 {
-                return Err(AppError::BusinessError("路由路径已存在"));
-            }
-        }
-    }
-
-    item.id = None;
-    Menu::insert(rb, &Menu::from(item)).await.map(|_| ok_result())?
+    MenuService::add_sys_menu(item).await
 }
 
 /*
@@ -50,20 +30,7 @@ pub async fn delete_sys_menu(req: JsonBody<DeleteMenuReq>) -> AppResult<String> 
     let item = req.into_inner();
     log::info!("delete sys_menu params: {:?}", &item);
 
-    let rb = &mut RB.clone();
-
-    let ids = item.ids;
-    for x in &ids {
-        if select_count_menu_by_parent_id(rb, x).await? > 0 {
-            return Err(AppError::BusinessError("存在子菜单,不允许删除"));
-        }
-
-        if RoleMenu::select_count_menu_by_menu_id(rb, x).await? > 0 {
-            return Err(AppError::BusinessError("菜单已分配,不允许删除"));
-        }
-    }
-
-    Menu::delete_by_map(rb, value! {"id": ids}).await.map(|_| ok_result())?
+    MenuService::delete_sys_menu(item).await
 }
 
 /*
@@ -76,32 +43,7 @@ pub async fn update_sys_menu(req: JsonBody<MenuReq>) -> AppResult<String> {
     let item = req.into_inner();
     log::info!("update sys_menu params: {:?}", &item);
 
-    let rb = &mut RB.clone();
-
-    let id = item.id;
-
-    if id.is_none() {
-        return Err(AppError::BusinessError("主键不能为空"));
-    }
-
-    if Menu::select_by_id(rb, &id.unwrap_or_default()).await?.is_none() {
-        return Err(AppError::BusinessError("菜单信息不存在"));
-    }
-
-    let rb = &mut RB.clone();
-    if Menu::select_by_map(rb, value! {"menu_name": &item.menu_name, "id !=": id}).await?.len() > 0 {
-        return Err(AppError::BusinessError("菜单名称已存在"));
-    }
-
-    if let Some(url) = item.menu_url.clone() {
-        if url != "".to_string() {
-            if Menu::select_by_map(rb, value! {"menu_url": url, "id !=": id}).await?.len() > 0 {
-                return Err(AppError::BusinessError("路由路径已存在"));
-            }
-        }
-    }
-
-    Menu::update_by_map(rb, &Menu::from(item), value! {"id": id}).await.map(|_| ok_result())?
+    MenuService::update_sys_menu(item).await
 }
 
 /*
@@ -115,15 +57,7 @@ pub async fn update_sys_menu_status(req: JsonBody<UpdateMenuStatusReq>) -> AppRe
 
     log::info!("update sys_menu_status params: {:?}", &item);
 
-    let update_sql = format!(
-        "update sys_menu set status = ? ,update_time = ? where id in ({})",
-        item.ids.iter().map(|_| "?").collect::<Vec<&str>>().join(", ")
-    );
-
-    let mut param = vec![value!(item.status), value!(DateTime::now())];
-    param.extend(item.ids.iter().map(|&id| value!(id)));
-
-    RB.clone().exec(&update_sql, param).await.map(|_| ok_result())?
+    MenuService::update_sys_menu_status(item).await
 }
 
 /*
@@ -136,9 +70,7 @@ pub async fn query_sys_menu_detail(req: JsonBody<QueryMenuDetailReq>) -> AppResu
     let item = req.into_inner();
     log::info!("query sys_menu_detail params: {:?}", &item);
 
-    Menu::select_by_id(&mut RB.clone(), &item.id)
-        .await?
-        .map_or_else(|| Err(AppError::BusinessError("菜单信息不存在")), |x| ok_result_data(x.into()))
+    MenuService::query_sys_menu_detail(item).await
 }
 
 /*
@@ -151,9 +83,7 @@ pub async fn query_sys_menu_list(req: JsonBody<QueryMenuListReq>) -> AppResult<V
     let item = req.into_inner();
     log::info!("query sys_menu_list params: {:?}", &item);
 
-    Menu::select_by_map(&mut RB.clone(), value! {})
-        .await
-        .map(|x| ok_result_data(x.into_iter().map(|x| x.into()).collect::<Vec<MenuResp>>()))?
+    MenuService::query_sys_menu_list(item).await
 }
 
 /*
@@ -163,9 +93,7 @@ pub async fn query_sys_menu_list(req: JsonBody<QueryMenuListReq>) -> AppResult<V
  */
 #[handler]
 pub async fn query_sys_menu_list_simple() -> AppResult<Vec<MenuSimpleResp>> {
-    Menu::select_by_map(&mut RB.clone(), value! {"menu_type!=": 3, "status": 1})
-        .await
-        .map(|x| ok_result_data(x.into_iter().map(|x| MenuSimpleResp::from(x)).collect::<Vec<MenuSimpleResp>>()))?
+    MenuService::query_sys_menu_list_simple().await
 }
 
 /*
@@ -178,9 +106,5 @@ pub async fn query_sys_menu_resource_list(req: JsonBody<QueryMenuListReq>) -> Ap
     let item = req.into_inner();
     log::info!("query sys_menu_list params: {:?}", &item);
 
-    let rb = &mut RB.clone();
-
-    Menu::select_by_page(rb, &PageRequest::from(&item), &item)
-        .await
-        .map(|x| ok_result_page(x.records.into_iter().map(|x| x.into()).collect::<Vec<MenuResp>>(), x.total))?
+    MenuService::query_sys_menu_resource_list(item).await
 }

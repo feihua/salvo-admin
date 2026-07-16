@@ -2,14 +2,9 @@
 // author：刘飞华
 // date：2025/01/08 13:51:14
 
-use crate::common::error::{AppError, AppResult};
-use crate::common::result::{ok_result, ok_result_data};
-use crate::model::system::sys_dept_model::Dept;
+use crate::common::error::{AppResult};
+use crate::service::system::sys_dept_service::DeptService;
 use crate::vo::system::sys_dept_vo::*;
-use crate::RB;
-use rbatis::rbatis_codegen::ops::AsProxy;
-use rbatis::rbdc::DateTime;
-use rbs::value;
 use salvo::oapi::extract::JsonBody;
 use salvo::prelude::*;
 /*
@@ -22,26 +17,7 @@ pub async fn add_sys_dept(req: JsonBody<DeptReq>) -> AppResult<String> {
     let item = req.into_inner();
     log::info!("add sys_dept params: {:?}", &item);
 
-    let rb = &mut RB.clone();
-
-    let condition = value! {"dept_name":&item.dept_name,"parent_id":item.parent_id};
-    if Dept::select_by_map(rb, condition).await?.len() > 0 {
-        return Err(AppError::BusinessError("部门名称已存在"));
-    }
-
-    match Dept::select_by_id(rb, &item.parent_id).await? {
-        None => Err(AppError::BusinessError("添加失败,上级部门不存在")),
-        Some(dept) => {
-            if dept.status == 0 {
-                return Err(AppError::BusinessError("部门停用，不允许添加"));
-            }
-            let ancestors = format!("{},{}", dept.ancestors.unwrap_or_default(), item.parent_id);
-            let mut sys_dept = Dept::from(item);
-            sys_dept.ancestors = Some(ancestors);
-            sys_dept.id = None;
-            Dept::insert(rb, &sys_dept).await.map(|_| ok_result())?
-        }
-    }
+    DeptService::add_sys_dept(item).await
 }
 
 /*
@@ -54,16 +30,7 @@ pub async fn delete_sys_dept(req: JsonBody<DeleteDeptReq>) -> AppResult<String> 
     let item = req.into_inner();
     log::info!("delete sys_dept params: {:?}", &item);
 
-    let rb = &mut RB.clone();
-    if Dept::select_dept_count(rb, &item.id).await? > 0 {
-        return Err(AppError::BusinessError("存在下级部门,不允许删除"));
-    }
-
-    if Dept::check_dept_exist_user(rb, &item.id).await? > 0 {
-        return Err(AppError::BusinessError("部门存在用户,不允许删除"));
-    }
-
-    Dept::delete_by_map(rb, value! {"id": item.id}).await.map(|_| ok_result())?
+    DeptService::delete_sys_dept(item).await
 }
 
 /*
@@ -73,60 +40,10 @@ pub async fn delete_sys_dept(req: JsonBody<DeleteDeptReq>) -> AppResult<String> 
  */
 #[handler]
 pub async fn update_sys_dept(req: JsonBody<DeptReq>) -> AppResult<String> {
-    let rb = &mut RB.clone();
-    let mut item = req.into_inner();
+    let item = req.into_inner();
     log::info!("update sys_dept params: {:?}", &item);
 
-    let id = item.id;
-    if id.is_none() {
-        return Err(AppError::BusinessError("主键不能为空"));
-    }
-    if Some(item.parent_id) == id {
-        return Err(AppError::BusinessError("上级部门不能是自己"));
-    }
-
-    let old_ancestors = match Dept::select_by_id(rb, &id.unwrap_or_default()).await? {
-        None => return Err(AppError::BusinessError("部门不存在")),
-        Some(dept) => dept.ancestors.unwrap_or_default(),
-    };
-
-    let ancestors = match Dept::select_by_id(rb, &item.parent_id).await? {
-        None => return Err(AppError::BusinessError("上级部门不存在")),
-        Some(dept) => {
-            format!("{},{}", dept.ancestors.unwrap_or_default(), &item.parent_id)
-        }
-    };
-
-    let condition = value! {"dept_name":&item.dept_name,"parent_id":item.parent_id,"id !=":id};
-    if Dept::select_by_map(rb, condition).await?.len() > 0 {
-        return Err(AppError::BusinessError("部门名称已存在"));
-    }
-
-    if Dept::select_normal_children_dept_by_id(rb, &id.unwrap_or_default()).await? > 0 && item.status == 0 {
-        return Err(AppError::BusinessError("该部门包含未停用的子部门"));
-    }
-
-    for mut x in Dept::select_children_dept_by_id(rb, &id.unwrap_or_default()).await? {
-        x.ancestors = Some(x.ancestors.unwrap_or_default().replace(old_ancestors.as_str(), ancestors.as_str()));
-        Dept::update_by_map(rb, &x, value! {"id": &x.id}).await?;
-    }
-
-    if item.status == 1 && ancestors != "0" {
-        let ids = ancestors.split(",").map(|s| s.i64()).collect::<Vec<i64>>();
-
-        let update_sql = format!(
-            "update sys_dept set status = ? ,update_time = ? where id in ({})",
-            ids.iter().map(|_| "?").collect::<Vec<&str>>().join(", ")
-        );
-
-        let mut param = vec![value!(item.status), value!(DateTime::now())];
-        param.extend(ids.iter().map(|&id| value!(id)));
-
-        rb.exec(&update_sql, param).await?;
-    }
-    item.ancestors = Some(ancestors);
-
-    Dept::update_by_map(rb, &Dept::from(item), value! {"id":  id}).await.map(|_| ok_result())?
+    DeptService::update_sys_dept(item).await
 }
 
 /*
@@ -139,35 +56,7 @@ pub async fn update_sys_dept_status(req: JsonBody<UpdateDeptStatusReq>) -> AppRe
     let item = req.into_inner();
     log::info!("update sys_dept_status params: {:?}", &item);
 
-    let rb = &mut RB.clone();
-
-    let ids = item.ids;
-    if item.status == 1 {
-        for id in &ids {
-            if let Some(x) = Dept::select_by_id(rb, id).await? {
-                let ancestors = x.ancestors.unwrap_or_default();
-                let ids = ancestors.split(",").map(|s| s.i64()).collect::<Vec<i64>>();
-
-                let update_sql = format!(
-                    "update sys_dept set status = ? ,update_time = ? where id in ({})",
-                    ids.iter().map(|_| "?").collect::<Vec<&str>>().join(", ")
-                );
-
-                let mut param = vec![value!(item.status), value!(DateTime::now())];
-                param.extend(ids.iter().map(|&id| value!(id)));
-                rb.exec(&update_sql, param).await?;
-            }
-        }
-    }
-
-    let update_sql = format!(
-        "update sys_dept set status = ? ,update_time = ? where id in ({})",
-        ids.iter().map(|_| "?").collect::<Vec<&str>>().join(", ")
-    );
-
-    let mut param = vec![value!(item.status), value!(DateTime::now())];
-    param.extend(ids.iter().map(|&id| value!(id)));
-    rb.exec(&update_sql, param).await.map(|_| ok_result())?
+    DeptService::update_sys_dept_status(item).await
 }
 
 /*
@@ -180,10 +69,7 @@ pub async fn query_sys_dept_detail(req: JsonBody<QueryDeptDetailReq>) -> AppResu
     let item = req.into_inner();
     log::info!("query sys_dept_detail params: {:?}", &item);
 
-    match Dept::select_by_id(&mut RB.clone(), &item.id).await? {
-        Some(x) => ok_result_data(x.into()),
-        None => Err(AppError::BusinessError("部门不存在")),
-    }
+    DeptService::query_sys_dept_detail(item).await
 }
 
 /*
@@ -196,9 +82,5 @@ pub async fn query_sys_dept_list(req: JsonBody<QueryDeptListReq>) -> AppResult<V
     let item = req.into_inner();
     log::info!("query sys_dept_list params: {:?}", &item);
 
-    let rb = &mut RB.clone();
-
-    Dept::select_by_page(rb, &item)
-        .await
-        .map(|x| ok_result_data(x.into_iter().map(|x| x.into()).collect::<Vec<DeptResp>>()))?
+    DeptService::query_sys_dept_list(item).await
 }

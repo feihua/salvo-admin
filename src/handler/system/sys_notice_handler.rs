@@ -3,7 +3,7 @@
 // date：2025/01/08 13:51:14
 
 use crate::common::error::{AppResult, AppResultPage};
-use crate::service::system::sys_notice_sevice::NoticeService;
+use crate::service::system::sys_notice_service::NoticeService;
 use crate::vo::system::sys_notice_vo::*;
 use salvo::oapi::extract::JsonBody;
 use salvo::prelude::*;
