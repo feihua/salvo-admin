@@ -2,23 +2,22 @@
 // author：刘飞华
 // date：2025/01/08 13:51:14
 
-use crate::common::error::{AppResult};
+use crate::common::error::{AppResult, AppResultPage};
 use crate::service::system::sys_post_service::PostService;
 use crate::vo::system::sys_post_vo::*;
 use salvo::oapi::extract::JsonBody;
 use salvo::prelude::*;
-use salvo::Response;
 /*
  *添加岗位信息
  *author：刘飞华
  *date：2025/01/08 13:51:14
  */
 #[handler]
-pub async fn add_sys_post(req: JsonBody<PostReq>, res: &mut Response) -> AppResult {
+pub async fn add_sys_post(req: JsonBody<PostReq>) -> AppResult<String> {
     let item = req.into_inner();
     log::info!("add sys_post params: {:?}", &item);
 
-    PostService::add_sys_post(item, res).await
+    PostService::add_sys_post(item).await
 }
 
 /*
@@ -27,11 +26,11 @@ pub async fn add_sys_post(req: JsonBody<PostReq>, res: &mut Response) -> AppResu
  *date：2025/01/08 13:51:14
  */
 #[handler]
-pub async fn delete_sys_post(req: JsonBody<DeletePostReq>, res: &mut Response) -> AppResult {
+pub async fn delete_sys_post(req: JsonBody<DeletePostReq>) -> AppResult<String> {
     let item = req.into_inner();
     log::info!("delete sys_post params: {:?}", &item);
 
-    PostService::delete_sys_post(item, res).await
+    PostService::delete_sys_post(item).await
 }
 
 /*
@@ -40,11 +39,11 @@ pub async fn delete_sys_post(req: JsonBody<DeletePostReq>, res: &mut Response) -
  *date：2025/01/08 13:51:14
  */
 #[handler]
-pub async fn update_sys_post(req: JsonBody<PostReq>, res: &mut Response) -> AppResult {
+pub async fn update_sys_post(req: JsonBody<PostReq>) -> AppResult<String> {
     let item = req.into_inner();
     log::info!("update sys_post params: {:?}", &item);
 
-    PostService::update_sys_post(item, res).await
+    PostService::update_sys_post(item).await
 }
 
 /*
@@ -53,11 +52,11 @@ pub async fn update_sys_post(req: JsonBody<PostReq>, res: &mut Response) -> AppR
  *date：2025/01/08 13:51:14
  */
 #[handler]
-pub async fn update_sys_post_status(req: JsonBody<UpdatePostStatusReq>, res: &mut Response) -> AppResult {
+pub async fn update_sys_post_status(req: JsonBody<UpdatePostStatusReq>) -> AppResult<String> {
     let item = req.into_inner();
     log::info!("update sys_post_status params: {:?}", &item);
 
-    PostService::update_sys_post_status(item, res).await
+    PostService::update_sys_post_status(item).await
 }
 
 /*
@@ -66,11 +65,11 @@ pub async fn update_sys_post_status(req: JsonBody<UpdatePostStatusReq>, res: &mu
  *date：2025/01/08 13:51:14
  */
 #[handler]
-pub async fn query_sys_post_detail(req: JsonBody<QueryPostDetailReq>, res: &mut Response) -> AppResult {
+pub async fn query_sys_post_detail(req: JsonBody<QueryPostDetailReq>) -> AppResult<PostResp> {
     let item = req.into_inner();
     log::info!("query sys_post_detail params: {:?}", &item);
 
-    PostService::query_sys_post_detail(item, res).await
+    PostService::query_sys_post_detail(item).await
 }
 
 /*
@@ -79,9 +78,9 @@ pub async fn query_sys_post_detail(req: JsonBody<QueryPostDetailReq>, res: &mut 
  *date：2025/01/08 13:51:14
  */
 #[handler]
-pub async fn query_sys_post_list(req: JsonBody<QueryPostListReq>, res: &mut Response) -> AppResult {
+pub async fn query_sys_post_list(req: JsonBody<QueryPostListReq>) -> AppResultPage<Vec<PostResp>> {
     let item = req.into_inner();
     log::info!("query sys_post_list params: {:?}", &item);
 
-    PostService::query_sys_post_list(item, res).await
+    PostService::query_sys_post_list(item).await
 }

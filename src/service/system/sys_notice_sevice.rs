@@ -1,4 +1,4 @@
-use crate::common::error::{AppError, AppResult};
+use crate::common::error::{AppError, AppResult, AppResultPage};
 use crate::common::result::{ok_result, ok_result_data, ok_result_page};
 use crate::model::system::sys_notice_model::Notice;
 use crate::vo::system::sys_notice_vo::*;
@@ -6,7 +6,6 @@ use crate::RB;
 use rbatis::plugin::page::PageRequest;
 use rbatis::rbdc::DateTime;
 use rbs::value;
-use salvo::Response;
 
 pub struct NoticeService;
 
@@ -16,7 +15,7 @@ impl NoticeService {
      *author：刘飞华
      *date：2025/01/08 13:51:14
      */
-    pub async fn add_sys_notice(mut item: NoticeReq, res: &mut Response) -> AppResult {
+    pub async fn add_sys_notice(mut item: NoticeReq) -> AppResult<String> {
         let rb = &mut RB.clone();
 
         let condition = value! {
@@ -28,7 +27,7 @@ impl NoticeService {
         }
 
         item.id = None;
-        Notice::insert(rb, &Notice::from(item)).await.map(|_| ok_result(res))?
+        Notice::insert(rb, &Notice::from(item)).await.map(|_| ok_result())?
     }
 
     /*
@@ -36,10 +35,10 @@ impl NoticeService {
      *author：刘飞华
      *date：2025/01/08 13:51:14
      */
-    pub async fn delete_sys_notice(item: DeleteNoticeReq, res: &mut Response) -> AppResult {
+    pub async fn delete_sys_notice(item: DeleteNoticeReq) -> AppResult<String> {
         let rb = &mut RB.clone();
 
-        Notice::delete_by_map(rb, value! {"id": item.ids}).await.map(|_| ok_result(res))?
+        Notice::delete_by_map(rb, value! {"id": item.ids}).await.map(|_| ok_result())?
     }
 
     /*
@@ -47,7 +46,7 @@ impl NoticeService {
      *author：刘飞华
      *date：2025/01/08 13:51:14
      */
-    pub async fn update_sys_notice(item: NoticeReq, res: &mut Response) -> AppResult {
+    pub async fn update_sys_notice(item: NoticeReq) -> AppResult<String> {
         let rb = &mut RB.clone();
 
         let id = item.id;
@@ -68,7 +67,7 @@ impl NoticeService {
             return Err(AppError::BusinessError("公告标题已存在"));
         }
 
-        Notice::update_by_map(rb, &Notice::from(item), value! {"id": id}).await.map(|_| ok_result(res))?
+        Notice::update_by_map(rb, &Notice::from(item), value! {"id": id}).await.map(|_| ok_result())?
     }
 
     /*
@@ -76,7 +75,7 @@ impl NoticeService {
      *author：刘飞华
      *date：2025/01/08 13:51:14
      */
-    pub async fn update_sys_notice_status(item: UpdateNoticeStatusReq, res: &mut Response) -> AppResult {
+    pub async fn update_sys_notice_status(item: UpdateNoticeStatusReq) -> AppResult<String> {
         let update_sql = format!(
             "update sys_notice set status = ? ,update_time = ? where id in ({})",
             item.ids.iter().map(|_| "?").collect::<Vec<&str>>().join(", ")
@@ -85,7 +84,7 @@ impl NoticeService {
         let mut param = vec![value!(item.status), value!(DateTime::now())];
         param.extend(item.ids.iter().map(|&id| value!(id)));
 
-        RB.clone().exec(&update_sql, param).await.map(|_| ok_result(res))?
+        RB.clone().exec(&update_sql, param).await.map(|_| ok_result())?
     }
 
     /*
@@ -93,13 +92,10 @@ impl NoticeService {
      *author：刘飞华
      *date：2025/01/08 13:51:14
      */
-    pub async fn query_sys_notice_detail(item: QueryNoticeDetailReq, res: &mut Response) -> AppResult {
+    pub async fn query_sys_notice_detail(item: QueryNoticeDetailReq) -> AppResult<NoticeResp> {
         match Notice::select_by_id(&mut RB.clone(), &item.id).await? {
             None => Err(AppError::BusinessError("通知公告不存在")),
-            Some(x) => {
-                let notice: NoticeResp = x.into();
-                ok_result_data(res, notice)
-            }
+            Some(x) => ok_result_data(x.into()),
         }
     }
 
@@ -108,11 +104,11 @@ impl NoticeService {
      *author：刘飞华
      *date：2025/01/08 13:51:14
      */
-    pub async fn query_sys_notice_list(item: QueryNoticeListReq, res: &mut Response) -> AppResult {
+    pub async fn query_sys_notice_list(item: QueryNoticeListReq) -> AppResultPage<Vec<NoticeResp>> {
         let rb = &mut RB.clone();
 
         Notice::select_by_page(rb, &PageRequest::from(&item), &item)
             .await
-            .map(|x| ok_result_page(res, x.records.into_iter().map(|x| x.into()).collect::<Vec<NoticeResp>>(), x.total))?
+            .map(|x| ok_result_page(x.records.into_iter().map(|x| x.into()).collect::<Vec<NoticeResp>>(), x.total))?
     }
 }

@@ -2,7 +2,7 @@
 // author：刘飞华
 // date：2025/01/08 13:51:14
 
-use crate::common::error::{AppError, AppResult};
+use crate::common::error::{AppError, AppResult, AppResultPage};
 use crate::common::result::{ok_result, ok_result_data, ok_result_page};
 use crate::model::system::sys_dict_data_model::DictData;
 use crate::model::system::sys_dict_type_model::DictType;
@@ -11,16 +11,15 @@ use crate::RB;
 use rbatis::plugin::page::PageRequest;
 use rbatis::rbdc::DateTime;
 use rbs::value;
-use salvo::prelude::*;
-use salvo::Response;
 use salvo::oapi::extract::JsonBody;
+use salvo::prelude::*;
 /*
  *添加字典类型
  *author：刘飞华
  *date：2025/01/08 13:51:14
  */
 #[handler]
-pub async fn add_sys_dict_type(req: JsonBody<DictTypeReq>, res: &mut Response) -> AppResult {
+pub async fn add_sys_dict_type(req: JsonBody<DictTypeReq>) -> AppResult<String> {
     let mut item = req.into_inner();
     log::info!("add sys_dict_type params: {:?}", &item);
 
@@ -30,7 +29,7 @@ pub async fn add_sys_dict_type(req: JsonBody<DictTypeReq>, res: &mut Response) -
     }
 
     item.id = None;
-    DictType::insert(rb, &DictType::from(item)).await.map(|_| ok_result(res))?
+    DictType::insert(rb, &DictType::from(item)).await.map(|_| ok_result())?
 }
 
 /*
@@ -39,7 +38,7 @@ pub async fn add_sys_dict_type(req: JsonBody<DictTypeReq>, res: &mut Response) -
  *date：2025/01/08 13:51:14
  */
 #[handler]
-pub async fn delete_sys_dict_type(req: JsonBody<DeleteDictTypeReq>, res: &mut Response) -> AppResult {
+pub async fn delete_sys_dict_type(req: JsonBody<DeleteDictTypeReq>) -> AppResult<String> {
     let item = req.into_inner();
     log::info!("delete sys_dict_type params: {:?}", &item);
 
@@ -56,7 +55,7 @@ pub async fn delete_sys_dict_type(req: JsonBody<DeleteDictTypeReq>, res: &mut Re
         }
     }
 
-    DictType::delete_by_map(rb, value! {"id": ids}).await.map(|_| ok_result(res))?
+    DictType::delete_by_map(rb, value! {"id": ids}).await.map(|_| ok_result())?
 }
 
 /*
@@ -65,7 +64,7 @@ pub async fn delete_sys_dict_type(req: JsonBody<DeleteDictTypeReq>, res: &mut Re
  *date：2025/01/08 13:51:14
  */
 #[handler]
-pub async fn update_sys_dict_type(req: JsonBody<DictTypeReq>, res: &mut Response) -> AppResult {
+pub async fn update_sys_dict_type(req: JsonBody<DictTypeReq>) -> AppResult<String> {
     let item = req.into_inner();
     log::info!("update sys_dict_type params: {:?}", &item);
 
@@ -89,7 +88,7 @@ pub async fn update_sys_dict_type(req: JsonBody<DictTypeReq>, res: &mut Response
         DictData::update_dict_data_type(rb, &*item.dict_type, &dict_type).await?;
     }
 
-    DictType::update_by_map(rb, &DictType::from(item), value! {"id": id}).await.map(|_| ok_result(res))?
+    DictType::update_by_map(rb, &DictType::from(item), value! {"id": id}).await.map(|_| ok_result())?
 }
 
 /*
@@ -98,7 +97,7 @@ pub async fn update_sys_dict_type(req: JsonBody<DictTypeReq>, res: &mut Response
  *date：2025/01/08 13:51:14
  */
 #[handler]
-pub async fn update_sys_dict_type_status(req: JsonBody<UpdateDictTypeStatusReq>, res: &mut Response) -> AppResult {
+pub async fn update_sys_dict_type_status(req: JsonBody<UpdateDictTypeStatusReq>) -> AppResult<String> {
     let item = req.into_inner();
 
     let rb = &mut RB.clone();
@@ -112,7 +111,7 @@ pub async fn update_sys_dict_type_status(req: JsonBody<UpdateDictTypeStatusReq>,
     let mut param = vec![value!(item.status), value!(DateTime::now())];
     param.extend(item.ids.iter().map(|&id| value!(id)));
 
-    rb.exec(&update_sql, param).await.map(|_| ok_result(res))?
+    rb.exec(&update_sql, param).await.map(|_| ok_result())?
 }
 
 /*
@@ -121,18 +120,14 @@ pub async fn update_sys_dict_type_status(req: JsonBody<UpdateDictTypeStatusReq>,
  *date：2025/01/08 13:51:14
  */
 #[handler]
-pub async fn query_sys_dict_type_detail(req: JsonBody<QueryDictTypeDetailReq>, res: &mut Response) -> AppResult {
+pub async fn query_sys_dict_type_detail(req: JsonBody<QueryDictTypeDetailReq>) -> AppResult<DictTypeResp> {
     let item = req.into_inner();
 
     log::info!("query sys_dict_type_detail params: {:?}", &item);
 
-    DictType::select_by_id(&mut RB.clone(), &item.id).await?.map_or_else(
-        || Err(AppError::BusinessError("字典类型不存在")),
-        |x| {
-            let data: DictTypeResp = x.into();
-            ok_result_data(res, data)
-        },
-    )
+    DictType::select_by_id(&mut RB.clone(), &item.id)
+        .await?
+        .map_or_else(|| Err(AppError::BusinessError("字典类型不存在")), |x| ok_result_data(x.into()))
 }
 
 /*
@@ -141,12 +136,12 @@ pub async fn query_sys_dict_type_detail(req: JsonBody<QueryDictTypeDetailReq>, r
  *date：2025/01/08 13:51:14
  */
 #[handler]
-pub async fn query_sys_dict_type_list(req: JsonBody<QueryDictTypeListReq>, res: &mut Response) -> AppResult {
+pub async fn query_sys_dict_type_list(req: JsonBody<QueryDictTypeListReq>) -> AppResultPage<Vec<DictTypeResp>> {
     let item = req.into_inner();
 
     let rb = &mut RB.clone();
 
     DictType::select_by_page(rb, &PageRequest::from(&item), &item)
         .await
-        .map(|x| ok_result_page(res, x.records.into_iter().map(|x| x.into()).collect::<Vec<DictTypeResp>>(), x.total))?
+        .map(|x| ok_result_page(x.records.into_iter().map(|x| x.into()).collect::<Vec<DictTypeResp>>(), x.total))?
 }

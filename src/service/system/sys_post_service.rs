@@ -2,7 +2,7 @@
 // author：刘飞华
 // date：2025/01/08 13:51:14
 
-use crate::common::error::{AppError, AppResult};
+use crate::common::error::{AppError, AppResult, AppResultPage};
 use crate::common::result::{ok_result, ok_result_data, ok_result_page};
 use crate::model::system::sys_post_model::Post;
 use crate::model::system::sys_user_post_model::UserPost;
@@ -11,7 +11,6 @@ use crate::RB;
 use rbatis::plugin::page::PageRequest;
 use rbatis::rbdc::DateTime;
 use rbs::value;
-use salvo::Response;
 
 pub struct PostService;
 
@@ -22,7 +21,7 @@ impl PostService {
      *date：2025/01/08 13:51:14
      */
 
-    pub async fn add_sys_post(mut item: PostReq, res: &mut Response) -> AppResult {
+    pub async fn add_sys_post(mut item: PostReq) -> AppResult<String> {
         let rb = &mut RB.clone();
 
         if Post::select_by_map(rb, value! {"post_name": &item.post_name}).await?.len() > 0 {
@@ -34,7 +33,7 @@ impl PostService {
         }
 
         item.id = None;
-        Post::insert(rb, &Post::from(item)).await.map(|_| ok_result(res))?
+        Post::insert(rb, &Post::from(item)).await.map(|_| ok_result())?
     }
 
     /*
@@ -43,7 +42,7 @@ impl PostService {
      *date：2025/01/08 13:51:14
      */
 
-    pub async fn delete_sys_post(item: DeletePostReq, res: &mut Response) -> AppResult {
+    pub async fn delete_sys_post(item: DeletePostReq) -> AppResult<String> {
         let rb = &mut RB.clone();
 
         let ids = item.ids;
@@ -58,7 +57,7 @@ impl PostService {
             };
         }
 
-        Post::delete_by_map(rb, value! {"id": ids}).await.map(|_| ok_result(res))?
+        Post::delete_by_map(rb, value! {"id": ids}).await.map(|_| ok_result())?
     }
 
     /*
@@ -67,7 +66,7 @@ impl PostService {
      *date：2025/01/08 13:51:14
      */
 
-    pub async fn update_sys_post(item: PostReq, res: &mut Response) -> AppResult {
+    pub async fn update_sys_post(item: PostReq) -> AppResult<String> {
         let rb = &mut RB.clone();
 
         let id = item.id;
@@ -87,7 +86,7 @@ impl PostService {
             return Err(AppError::BusinessError("岗位编码已存在"));
         }
 
-        Post::update_by_map(rb, &Post::from(item), value! {"id": id}).await.map(|_| ok_result(res))?
+        Post::update_by_map(rb, &Post::from(item), value! {"id": id}).await.map(|_| ok_result())?
     }
 
     /*
@@ -96,7 +95,7 @@ impl PostService {
      *date：2025/01/08 13:51:14
      */
 
-    pub async fn update_sys_post_status(item: UpdatePostStatusReq, res: &mut Response) -> AppResult {
+    pub async fn update_sys_post_status(item: UpdatePostStatusReq) -> AppResult<String> {
         let update_sql = format!(
             "update sys_post set status = ? ,update_time = ? where id in ({})",
             item.ids.iter().map(|_| "?").collect::<Vec<&str>>().join(", ")
@@ -105,7 +104,7 @@ impl PostService {
         let mut param = vec![value!(item.status), value!(DateTime::now())];
         param.extend(item.ids.iter().map(|&id| value!(id)));
 
-        RB.clone().exec(&update_sql, param).await.map(|_| ok_result(res))?
+        RB.clone().exec(&update_sql, param).await.map(|_| ok_result())?
     }
 
     /*
@@ -114,14 +113,10 @@ impl PostService {
      *date：2025/01/08 13:51:14
      */
 
-    pub async fn query_sys_post_detail(item: QueryPostDetailReq, res: &mut Response) -> AppResult {
-        Post::select_by_id(&mut RB.clone(), &item.id).await?.map_or_else(
-            || Err(AppError::BusinessError("岗位不存在")),
-            |x| {
-                let data: PostResp = x.into();
-                ok_result_data(res, data)
-            },
-        )
+    pub async fn query_sys_post_detail(item: QueryPostDetailReq) -> AppResult<PostResp> {
+        Post::select_by_id(&mut RB.clone(), &item.id)
+            .await?
+            .map_or_else(|| Err(AppError::BusinessError("岗位不存在")), |x| ok_result_data(x.into()))
     }
 
     /*
@@ -130,11 +125,11 @@ impl PostService {
      *date：2025/01/08 13:51:14
      */
 
-    pub async fn query_sys_post_list(item: QueryPostListReq, res: &mut Response) -> AppResult {
+    pub async fn query_sys_post_list(item: QueryPostListReq) -> AppResultPage<Vec<PostResp>> {
         let rb = &mut RB.clone();
 
         Post::select_by_page(rb, &PageRequest::from(&item), &item)
             .await
-            .map(|x| ok_result_page(res, x.records.into_iter().map(|x| x.into()).collect::<Vec<PostResp>>(), x.total))?
+            .map(|x| ok_result_page(x.records.into_iter().map(|x| x.into()).collect::<Vec<PostResp>>(), x.total))?
     }
 }

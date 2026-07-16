@@ -2,23 +2,22 @@
 // author：刘飞华
 // date：2025/01/08 13:51:14
 
-use crate::common::error::AppResult;
+use crate::common::error::{AppResult, AppResultPage};
 use crate::service::system::sys_notice_sevice::NoticeService;
 use crate::vo::system::sys_notice_vo::*;
 use salvo::oapi::extract::JsonBody;
 use salvo::prelude::*;
-use salvo::Response;
 /*
  *添加通知公告
  *author：刘飞华
  *date：2025/01/08 13:51:14
  */
 #[handler]
-pub async fn add_sys_notice(req: JsonBody<NoticeReq>, res: &mut Response) -> AppResult {
+pub async fn add_sys_notice(req: JsonBody<NoticeReq>) -> AppResult<String> {
     let item = req.into_inner();
     log::info!("add sys_notice params: {:?}", &item);
 
-    NoticeService::add_sys_notice(item, res).await
+    NoticeService::add_sys_notice(item).await
 }
 
 /*
@@ -27,11 +26,11 @@ pub async fn add_sys_notice(req: JsonBody<NoticeReq>, res: &mut Response) -> App
  *date：2025/01/08 13:51:14
  */
 #[handler]
-pub async fn delete_sys_notice(req: JsonBody<DeleteNoticeReq>, res: &mut Response) -> AppResult {
+pub async fn delete_sys_notice(req: JsonBody<DeleteNoticeReq>) -> AppResult<String> {
     let item = req.into_inner();
     log::info!("delete sys_notice params: {:?}", &item);
 
-    NoticeService::delete_sys_notice(item, res).await
+    NoticeService::delete_sys_notice(item).await
 }
 
 /*
@@ -40,11 +39,11 @@ pub async fn delete_sys_notice(req: JsonBody<DeleteNoticeReq>, res: &mut Respons
  *date：2025/01/08 13:51:14
  */
 #[handler]
-pub async fn update_sys_notice(req: JsonBody<NoticeReq>, res: &mut Response) -> AppResult {
+pub async fn update_sys_notice(req: JsonBody<NoticeReq>) -> AppResult<String> {
     let item = req.into_inner();
     log::info!("update sys_notice params: {:?}", &item);
 
-    NoticeService::update_sys_notice(item, res).await
+    NoticeService::update_sys_notice(item).await
 }
 
 /*
@@ -53,11 +52,11 @@ pub async fn update_sys_notice(req: JsonBody<NoticeReq>, res: &mut Response) -> 
  *date：2025/01/08 13:51:14
  */
 #[handler]
-pub async fn update_sys_notice_status(req: JsonBody<UpdateNoticeStatusReq>, res: &mut Response) -> AppResult {
+pub async fn update_sys_notice_status(req: JsonBody<UpdateNoticeStatusReq>) -> AppResult<String> {
     let item = req.into_inner();
     log::info!("update sys_notice_status params: {:?}", &item);
 
-    NoticeService::update_sys_notice_status(item, res).await
+    NoticeService::update_sys_notice_status(item).await
 }
 
 /*
@@ -66,11 +65,11 @@ pub async fn update_sys_notice_status(req: JsonBody<UpdateNoticeStatusReq>, res:
  *date：2025/01/08 13:51:14
  */
 #[handler]
-pub async fn query_sys_notice_detail(req: JsonBody<QueryNoticeDetailReq>, res: &mut Response) -> AppResult {
+pub async fn query_sys_notice_detail(req: JsonBody<QueryNoticeDetailReq>) -> AppResult<NoticeResp> {
     let item = req.into_inner();
     log::info!("query sys_notice_detail params: {:?}", &item);
 
-    NoticeService::query_sys_notice_detail(item, res).await
+    NoticeService::query_sys_notice_detail(item).await
 }
 
 /*
@@ -79,9 +78,9 @@ pub async fn query_sys_notice_detail(req: JsonBody<QueryNoticeDetailReq>, res: &
  *date：2025/01/08 13:51:14
  */
 #[handler]
-pub async fn query_sys_notice_list(req: JsonBody<QueryNoticeListReq>, res: &mut Response) -> AppResult {
+pub async fn query_sys_notice_list(req: JsonBody<QueryNoticeListReq>) -> AppResultPage<Vec<NoticeResp>> {
     let item = req.into_inner();
     log::info!("query sys_notice_list params: {:?}", &item);
 
-    NoticeService::query_sys_notice_list(item, res).await
+    NoticeService::query_sys_notice_list(item).await
 }

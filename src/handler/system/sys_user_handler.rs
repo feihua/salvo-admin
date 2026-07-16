@@ -2,7 +2,7 @@
 // author：刘飞华
 // date：2025/01/08 13:51:14
 
-use crate::common::error::{AppError, AppResult};
+use crate::common::error::{AppError, AppResult, AppResultPage};
 use crate::common::result::{ok_result, ok_result_data, ok_result_page};
 use crate::model::system::sys_dept_model::Dept;
 use crate::model::system::sys_login_log_model::LoginLog;
@@ -24,7 +24,6 @@ use rbatis::rbdc::datetime::DateTime;
 use rbs::value;
 use salvo::oapi::extract::JsonBody;
 use salvo::prelude::*;
-use salvo::Response;
 use std::collections::{HashMap, HashSet};
 /*
  *添加用户信息
@@ -32,7 +31,7 @@ use std::collections::{HashMap, HashSet};
  *date：2025/01/08 13:51:14
  */
 #[handler]
-pub async fn add_sys_user(req: JsonBody<UserReq>, res: &mut Response) -> AppResult {
+pub async fn add_sys_user(req: JsonBody<UserReq>) -> AppResult<String> {
     let mut item = req.into_inner();
     log::info!("add sys_user params: {:?}", &item);
 
@@ -65,7 +64,7 @@ pub async fn add_sys_user(req: JsonBody<UserReq>, res: &mut Response) -> AppResu
         .collect::<Vec<UserPost>>();
 
     let size = user_post_list.len() as u64;
-    UserPost::insert_batch(rb, &user_post_list, size).await.map(|_| ok_result(res))?
+    UserPost::insert_batch(rb, &user_post_list, size).await.map(|_| ok_result())?
 }
 
 /*
@@ -74,7 +73,7 @@ pub async fn add_sys_user(req: JsonBody<UserReq>, res: &mut Response) -> AppResu
  *date：2025/01/08 13:51:14
  */
 #[handler]
-pub async fn delete_sys_user(depot: &mut Depot, req: JsonBody<DeleteUserReq>, res: &mut Response) -> AppResult {
+pub async fn delete_sys_user(depot: &mut Depot, req: JsonBody<DeleteUserReq>) -> AppResult<String> {
     let item = req.into_inner();
     log::info!("delete sys_user params: {:?}", &item);
 
@@ -92,7 +91,7 @@ pub async fn delete_sys_user(depot: &mut Depot, req: JsonBody<DeleteUserReq>, re
 
         UserPost::delete_by_map(rb, value! {"user_id": &ids}).await?;
 
-        User::delete_by_map(rb, value! {"id": ids}).await.map(|_| ok_result(res))?
+        User::delete_by_map(rb, value! {"id": ids}).await.map(|_| ok_result())?
     } else {
         Err(AppError::BusinessError("参数错误"))
     }
@@ -104,7 +103,7 @@ pub async fn delete_sys_user(depot: &mut Depot, req: JsonBody<DeleteUserReq>, re
  *date：2025/01/08 13:51:14
  */
 #[handler]
-pub async fn update_sys_user(req: JsonBody<UserReq>, res: &mut Response) -> AppResult {
+pub async fn update_sys_user(req: JsonBody<UserReq>) -> AppResult<String> {
     let item = req.into_inner();
     log::info!("update sys_user params: {:?}", &item);
 
@@ -149,7 +148,7 @@ pub async fn update_sys_user(req: JsonBody<UserReq>, res: &mut Response) -> AppR
     UserPost::delete_by_map(rb, value! {"user_id": &item.id}).await?;
     UserPost::insert_batch(rb, &user_post_list, user_post_list.len() as u64).await?;
 
-    User::update_by_map(rb, &User::from(item), value! {"id": id}).await.map(|_| ok_result(res))?
+    User::update_by_map(rb, &User::from(item), value! {"id": id}).await.map(|_| ok_result())?
 }
 
 /*
@@ -158,7 +157,7 @@ pub async fn update_sys_user(req: JsonBody<UserReq>, res: &mut Response) -> AppR
  *date：2025/01/08 13:51:14
  */
 #[handler]
-pub async fn update_sys_user_status(req: JsonBody<UpdateUserStatusReq>, res: &mut Response) -> AppResult {
+pub async fn update_sys_user_status(req: JsonBody<UpdateUserStatusReq>) -> AppResult<String> {
     let item = req.into_inner();
     log::info!("update sys_user_status params: {:?}", &item);
 
@@ -175,7 +174,7 @@ pub async fn update_sys_user_status(req: JsonBody<UpdateUserStatusReq>, res: &mu
     let mut param = vec![value!(item.status), value!(DateTime::now())];
     param.extend(ids.iter().map(|&id| value!(id)));
 
-    RB.clone().exec(&update_sql, param).await.map(|_| ok_result(res))?
+    RB.clone().exec(&update_sql, param).await.map(|_| ok_result())?
 }
 
 /*
@@ -184,7 +183,7 @@ pub async fn update_sys_user_status(req: JsonBody<UpdateUserStatusReq>, res: &mu
  *date：2025/01/08 13:51:14
  */
 #[handler]
-pub async fn reset_sys_user_password(req: JsonBody<ResetUserPwdReq>, res: &mut Response) -> AppResult {
+pub async fn reset_sys_user_password(req: JsonBody<ResetUserPwdReq>) -> AppResult<String> {
     let item = req.into_inner();
     log::info!("update sys_user_password params: {:?}", &item);
 
@@ -200,7 +199,7 @@ pub async fn reset_sys_user_password(req: JsonBody<ResetUserPwdReq>, res: &mut R
         Some(x) => {
             let mut user = x;
             user.password = item.password;
-            User::update_by_map(rb, &user, value! {"id": user.id}).await.map(|_| ok_result(res))?
+            User::update_by_map(rb, &user, value! {"id": user.id}).await.map(|_| ok_result())?
         }
     }
 }
@@ -211,7 +210,7 @@ pub async fn reset_sys_user_password(req: JsonBody<ResetUserPwdReq>, res: &mut R
  *date：2025/01/08 13:51:14
  */
 #[handler]
-pub async fn update_sys_user_password(req: JsonBody<UpdateUserPwdReq>, depot: &mut Depot, res: &mut Response) -> AppResult {
+pub async fn update_sys_user_password(req: JsonBody<UpdateUserPwdReq>, depot: &mut Depot) -> AppResult<String> {
     let item = req.into_inner();
     log::info!("update sys_user_password params: {:?}", &item);
 
@@ -227,7 +226,7 @@ pub async fn update_sys_user_password(req: JsonBody<UpdateUserPwdReq>, depot: &m
                 }
                 user.password = item.re_pwd;
 
-                User::update_by_map(rb, &user, value! {"id": user.id}).await.map(|_| ok_result(res))?
+                User::update_by_map(rb, &user, value! {"id": user.id}).await.map(|_| ok_result())?
             }
         }
     } else {
@@ -241,7 +240,7 @@ pub async fn update_sys_user_password(req: JsonBody<UpdateUserPwdReq>, depot: &m
  *date：2025/01/08 13:51:14
  */
 #[handler]
-pub async fn query_sys_user_detail(req: JsonBody<QueryUserDetailReq>, res: &mut Response) -> AppResult {
+pub async fn query_sys_user_detail(req: JsonBody<QueryUserDetailReq>) -> AppResult<UserResp> {
     let item = req.into_inner();
     log::info!("query sys_user_detail params: {:?}", &item);
 
@@ -269,7 +268,7 @@ pub async fn query_sys_user_detail(req: JsonBody<QueryUserDetailReq>, res: &mut 
     x.dept_info = dept;
     x.post_ids = Some(post_ids);
 
-    ok_result_data(res, x)
+    ok_result_data(x)
 }
 
 /*
@@ -278,7 +277,7 @@ pub async fn query_sys_user_detail(req: JsonBody<QueryUserDetailReq>, res: &mut 
  *date：2025/01/08 13:51:14
  */
 #[handler]
-pub async fn query_sys_user_list(req: JsonBody<QueryUserListReq>, res: &mut Response) -> AppResult {
+pub async fn query_sys_user_list(req: JsonBody<QueryUserListReq>) -> AppResultPage<Vec<UserResp>> {
     let item = req.into_inner();
     log::info!("query sys_user_list params: {:?}", &item);
 
@@ -286,7 +285,7 @@ pub async fn query_sys_user_list(req: JsonBody<QueryUserListReq>, res: &mut Resp
 
     User::select_by_page(rb, &PageRequest::from(&item), &item)
         .await
-        .map(|x| ok_result_page(res, x.records.into_iter().map(|x| x.into()).collect::<Vec<UserResp>>(), x.total))?
+        .map(|x| ok_result_page(x.records.into_iter().map(|x| x.into()).collect::<Vec<UserResp>>(), x.total))?
 }
 
 /*
@@ -295,7 +294,7 @@ pub async fn query_sys_user_list(req: JsonBody<QueryUserListReq>, res: &mut Resp
  *date：2025/01/08 13:51:14
  */
 #[handler]
-pub async fn login(depot: &mut Depot, req: &mut Request, res: &mut Response) -> AppResult {
+pub async fn login(depot: &mut Depot, req: &mut Request) -> AppResult<String> {
     let item = req.parse_json::<UserLoginReq>().await?;
     log::info!("user login params: {:?}", &item);
 
@@ -357,7 +356,7 @@ pub async fn login(depot: &mut Depot, req: &mut Request, res: &mut Response) -> 
             s_user.login_date = Some(DateTime::now());
 
             User::update_by_map(rb, &s_user, value! {"id": s_user.id}).await?;
-            ok_result_data(res, token)
+            ok_result_data(token)
         }
     }
 }
@@ -426,7 +425,7 @@ async fn query_btn_menu(id: &i64) -> (Vec<String>, bool) {
  *date：2025/01/08 13:51:14
  */
 #[handler]
-pub async fn query_user_role(req: JsonBody<QueryUserRoleReq>, res: &mut Response) -> AppResult {
+pub async fn query_user_role(req: JsonBody<QueryUserRoleReq>) -> AppResult<QueryUserRoleResp> {
     let item = req.into_inner();
     log::info!("query_user_role params: {:?}", item);
 
@@ -440,7 +439,7 @@ pub async fn query_user_role(req: JsonBody<QueryUserRoleReq>, res: &mut Response
 
     let sys_role_list = Role::select_by_map(rb, value! {}).await.map(|x| x.into_iter().map(|x| x.into()).collect::<Vec<RoleResp>>())?;
 
-    ok_result_data(res, QueryUserRoleResp { sys_role_list, user_role_ids })
+    ok_result_data(QueryUserRoleResp { sys_role_list, user_role_ids })
 }
 
 /*
@@ -449,7 +448,7 @@ pub async fn query_user_role(req: JsonBody<QueryUserRoleReq>, res: &mut Response
  *date：2025/01/08 13:51:14
  */
 #[handler]
-pub async fn update_user_role(req: JsonBody<UpdateUserRoleReq>, res: &mut Response) -> AppResult {
+pub async fn update_user_role(req: JsonBody<UpdateUserRoleReq>) -> AppResult<String> {
     let item = req.into_inner();
     log::info!("update_user_role params: {:?}", item);
 
@@ -465,7 +464,7 @@ pub async fn update_user_role(req: JsonBody<UpdateUserRoleReq>, res: &mut Respon
 
     let list: Vec<UserRole> = item.role_ids.into_iter().map(|role_id| UserRole { id: None, role_id, user_id }).collect();
 
-    UserRole::insert_batch(rb, &list, list.len() as u64).await.map(|_| ok_result(res))?
+    UserRole::insert_batch(rb, &list, list.len() as u64).await.map(|_| ok_result())?
 }
 
 /*
@@ -474,7 +473,7 @@ pub async fn update_user_role(req: JsonBody<UpdateUserRoleReq>, res: &mut Respon
  *date：2025/01/08 13:51:14
  */
 #[handler]
-pub async fn query_user_menu(depot: &mut Depot, res: &mut Response) -> AppResult {
+pub async fn query_user_menu(depot: &mut Depot) -> AppResult<QueryUserMenuResp> {
     let user_id = depot.get::<i64>("userId").copied().unwrap();
     let user_name = depot.get::<String>("username").unwrap();
     log::info!("query user menu params user_id {:?}", user_id);
@@ -533,7 +532,7 @@ pub async fn query_user_menu(depot: &mut Depot, res: &mut Response) -> AppResult
                 avatar: "https://gw.alipayobjects.com/zos/antfincdn/XAosXuNZyF/BiazfanxmamNRoxxVxka.png".to_string(),
                 name: user.user_name,
             };
-            ok_result_data(res, data)
+            ok_result_data(data)
         }
     }
 }

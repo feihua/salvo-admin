@@ -2,7 +2,7 @@
 // author：刘飞华
 // date：2025/01/08 13:51:14
 
-use crate::common::error::{AppError, AppResult};
+use crate::common::error::{AppError, AppResult, AppResultPage};
 use crate::common::result::{ok_result, ok_result_data, ok_result_page};
 use crate::model::system::sys_menu_model::Menu;
 use crate::model::system::sys_role_dept_model::RoleDept;
@@ -16,16 +16,15 @@ use crate::RB;
 use rbatis::plugin::page::PageRequest;
 use rbatis::rbdc::datetime::DateTime;
 use rbs::value;
-use salvo::prelude::*;
-use salvo::Response;
 use salvo::oapi::extract::JsonBody;
+use salvo::prelude::*;
 /*
  *添加角色信息
  *author：刘飞华
  *date：2025/01/08 13:51:14
  */
 #[handler]
-pub async fn add_sys_role(req: JsonBody<RoleReq>, res: &mut Response) -> AppResult {
+pub async fn add_sys_role(req: JsonBody<RoleReq>) -> AppResult<String> {
     let mut item = req.into_inner();
     log::info!("add sys_role params: {:?}", &item);
 
@@ -39,7 +38,7 @@ pub async fn add_sys_role(req: JsonBody<RoleReq>, res: &mut Response) -> AppResu
     }
 
     item.id = None;
-    Role::insert(rb, &Role::from(item)).await.map(|_| ok_result(res))?
+    Role::insert(rb, &Role::from(item)).await.map(|_| ok_result())?
 }
 
 /*
@@ -48,7 +47,7 @@ pub async fn add_sys_role(req: JsonBody<RoleReq>, res: &mut Response) -> AppResu
  *date：2025/01/08 13:51:14
  */
 #[handler]
-pub async fn delete_sys_role(req: JsonBody<DeleteRoleReq>, res: &mut Response) -> AppResult {
+pub async fn delete_sys_role(req: JsonBody<DeleteRoleReq>) -> AppResult<String> {
     let item = req.into_inner();
     log::info!("delete sys_role params: {:?}", &item);
 
@@ -72,7 +71,7 @@ pub async fn delete_sys_role(req: JsonBody<DeleteRoleReq>, res: &mut Response) -
     RoleMenu::delete_by_map(rb, value! {"role_id": &ids}).await?;
     RoleDept::delete_by_map(rb, value! {"role_id": &ids}).await?;
 
-    Role::delete_by_map(rb, value! {"id": ids}).await.map(|_| ok_result(res))?
+    Role::delete_by_map(rb, value! {"id": ids}).await.map(|_| ok_result())?
 }
 
 /*
@@ -81,7 +80,7 @@ pub async fn delete_sys_role(req: JsonBody<DeleteRoleReq>, res: &mut Response) -
  *date：2025/01/08 13:51:14
  */
 #[handler]
-pub async fn update_sys_role(req: JsonBody<RoleReq>, res: &mut Response) -> AppResult {
+pub async fn update_sys_role(req: JsonBody<RoleReq>) -> AppResult<String> {
     let item = req.into_inner();
     log::info!("update sys_role params: {:?}", &item);
 
@@ -107,7 +106,7 @@ pub async fn update_sys_role(req: JsonBody<RoleReq>, res: &mut Response) -> AppR
         return Err(AppError::BusinessError("角色权限已存在"));
     }
 
-    Role::update_by_map(rb, &Role::from(item), value! {"id": id}).await.map(|_| ok_result(res))?
+    Role::update_by_map(rb, &Role::from(item), value! {"id": id}).await.map(|_| ok_result())?
 }
 
 /*
@@ -116,7 +115,7 @@ pub async fn update_sys_role(req: JsonBody<RoleReq>, res: &mut Response) -> AppR
  *date：2025/01/08 13:51:14
  */
 #[handler]
-pub async fn update_sys_role_status(req: JsonBody<UpdateRoleStatusReq>, res: &mut Response) -> AppResult {
+pub async fn update_sys_role_status(req: JsonBody<UpdateRoleStatusReq>) -> AppResult<String> {
     let item = req.into_inner();
     log::info!("update sys_role_status params: {:?}", &item);
 
@@ -132,7 +131,7 @@ pub async fn update_sys_role_status(req: JsonBody<UpdateRoleStatusReq>, res: &mu
     let mut param = vec![value!(item.status), value!(DateTime::now())];
     param.extend(item.ids.iter().map(|&id| value!(id)));
 
-    RB.clone().exec(&update_sql, param).await.map(|_| ok_result(res))?
+    RB.clone().exec(&update_sql, param).await.map(|_| ok_result())?
 }
 
 /*
@@ -141,17 +140,13 @@ pub async fn update_sys_role_status(req: JsonBody<UpdateRoleStatusReq>, res: &mu
  *date：2025/01/08 13:51:14
  */
 #[handler]
-pub async fn query_sys_role_detail(req: JsonBody<QueryRoleDetailReq>, res: &mut Response) -> AppResult {
+pub async fn query_sys_role_detail(req: JsonBody<QueryRoleDetailReq>) -> AppResult<RoleResp> {
     let item = req.into_inner();
     log::info!("query sys_role_detail params: {:?}", &item);
 
-    Role::select_by_id(&mut RB.clone(), &item.id).await?.map_or_else(
-        || Err(AppError::BusinessError("角色不存在")),
-        |x| {
-            let data: RoleResp = x.into();
-            ok_result_data(res, data)
-        },
-    )
+    Role::select_by_id(&mut RB.clone(), &item.id)
+        .await?
+        .map_or_else(|| Err(AppError::BusinessError("角色不存在")), |x| ok_result_data(x.into()))
 }
 
 /*
@@ -160,7 +155,7 @@ pub async fn query_sys_role_detail(req: JsonBody<QueryRoleDetailReq>, res: &mut 
  *date：2025/01/08 13:51:14
  */
 #[handler]
-pub async fn query_sys_role_list(req: JsonBody<QueryRoleListReq>, res: &mut Response) -> AppResult {
+pub async fn query_sys_role_list(req: JsonBody<QueryRoleListReq>) -> AppResultPage<Vec<RoleResp>> {
     let item = req.into_inner();
     log::info!("query sys_role_list params: {:?}", &item);
 
@@ -168,7 +163,7 @@ pub async fn query_sys_role_list(req: JsonBody<QueryRoleListReq>, res: &mut Resp
 
     Role::select_by_page(rb, &PageRequest::from(&item), &item)
         .await
-        .map(|x| ok_result_page(res, x.records.into_iter().map(|x| x.into()).collect::<Vec<RoleResp>>(), x.total))?
+        .map(|x| ok_result_page(x.records.into_iter().map(|x| x.into()).collect::<Vec<RoleResp>>(), x.total))?
 }
 
 /*
@@ -177,7 +172,7 @@ pub async fn query_sys_role_list(req: JsonBody<QueryRoleListReq>, res: &mut Resp
  *date：2025/01/08 13:51:14
  */
 #[handler]
-pub async fn query_role_menu(req: JsonBody<QueryRoleMenuReq>, res: &mut Response) -> AppResult {
+pub async fn query_role_menu(req: JsonBody<QueryRoleMenuReq>) -> AppResult<QueryRoleMenuData> {
     let item = req.into_inner();
     log::info!("query role_menu params: {:?}", &item);
 
@@ -210,7 +205,7 @@ pub async fn query_role_menu(req: JsonBody<QueryRoleMenuReq>, res: &mut Response
         }
     }
 
-    ok_result_data(res, QueryRoleMenuData { menu_ids, menu_list })
+    ok_result_data(QueryRoleMenuData { menu_ids, menu_list })
 }
 
 /*
@@ -219,7 +214,7 @@ pub async fn query_role_menu(req: JsonBody<QueryRoleMenuReq>, res: &mut Response
  *date：2025/01/08 13:51:14
  */
 #[handler]
-pub async fn update_role_menu(req: JsonBody<UpdateRoleMenuReq>, res: &mut Response) -> AppResult {
+pub async fn update_role_menu(req: JsonBody<UpdateRoleMenuReq>) -> AppResult<String> {
     let item = req.into_inner();
     log::info!("update_role_menu params: {:?}", &item);
     let role_id = item.role_id;
@@ -238,7 +233,7 @@ pub async fn update_role_menu(req: JsonBody<UpdateRoleMenuReq>, res: &mut Respon
     }
 
     RoleMenu::insert_batch(rb, &role_menu, item.menu_ids.len() as u64).await?;
-    ok_result(res)
+    ok_result()
 }
 
 /*
@@ -247,7 +242,7 @@ pub async fn update_role_menu(req: JsonBody<UpdateRoleMenuReq>, res: &mut Respon
  *date：2025/01/08 13:51:14
  */
 #[handler]
-pub async fn query_allocated_list(req: JsonBody<AllocatedListReq>, res: &mut Response) -> AppResult {
+pub async fn query_allocated_list(req: JsonBody<AllocatedListReq>) -> AppResultPage<Vec<UserResp>> {
     let item = req.into_inner();
     log::info!("update role_menu params: {:?}", &item);
 
@@ -267,7 +262,7 @@ pub async fn query_allocated_list(req: JsonBody<AllocatedListReq>, res: &mut Res
     }
 
     let total = User::count_allocated_list(rb, role_id, user_name, mobile).await?;
-    ok_result_page(res, list, total)
+    ok_result_page(list, total)
 }
 
 /*
@@ -276,7 +271,7 @@ pub async fn query_allocated_list(req: JsonBody<AllocatedListReq>, res: &mut Res
  *date：2025/01/08 13:51:14
  */
 #[handler]
-pub async fn query_unallocated_list(req: JsonBody<UnallocatedListReq>, res: &mut Response) -> AppResult {
+pub async fn query_unallocated_list(req: JsonBody<UnallocatedListReq>) -> AppResultPage<Vec<UserResp>> {
     let item = req.into_inner();
     log::info!("update role_menu params: {:?}", &item);
 
@@ -297,7 +292,7 @@ pub async fn query_unallocated_list(req: JsonBody<UnallocatedListReq>, res: &mut
     }
 
     let total = User::count_unallocated_list(rb, role_id, user_name, mobile).await?;
-    ok_result_page(res, list, total)
+    ok_result_page(list, total)
 }
 
 /*
@@ -306,14 +301,14 @@ pub async fn query_unallocated_list(req: JsonBody<UnallocatedListReq>, res: &mut
  *date：2025/01/08 13:51:14
  */
 #[handler]
-pub async fn cancel_auth_user(req: JsonBody<CancelAuthUserReq>, res: &mut Response) -> AppResult {
+pub async fn cancel_auth_user(req: JsonBody<CancelAuthUserReq>) -> AppResult<String> {
     let item = req.into_inner();
     log::info!("update role_menu params: {:?}", &item);
 
     let rb = &mut RB.clone();
 
     UserRole::delete_user_role_by_role_id_user_id(rb, item.role_id, item.user_id).await?;
-    ok_result(res)
+    ok_result()
 }
 
 /*
@@ -322,7 +317,7 @@ pub async fn cancel_auth_user(req: JsonBody<CancelAuthUserReq>, res: &mut Respon
  *date：2025/01/08 13:51:14
  */
 #[handler]
-pub async fn batch_cancel_auth_user(req: JsonBody<CancelAuthUserAllReq>, res: &mut Response) -> AppResult {
+pub async fn batch_cancel_auth_user(req: JsonBody<CancelAuthUserAllReq>) -> AppResult<String> {
     let item = req.into_inner();
     log::info!("cancel auth_user_all params: {:?}", &item);
 
@@ -335,7 +330,7 @@ pub async fn batch_cancel_auth_user(req: JsonBody<CancelAuthUserAllReq>, res: &m
     param.extend(item.user_ids.iter().map(|&id| value!(id)));
 
     let _ = &mut RB.clone().exec(&update_sql, param).await?;
-    ok_result(res)
+    ok_result()
 }
 
 /*
@@ -344,7 +339,7 @@ pub async fn batch_cancel_auth_user(req: JsonBody<CancelAuthUserAllReq>, res: &m
  *date：2025/01/08 13:51:14
  */
 #[handler]
-pub async fn batch_auth_user(req: JsonBody<SelectAuthUserAllReq>, res: &mut Response) -> AppResult {
+pub async fn batch_auth_user(req: JsonBody<SelectAuthUserAllReq>) -> AppResult<String> {
     let item = req.into_inner();
     log::info!("select all_auth_user params: {:?}", &item);
     let role_id = item.role_id;
@@ -354,5 +349,5 @@ pub async fn batch_auth_user(req: JsonBody<SelectAuthUserAllReq>, res: &mut Resp
     let rb = &mut RB.clone();
 
     UserRole::insert_batch(rb, &user_role, user_role.len() as u64).await?;
-    ok_result(res)
+    ok_result()
 }

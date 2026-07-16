@@ -10,16 +10,15 @@ use crate::RB;
 use rbatis::rbatis_codegen::ops::AsProxy;
 use rbatis::rbdc::DateTime;
 use rbs::value;
-use salvo::prelude::*;
-use salvo::Response;
 use salvo::oapi::extract::JsonBody;
+use salvo::prelude::*;
 /*
  *添加部门
  *author：刘飞华
  *date：2025/01/08 13:51:14
  */
 #[handler]
-pub async fn add_sys_dept(req: JsonBody<DeptReq>, res: &mut Response) -> AppResult {
+pub async fn add_sys_dept(req: JsonBody<DeptReq>) -> AppResult<String> {
     let item = req.into_inner();
     log::info!("add sys_dept params: {:?}", &item);
 
@@ -40,7 +39,7 @@ pub async fn add_sys_dept(req: JsonBody<DeptReq>, res: &mut Response) -> AppResu
             let mut sys_dept = Dept::from(item);
             sys_dept.ancestors = Some(ancestors);
             sys_dept.id = None;
-            Dept::insert(rb, &sys_dept).await.map(|_| ok_result(res))?
+            Dept::insert(rb, &sys_dept).await.map(|_| ok_result())?
         }
     }
 }
@@ -51,7 +50,7 @@ pub async fn add_sys_dept(req: JsonBody<DeptReq>, res: &mut Response) -> AppResu
  *date：2025/01/08 13:51:14
  */
 #[handler]
-pub async fn delete_sys_dept(req: JsonBody<DeleteDeptReq>, res: &mut Response) -> AppResult {
+pub async fn delete_sys_dept(req: JsonBody<DeleteDeptReq>) -> AppResult<String> {
     let item = req.into_inner();
     log::info!("delete sys_dept params: {:?}", &item);
 
@@ -64,7 +63,7 @@ pub async fn delete_sys_dept(req: JsonBody<DeleteDeptReq>, res: &mut Response) -
         return Err(AppError::BusinessError("部门存在用户,不允许删除"));
     }
 
-    Dept::delete_by_map(rb, value! {"id": item.id}).await.map(|_| ok_result(res))?
+    Dept::delete_by_map(rb, value! {"id": item.id}).await.map(|_| ok_result())?
 }
 
 /*
@@ -73,7 +72,7 @@ pub async fn delete_sys_dept(req: JsonBody<DeleteDeptReq>, res: &mut Response) -
  *date：2025/01/08 13:51:14
  */
 #[handler]
-pub async fn update_sys_dept(req: JsonBody<DeptReq>, res: &mut Response) -> AppResult {
+pub async fn update_sys_dept(req: JsonBody<DeptReq>) -> AppResult<String> {
     let rb = &mut RB.clone();
     let mut item = req.into_inner();
     log::info!("update sys_dept params: {:?}", &item);
@@ -127,7 +126,7 @@ pub async fn update_sys_dept(req: JsonBody<DeptReq>, res: &mut Response) -> AppR
     }
     item.ancestors = Some(ancestors);
 
-    Dept::update_by_map(rb, &Dept::from(item), value! {"id":  id}).await.map(|_| ok_result(res))?
+    Dept::update_by_map(rb, &Dept::from(item), value! {"id":  id}).await.map(|_| ok_result())?
 }
 
 /*
@@ -136,13 +135,13 @@ pub async fn update_sys_dept(req: JsonBody<DeptReq>, res: &mut Response) -> AppR
  *date：2025/01/08 13:51:14
  */
 #[handler]
-pub async fn update_sys_dept_status(req: JsonBody<UpdateDeptStatusReq>, res: &mut Response) -> AppResult {
+pub async fn update_sys_dept_status(req: JsonBody<UpdateDeptStatusReq>) -> AppResult<String> {
     let item = req.into_inner();
     log::info!("update sys_dept_status params: {:?}", &item);
 
     let rb = &mut RB.clone();
-    
-    let ids=item.ids;
+
+    let ids = item.ids;
     if item.status == 1 {
         for id in &ids {
             if let Some(x) = Dept::select_by_id(rb, id).await? {
@@ -168,7 +167,7 @@ pub async fn update_sys_dept_status(req: JsonBody<UpdateDeptStatusReq>, res: &mu
 
     let mut param = vec![value!(item.status), value!(DateTime::now())];
     param.extend(ids.iter().map(|&id| value!(id)));
-    rb.exec(&update_sql, param).await.map(|_| ok_result(res))?
+    rb.exec(&update_sql, param).await.map(|_| ok_result())?
 }
 
 /*
@@ -177,15 +176,12 @@ pub async fn update_sys_dept_status(req: JsonBody<UpdateDeptStatusReq>, res: &mu
  *date：2025/01/08 13:51:14
  */
 #[handler]
-pub async fn query_sys_dept_detail(req: JsonBody<QueryDeptDetailReq>, res: &mut Response) -> AppResult {
+pub async fn query_sys_dept_detail(req: JsonBody<QueryDeptDetailReq>) -> AppResult<DeptResp> {
     let item = req.into_inner();
     log::info!("query sys_dept_detail params: {:?}", &item);
 
     match Dept::select_by_id(&mut RB.clone(), &item.id).await? {
-        Some(x) => {
-            let data: DeptResp = x.into();
-            ok_result_data(res, data)
-        }
+        Some(x) => ok_result_data(x.into()),
         None => Err(AppError::BusinessError("部门不存在")),
     }
 }
@@ -196,7 +192,7 @@ pub async fn query_sys_dept_detail(req: JsonBody<QueryDeptDetailReq>, res: &mut 
  *date：2025/01/08 13:51:14
  */
 #[handler]
-pub async fn query_sys_dept_list(req: JsonBody<QueryDeptListReq>, res: &mut Response) -> AppResult {
+pub async fn query_sys_dept_list(req: JsonBody<QueryDeptListReq>) -> AppResult<Vec<DeptResp>> {
     let item = req.into_inner();
     log::info!("query sys_dept_list params: {:?}", &item);
 
@@ -204,5 +200,5 @@ pub async fn query_sys_dept_list(req: JsonBody<QueryDeptListReq>, res: &mut Resp
 
     Dept::select_by_page(rb, &item)
         .await
-        .map(|x| ok_result_data(res, x.into_iter().map(|x| x.into()).collect::<Vec<DeptResp>>()))?
+        .map(|x| ok_result_data(x.into_iter().map(|x| x.into()).collect::<Vec<DeptResp>>()))?
 }

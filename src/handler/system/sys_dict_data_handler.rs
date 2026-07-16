@@ -2,7 +2,7 @@
 // author：刘飞华
 // date：2025/01/08 13:51:14
 
-use crate::common::error::{AppError, AppResult};
+use crate::common::error::{AppError, AppResult, AppResultPage};
 use crate::common::result::{ok_result, ok_result_data, ok_result_page};
 use crate::model::system::sys_dict_data_model::DictData;
 use crate::vo::system::sys_dict_data_vo::*;
@@ -10,16 +10,15 @@ use crate::RB;
 use rbatis::plugin::page::PageRequest;
 use rbatis::rbdc::DateTime;
 use rbs::value;
-use salvo::prelude::*;
-use salvo::Response;
 use salvo::oapi::extract::JsonBody;
+use salvo::prelude::*;
 /*
  *添加字典数据
  *author：刘飞华
  *date：2025/01/08 13:51:14
  */
 #[handler]
-pub async fn add_sys_dict_data(req: JsonBody<DictDataReq>, res: &mut Response) -> AppResult {
+pub async fn add_sys_dict_data(req: JsonBody<DictDataReq>) -> AppResult<String> {
     let mut item = req.into_inner();
 
     log::info!("add sys_dict_data params: {:?}", &item);
@@ -37,7 +36,7 @@ pub async fn add_sys_dict_data(req: JsonBody<DictDataReq>, res: &mut Response) -
     }
 
     item.id = None;
-    DictData::insert(rb, &DictData::from(item)).await.map(|_| ok_result(res))?
+    DictData::insert(rb, &DictData::from(item)).await.map(|_| ok_result())?
 }
 
 /*
@@ -46,13 +45,13 @@ pub async fn add_sys_dict_data(req: JsonBody<DictDataReq>, res: &mut Response) -
  *date：2025/01/08 13:51:14
  */
 #[handler]
-pub async fn delete_sys_dict_data(req: JsonBody<DeleteDictDataReq>, res: &mut Response) -> AppResult {
+pub async fn delete_sys_dict_data(req: JsonBody<DeleteDictDataReq>) -> AppResult<String> {
     let item = req.into_inner();
     log::info!("delete sys_dict_data params: {:?}", &item);
 
     let rb = &mut RB.clone();
 
-    DictData::delete_by_map(rb, value! {"id": item.ids}).await.map(|_| ok_result(res))?
+    DictData::delete_by_map(rb, value! {"id": item.ids}).await.map(|_| ok_result())?
 }
 
 /*
@@ -61,7 +60,7 @@ pub async fn delete_sys_dict_data(req: JsonBody<DeleteDictDataReq>, res: &mut Re
  *date：2025/01/08 13:51:14
  */
 #[handler]
-pub async fn update_sys_dict_data(req: JsonBody<DictDataReq>, res: &mut Response) -> AppResult {
+pub async fn update_sys_dict_data(req: JsonBody<DictDataReq>) -> AppResult<String> {
     let item = req.into_inner();
     log::info!("update sys_dict_data params: {:?}", &item);
 
@@ -85,7 +84,7 @@ pub async fn update_sys_dict_data(req: JsonBody<DictDataReq>, res: &mut Response
         return Err(AppError::BusinessError("字典键值已存在"));
     }
 
-    DictData::update_by_map(rb, &DictData::from(item), value! {"id": id}).await.map(|_| ok_result(res))?
+    DictData::update_by_map(rb, &DictData::from(item), value! {"id": id}).await.map(|_| ok_result())?
 }
 
 /*
@@ -94,7 +93,7 @@ pub async fn update_sys_dict_data(req: JsonBody<DictDataReq>, res: &mut Response
  *date：2025/01/08 13:51:14
  */
 #[handler]
-pub async fn update_sys_dict_data_status(req: JsonBody<UpdateDictDataStatusReq>, res: &mut Response) -> AppResult {
+pub async fn update_sys_dict_data_status(req: JsonBody<UpdateDictDataStatusReq>) -> AppResult<String> {
     let item = req.into_inner();
     log::info!("update sys_dict_data_status params: {:?}", &item);
 
@@ -106,7 +105,7 @@ pub async fn update_sys_dict_data_status(req: JsonBody<UpdateDictDataStatusReq>,
     let mut param = vec![value!(item.status), value!(DateTime::now())];
     param.extend(item.ids.iter().map(|&id| value!(id)));
 
-    RB.clone().exec(&update_sql, param).await.map(|_| ok_result(res))?
+    RB.clone().exec(&update_sql, param).await.map(|_| ok_result())?
 }
 
 /*
@@ -115,17 +114,13 @@ pub async fn update_sys_dict_data_status(req: JsonBody<UpdateDictDataStatusReq>,
  *date：2025/01/08 13:51:14
  */
 #[handler]
-pub async fn query_sys_dict_data_detail(req: JsonBody<QueryDictDataDetailReq>, res: &mut Response) -> AppResult {
+pub async fn query_sys_dict_data_detail(req: JsonBody<QueryDictDataDetailReq>) -> AppResult<DictDataResp> {
     let item = req.into_inner();
     log::info!("query sys_dict_data_detail params: {:?}", &item);
 
-    DictData::select_by_id(&mut RB.clone(), &item.id).await?.map_or_else(
-        || Err(AppError::BusinessError("字典数据不存在")),
-        |x| {
-            let data: DictDataResp = x.into();
-            ok_result_data(res, data)
-        },
-    )
+    DictData::select_by_id(&mut RB.clone(), &item.id)
+        .await?
+        .map_or_else(|| Err(AppError::BusinessError("字典数据不存在")), |x| ok_result_data(x.into()))
 }
 
 /*
@@ -134,7 +129,7 @@ pub async fn query_sys_dict_data_detail(req: JsonBody<QueryDictDataDetailReq>, r
  *date：2025/01/08 13:51:14
  */
 #[handler]
-pub async fn query_sys_dict_data_list(req: JsonBody<QueryDictDataListReq>, res: &mut Response) -> AppResult {
+pub async fn query_sys_dict_data_list(req: JsonBody<QueryDictDataListReq>) -> AppResultPage<Vec<DictDataResp>> {
     let item = req.into_inner();
     log::info!("query sys_dict_data_list params: {:?}", &item);
 
@@ -142,5 +137,5 @@ pub async fn query_sys_dict_data_list(req: JsonBody<QueryDictDataListReq>, res: 
 
     DictData::select_by_page(rb, &PageRequest::from(&item), &item)
         .await
-        .map(|x| ok_result_page(res, x.records.into_iter().map(|x| x.into()).collect::<Vec<DictDataResp>>(), x.total))?
+        .map(|x| ok_result_page(x.records.into_iter().map(|x| x.into()).collect::<Vec<DictDataResp>>(), x.total))?
 }

@@ -2,23 +2,22 @@
 // author：刘飞华
 // date：2025/01/08 13:51:14
 
-use crate::common::error::AppResult;
+use crate::common::error::{AppResult, AppResultPage};
 use crate::service::system::sys_login_log_service::LoginLogService;
 use crate::vo::system::sys_login_log_vo::*;
 use salvo::oapi::extract::JsonBody;
 use salvo::prelude::*;
-use salvo::Response;
 /*
  *删除系统访问记录
  *author：刘飞华
  *date：2025/01/08 13:51:14
  */
 #[handler]
-pub async fn delete_sys_login_log(req: JsonBody<DeleteLoginLogReq>, res: &mut Response) -> AppResult {
+pub async fn delete_sys_login_log(req: JsonBody<DeleteLoginLogReq>) -> AppResult<String> {
     let item = req.into_inner();
     log::info!("delete sys_login_log params: {:?}", &item);
 
-    LoginLogService::delete_sys_login_log(item, res).await
+    LoginLogService::delete_sys_login_log(item).await
 }
 
 /*
@@ -27,11 +26,11 @@ pub async fn delete_sys_login_log(req: JsonBody<DeleteLoginLogReq>, res: &mut Re
  *date：2025/01/08 13:51:14
  */
 #[handler]
-pub async fn query_sys_login_log_detail(req: JsonBody<QueryLoginLogDetailReq>, res: &mut Response) -> AppResult {
+pub async fn query_sys_login_log_detail(req: JsonBody<QueryLoginLogDetailReq>) -> AppResult<LoginLogResp> {
     let item = req.into_inner();
     log::info!("query sys_login_log_detail params: {:?}", &item);
 
-    LoginLogService::query_sys_login_log_detail(item, res).await
+    LoginLogService::query_sys_login_log_detail(item).await
 }
 
 /*
@@ -40,9 +39,9 @@ pub async fn query_sys_login_log_detail(req: JsonBody<QueryLoginLogDetailReq>, r
  *date：2025/01/08 13:51:14
  */
 #[handler]
-pub async fn query_sys_login_log_list(req: JsonBody<QueryLoginLogListReq>, res: &mut Response) -> AppResult {
+pub async fn query_sys_login_log_list(req: JsonBody<QueryLoginLogListReq>) -> AppResultPage<Vec<LoginLogResp>> {
     let item = req.into_inner();
     log::info!("query sys_login_log_list params: {:?}", &item);
 
-    LoginLogService::query_sys_login_log_list(item, res).await
+    LoginLogService::query_sys_login_log_list(item).await
 }

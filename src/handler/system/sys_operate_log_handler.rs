@@ -2,23 +2,22 @@
 // author：刘飞华
 // date：2025/01/08 13:51:14
 
-use crate::common::error::AppResult;
+use crate::common::error::{AppResult, AppResultPage};
 use crate::service::system::sys_operate_log_service::OperateLogService;
 use crate::vo::system::sys_operate_log_vo::*;
 use salvo::oapi::extract::JsonBody;
 use salvo::prelude::*;
-use salvo::Response;
 /*
  *删除操作日志记录
  *author：刘飞华
  *date：2025/01/08 13:51:14
  */
 #[handler]
-pub async fn delete_sys_operate_log(req: JsonBody<DeleteOperateLogReq>, res: &mut Response) -> AppResult {
+pub async fn delete_sys_operate_log(req: JsonBody<DeleteOperateLogReq>) -> AppResult<String> {
     let item = req.into_inner();
     log::info!("delete sys_operate_log params: {:?}", &item);
 
-    OperateLogService::delete_sys_operate_log(item, res).await
+    OperateLogService::delete_sys_operate_log(item).await
 }
 
 /*
@@ -27,12 +26,12 @@ pub async fn delete_sys_operate_log(req: JsonBody<DeleteOperateLogReq>, res: &mu
  *date：2025/01/08 13:51:14
  */
 #[handler]
-pub async fn query_sys_operate_log_detail(req: JsonBody<QueryOperateLogDetailReq>, res: &mut Response) -> AppResult {
+pub async fn query_sys_operate_log_detail(req: JsonBody<QueryOperateLogDetailReq>) -> AppResult<OperateLogResp> {
     let item = req.into_inner();
 
     log::info!("query sys_operate_log_detail params: {:?}", &item);
 
-    OperateLogService::query_sys_operate_log_detail(item, res).await
+    OperateLogService::query_sys_operate_log_detail(item).await
 }
 
 /*
@@ -41,9 +40,9 @@ pub async fn query_sys_operate_log_detail(req: JsonBody<QueryOperateLogDetailReq
  *date：2025/01/08 13:51:14
  */
 #[handler]
-pub async fn query_sys_operate_log_list(req: JsonBody<QueryOperateLogListReq>, res: &mut Response) -> AppResult {
+pub async fn query_sys_operate_log_list(req: JsonBody<QueryOperateLogListReq>) -> AppResultPage<Vec<OperateLogResp>> {
     let item = req.into_inner();
     log::info!("query sys_operate_log_list params: {:?}", &item);
 
-    OperateLogService::query_sys_operate_log_list(item, res).await
+    OperateLogService::query_sys_operate_log_list(item).await
 }

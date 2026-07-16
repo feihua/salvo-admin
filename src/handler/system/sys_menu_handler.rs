@@ -2,7 +2,7 @@
 // author：刘飞华
 // date：2025/01/08 13:51:14
 
-use crate::common::error::{AppError, AppResult};
+use crate::common::error::{AppError, AppResult, AppResultPage};
 use crate::common::result::{ok_result, ok_result_data, ok_result_page};
 use crate::model::system::sys_menu_model::{select_count_menu_by_parent_id, Menu};
 use crate::model::system::sys_role_menu_model::RoleMenu;
@@ -11,16 +11,15 @@ use crate::RB;
 use rbatis::plugin::page::PageRequest;
 use rbatis::rbdc::DateTime;
 use rbs::value;
-use salvo::prelude::*;
-use salvo::Response;
 use salvo::oapi::extract::JsonBody;
+use salvo::prelude::*;
 /*
  *添加菜单信息
  *author：刘飞华
  *date：2025/01/08 13:51:14
  */
 #[handler]
-pub async fn add_sys_menu(req: JsonBody<MenuReq>, res: &mut Response) -> AppResult {
+pub async fn add_sys_menu(req: JsonBody<MenuReq>) -> AppResult<String> {
     let mut item = req.into_inner();
     log::info!("add sys_menu params: {:?}", &item);
 
@@ -38,7 +37,7 @@ pub async fn add_sys_menu(req: JsonBody<MenuReq>, res: &mut Response) -> AppResu
     }
 
     item.id = None;
-    Menu::insert(rb, &Menu::from(item)).await.map(|_| ok_result(res))?
+    Menu::insert(rb, &Menu::from(item)).await.map(|_| ok_result())?
 }
 
 /*
@@ -47,7 +46,7 @@ pub async fn add_sys_menu(req: JsonBody<MenuReq>, res: &mut Response) -> AppResu
  *date：2025/01/08 13:51:14
  */
 #[handler]
-pub async fn delete_sys_menu(req: JsonBody<DeleteMenuReq>, res: &mut Response) -> AppResult {
+pub async fn delete_sys_menu(req: JsonBody<DeleteMenuReq>) -> AppResult<String> {
     let item = req.into_inner();
     log::info!("delete sys_menu params: {:?}", &item);
 
@@ -64,7 +63,7 @@ pub async fn delete_sys_menu(req: JsonBody<DeleteMenuReq>, res: &mut Response) -
         }
     }
 
-    Menu::delete_by_map(rb, value! {"id": ids}).await.map(|_| ok_result(res))?
+    Menu::delete_by_map(rb, value! {"id": ids}).await.map(|_| ok_result())?
 }
 
 /*
@@ -73,7 +72,7 @@ pub async fn delete_sys_menu(req: JsonBody<DeleteMenuReq>, res: &mut Response) -
  *date：2025/01/08 13:51:14
  */
 #[handler]
-pub async fn update_sys_menu(req: JsonBody<MenuReq>, res: &mut Response) -> AppResult {
+pub async fn update_sys_menu(req: JsonBody<MenuReq>) -> AppResult<String> {
     let item = req.into_inner();
     log::info!("update sys_menu params: {:?}", &item);
 
@@ -102,7 +101,7 @@ pub async fn update_sys_menu(req: JsonBody<MenuReq>, res: &mut Response) -> AppR
         }
     }
 
-    Menu::update_by_map(rb, &Menu::from(item), value! {"id": id}).await.map(|_| ok_result(res))?
+    Menu::update_by_map(rb, &Menu::from(item), value! {"id": id}).await.map(|_| ok_result())?
 }
 
 /*
@@ -111,7 +110,7 @@ pub async fn update_sys_menu(req: JsonBody<MenuReq>, res: &mut Response) -> AppR
  *date：2025/01/08 13:51:14
  */
 #[handler]
-pub async fn update_sys_menu_status(req: JsonBody<UpdateMenuStatusReq>, res: &mut Response) -> AppResult {
+pub async fn update_sys_menu_status(req: JsonBody<UpdateMenuStatusReq>) -> AppResult<String> {
     let item = req.into_inner();
 
     log::info!("update sys_menu_status params: {:?}", &item);
@@ -124,7 +123,7 @@ pub async fn update_sys_menu_status(req: JsonBody<UpdateMenuStatusReq>, res: &mu
     let mut param = vec![value!(item.status), value!(DateTime::now())];
     param.extend(item.ids.iter().map(|&id| value!(id)));
 
-    RB.clone().exec(&update_sql, param).await.map(|_| ok_result(res))?
+    RB.clone().exec(&update_sql, param).await.map(|_| ok_result())?
 }
 
 /*
@@ -133,17 +132,13 @@ pub async fn update_sys_menu_status(req: JsonBody<UpdateMenuStatusReq>, res: &mu
  *date：2025/01/08 13:51:14
  */
 #[handler]
-pub async fn query_sys_menu_detail(req: JsonBody<QueryMenuDetailReq>, res: &mut Response) -> AppResult {
+pub async fn query_sys_menu_detail(req: JsonBody<QueryMenuDetailReq>) -> AppResult<MenuResp> {
     let item = req.into_inner();
     log::info!("query sys_menu_detail params: {:?}", &item);
 
-    Menu::select_by_id(&mut RB.clone(), &item.id).await?.map_or_else(
-        || Err(AppError::BusinessError("菜单信息不存在")),
-        |x| {
-            let data: MenuResp = x.into();
-            ok_result_data(res, data)
-        },
-    )
+    Menu::select_by_id(&mut RB.clone(), &item.id)
+        .await?
+        .map_or_else(|| Err(AppError::BusinessError("菜单信息不存在")), |x| ok_result_data(x.into()))
 }
 
 /*
@@ -152,13 +147,13 @@ pub async fn query_sys_menu_detail(req: JsonBody<QueryMenuDetailReq>, res: &mut 
  *date：2025/01/08 13:51:14
  */
 #[handler]
-pub async fn query_sys_menu_list(req: JsonBody<QueryMenuListReq>, res: &mut Response) -> AppResult {
+pub async fn query_sys_menu_list(req: JsonBody<QueryMenuListReq>) -> AppResult<Vec<MenuResp>> {
     let item = req.into_inner();
     log::info!("query sys_menu_list params: {:?}", &item);
 
     Menu::select_by_map(&mut RB.clone(), value! {})
         .await
-        .map(|x| ok_result_data(res, x.into_iter().map(|x| x.into()).collect::<Vec<MenuResp>>()))?
+        .map(|x| ok_result_data(x.into_iter().map(|x| x.into()).collect::<Vec<MenuResp>>()))?
 }
 
 /*
@@ -167,10 +162,10 @@ pub async fn query_sys_menu_list(req: JsonBody<QueryMenuListReq>, res: &mut Resp
  *date：2025/01/08 13:51:14
  */
 #[handler]
-pub async fn query_sys_menu_list_simple(res: &mut Response) -> AppResult {
+pub async fn query_sys_menu_list_simple() -> AppResult<Vec<MenuSimpleResp>> {
     Menu::select_by_map(&mut RB.clone(), value! {"menu_type!=": 3, "status": 1})
         .await
-        .map(|x| ok_result_data(res, x.into_iter().map(|x| MenuSimpleResp::from(x)).collect::<Vec<MenuSimpleResp>>()))?
+        .map(|x| ok_result_data(x.into_iter().map(|x| MenuSimpleResp::from(x)).collect::<Vec<MenuSimpleResp>>()))?
 }
 
 /*
@@ -179,7 +174,7 @@ pub async fn query_sys_menu_list_simple(res: &mut Response) -> AppResult {
  *date：2025/01/08 13:51:14
  */
 #[handler]
-pub async fn query_sys_menu_resource_list(req: JsonBody<QueryMenuListReq>, res: &mut Response) -> AppResult {
+pub async fn query_sys_menu_resource_list(req: JsonBody<QueryMenuListReq>) -> AppResultPage<Vec<MenuResp>> {
     let item = req.into_inner();
     log::info!("query sys_menu_list params: {:?}", &item);
 
@@ -187,5 +182,5 @@ pub async fn query_sys_menu_resource_list(req: JsonBody<QueryMenuListReq>, res: 
 
     Menu::select_by_page(rb, &PageRequest::from(&item), &item)
         .await
-        .map(|x| ok_result_page(res, x.records.into_iter().map(|x| x.into()).collect::<Vec<MenuResp>>(), x.total))?
+        .map(|x| ok_result_page(x.records.into_iter().map(|x| x.into()).collect::<Vec<MenuResp>>(), x.total))?
 }

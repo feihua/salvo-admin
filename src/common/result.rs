@@ -1,7 +1,6 @@
-use crate::common::error::AppResult;
+use crate::common::error::{AppResult, AppResultPage};
 use rbatis::rbdc::DateTime;
-use salvo::prelude::Json;
-use salvo::Response;
+use salvo::writing::Json;
 use serde::Serialize;
 use std::fmt::Debug;
 
@@ -22,41 +21,38 @@ pub struct ResponsePage<T> {
     pub data: Option<T>,
 }
 
-pub fn ok_result(res: &mut Response) -> AppResult {
-    ok_result_msg(res, "操作成功".to_string())
+pub fn ok_result() -> AppResult<String> {
+    ok_result_msg("操作成功".to_string())
 }
 
-pub fn ok_result_msg(res: &mut Response, msg: String) -> AppResult {
+pub fn ok_result_msg(msg: String) -> AppResult<String> {
     let response = BaseResponse {
         msg,
         code: 0,
         data: Some("None".to_string()),
     };
-    res.render(Json(response));
-    Ok(())
+    Ok(Json(response))
 }
 
-pub fn ok_result_data<T: Serialize + Send>(res: &mut Response, data: T) -> AppResult {
+pub fn ok_result_data<T: Serialize + Send>(data: T) -> AppResult<T> {
     let response = BaseResponse {
         msg: "操作成功".to_string(),
         code: 0,
         data: Some(data),
     };
-    res.render(Json(response));
-    Ok(())
+    Ok(Json(response))
 }
 
-pub fn err_result_msg(res: &mut Response, msg: String) -> AppResult {
-    let resp = BaseResponse {
+pub fn err_result_msg(msg: String) -> AppResult<String> {
+    let response = BaseResponse {
         msg,
         code: 1,
         data: Some("None".to_string()),
     };
-    res.render(Json(resp));
-    Ok(())
+    Ok(Json(response))
 }
 
-pub fn ok_result_page<T: Serialize + Send>(res: &mut Response, data: T, total: u64) -> AppResult {
+pub fn ok_result_page<T: Serialize + Send>(data: T, total: u64) -> AppResultPage<T> {
     let page = ResponsePage {
         msg: "操作成功",
         code: 0,
@@ -64,8 +60,7 @@ pub fn ok_result_page<T: Serialize + Send>(res: &mut Response, data: T, total: u
         data: Some(data),
         total,
     };
-    res.render(Json(page));
-    Ok(())
+    Ok(Json(page))
 }
 
 pub fn serialize_datetime<S>(dt: &Option<DateTime>, serializer: S) -> Result<S::Ok, S::Error>

@@ -1,4 +1,4 @@
-use crate::common::result::BaseResponse;
+use crate::common::result::{BaseResponse, ResponsePage};
 use redis::RedisError;
 use salvo::prelude::Json;
 use salvo::{Depot, Request, Response, Writer};
@@ -29,7 +29,9 @@ pub enum AppError {
     #[error("业务异常: {0}")]
     BusinessError(&'static str),
 }
-pub type AppResult = Result<(), AppError>;
+pub type AppResultRes<T> = Result<T, AppError>;
+pub type AppResult<T> = Result<Json<BaseResponse<T>>, AppError>;
+pub type AppResultPage<T> = Result<Json<ResponsePage<T>>, AppError>;
 
 #[async_trait]
 impl Writer for AppError {
