@@ -2,16 +2,12 @@
 // author：刘飞华
 // date：2025/01/08 13:51:14
 
-use crate::common::error::{AppError, AppResult};
-use crate::common::result::{ok_result_data, ok_result_page};
-use crate::model::system::sys_login_log_model::LoginLog;
+use crate::common::error::AppResult;
+use crate::service::system::sys_login_log_service::LoginLogService;
 use crate::vo::system::sys_login_log_vo::*;
-use crate::RB;
-use rbatis::plugin::page::PageRequest;
-use rbs::value;
+use salvo::oapi::extract::JsonBody;
 use salvo::prelude::*;
 use salvo::Response;
-use salvo::oapi::extract::JsonBody;
 /*
  *删除系统访问记录
  *author：刘飞华
@@ -22,9 +18,7 @@ pub async fn delete_sys_login_log(req: JsonBody<DeleteLoginLogReq>, res: &mut Re
     let item = req.into_inner();
     log::info!("delete sys_login_log params: {:?}", &item);
 
-    let rb = &mut RB.clone();
-
-    LoginLog::delete_by_map(rb, value! {"id": &item.ids}).await.map(|x| ok_result_data(res, x))?
+    LoginLogService::delete_sys_login_log(item, res).await
 }
 
 /*
@@ -37,13 +31,7 @@ pub async fn query_sys_login_log_detail(req: JsonBody<QueryLoginLogDetailReq>, r
     let item = req.into_inner();
     log::info!("query sys_login_log_detail params: {:?}", &item);
 
-    LoginLog::select_by_id(&mut RB.clone(), &item.id).await?.map_or_else(
-        || Err(AppError::BusinessError("系统访问记录不存在")),
-        |x| {
-            let data: LoginLogResp = x.into();
-            ok_result_data(res, data)
-        },
-    )
+    LoginLogService::query_sys_login_log_detail(item, res).await
 }
 
 /*
@@ -56,9 +44,5 @@ pub async fn query_sys_login_log_list(req: JsonBody<QueryLoginLogListReq>, res: 
     let item = req.into_inner();
     log::info!("query sys_login_log_list params: {:?}", &item);
 
-    let rb = &mut RB.clone();
-
-    LoginLog::select_by_page(rb, &PageRequest::from(&item), &item)
-        .await
-        .map(|x| ok_result_page(res, x.records.into_iter().map(|x| x.into()).collect::<Vec<LoginLogResp>>(), x.total))?
+    LoginLogService::query_sys_login_log_list(item, res).await
 }

@@ -9,12 +9,13 @@ use rbs::value;
 use salvo::Response;
 
 pub struct NoticeService;
-/*
- *添加通知公告
- *author：刘飞华
- *date：2025/01/08 13:51:14
- */
+
 impl NoticeService {
+    /*
+     *添加通知公告
+     *author：刘飞华
+     *date：2025/01/08 13:51:14
+     */
     pub async fn add_sys_notice(mut item: NoticeReq, res: &mut Response) -> AppResult {
         let rb = &mut RB.clone();
 

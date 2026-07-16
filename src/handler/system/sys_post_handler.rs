@@ -2,18 +2,12 @@
 // author：刘飞华
 // date：2025/01/08 13:51:14
 
-use crate::common::error::{AppError, AppResult};
-use crate::common::result::{ok_result, ok_result_data, ok_result_page};
-use crate::model::system::sys_post_model::Post;
-use crate::model::system::sys_user_post_model::UserPost;
+use crate::common::error::{AppResult};
+use crate::service::system::sys_post_service::PostService;
 use crate::vo::system::sys_post_vo::*;
-use crate::RB;
-use rbatis::plugin::page::PageRequest;
-use rbatis::rbdc::DateTime;
-use rbs::value;
+use salvo::oapi::extract::JsonBody;
 use salvo::prelude::*;
 use salvo::Response;
-use salvo::oapi::extract::JsonBody;
 /*
  *添加岗位信息
  *author：刘飞华
@@ -21,21 +15,10 @@ use salvo::oapi::extract::JsonBody;
  */
 #[handler]
 pub async fn add_sys_post(req: JsonBody<PostReq>, res: &mut Response) -> AppResult {
-    let mut item = req.into_inner();
+    let item = req.into_inner();
     log::info!("add sys_post params: {:?}", &item);
 
-    let rb = &mut RB.clone();
-
-    if Post::select_by_map(rb, value! {"post_name": &item.post_name}).await?.len() > 0 {
-        return Err(AppError::BusinessError("岗位名称已存在"));
-    }
-
-    if Post::select_by_map(rb, value! {"post_code": &item.post_code}).await?.len() > 0 {
-        return Err(AppError::BusinessError("岗位编码已存在"));
-    }
-
-    item.id = None;
-    Post::insert(rb, &Post::from(item)).await.map(|_| ok_result(res))?
+    PostService::add_sys_post(item, res).await
 }
 
 /*
@@ -48,21 +31,7 @@ pub async fn delete_sys_post(req: JsonBody<DeletePostReq>, res: &mut Response) -
     let item = req.into_inner();
     log::info!("delete sys_post params: {:?}", &item);
 
-    let rb = &mut RB.clone();
-    
-    let ids = item.ids;
-    for id in &ids {
-        match Post::select_by_id(rb, id).await? {
-            None => return Err(AppError::BusinessError("不能删除")),
-            Some(_) => {
-                if UserPost::count_user_post_by_id(rb, id).await? > 0 {
-                    return Err(AppError::BusinessError("已分配,不能删除"));
-                }
-            }
-        };
-    }
-
-    Post::delete_by_map(rb, value! {"id": ids}).await.map(|_| ok_result(res))?
+    PostService::delete_sys_post(item, res).await
 }
 
 /*
@@ -75,26 +44,7 @@ pub async fn update_sys_post(req: JsonBody<PostReq>, res: &mut Response) -> AppR
     let item = req.into_inner();
     log::info!("update sys_post params: {:?}", &item);
 
-    let rb = &mut RB.clone();
-
-    let id = item.id;
-
-    if id.is_none() {
-        return Err(AppError::BusinessError("主键不能为空"));
-    }
-    if Post::select_by_id(rb, &id.unwrap_or_default()).await?.is_none() {
-        return Err(AppError::BusinessError("岗位不存在"));
-    }
-
-    if Post::select_by_map(rb, value! {"post_name": &item.post_name, "id !=": id}).await?.len() > 0 {
-        return Err(AppError::BusinessError("岗位名称已存在"));
-    }
-
-    if Post::select_by_map(rb, value! {"post_code": &item.post_code, "id !=": id}).await?.len() > 0 {
-        return Err(AppError::BusinessError("岗位编码已存在"));
-    }
-
-    Post::update_by_map(rb, &Post::from(item), value! {"id": id}).await.map(|_| ok_result(res))?
+    PostService::update_sys_post(item, res).await
 }
 
 /*
@@ -107,15 +57,7 @@ pub async fn update_sys_post_status(req: JsonBody<UpdatePostStatusReq>, res: &mu
     let item = req.into_inner();
     log::info!("update sys_post_status params: {:?}", &item);
 
-    let update_sql = format!(
-        "update sys_post set status = ? ,update_time = ? where id in ({})",
-        item.ids.iter().map(|_| "?").collect::<Vec<&str>>().join(", ")
-    );
-
-    let mut param = vec![value!(item.status), value!(DateTime::now())];
-    param.extend(item.ids.iter().map(|&id| value!(id)));
-
-    RB.clone().exec(&update_sql, param).await.map(|_| ok_result(res))?
+    PostService::update_sys_post_status(item, res).await
 }
 
 /*
@@ -128,13 +70,7 @@ pub async fn query_sys_post_detail(req: JsonBody<QueryPostDetailReq>, res: &mut 
     let item = req.into_inner();
     log::info!("query sys_post_detail params: {:?}", &item);
 
-    Post::select_by_id(&mut RB.clone(), &item.id).await?.map_or_else(
-        || Err(AppError::BusinessError("岗位不存在")),
-        |x| {
-            let data: PostResp = x.into();
-            ok_result_data(res, data)
-        },
-    )
+    PostService::query_sys_post_detail(item, res).await
 }
 
 /*
@@ -147,9 +83,5 @@ pub async fn query_sys_post_list(req: JsonBody<QueryPostListReq>, res: &mut Resp
     let item = req.into_inner();
     log::info!("query sys_post_list params: {:?}", &item);
 
-    let rb = &mut RB.clone();
-
-    Post::select_by_page(rb, &PageRequest::from(&item), &item)
-        .await
-        .map(|x| ok_result_page(res, x.records.into_iter().map(|x| x.into()).collect::<Vec<PostResp>>(), x.total))?
+    PostService::query_sys_post_list(item, res).await
 }
