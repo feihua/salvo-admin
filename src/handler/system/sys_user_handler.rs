@@ -104,7 +104,7 @@ pub async fn query_sys_user_detail(req: JsonBody<QueryUserDetailReq>) -> AppResu
  *date：2025/01/08 13:51:14
  */
 #[handler]
-pub async fn query_sys_user_list(req: JsonBody<QueryUserListReq>) -> AppResultPage<Vec<UserResp>> {
+pub async fn query_sys_user_list(req: JsonBody<QueryUserListReq>) -> AppResultPage<UserResp> {
     let item = req.into_inner();
     log::info!("query sys_user_list params: {:?}", &item);
 

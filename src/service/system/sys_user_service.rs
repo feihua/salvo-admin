@@ -271,7 +271,7 @@ impl UserService {
      *author：刘飞华
      *date：2025/01/08 13:51:14
      */
-    pub async fn query_sys_user_list(item:  QueryUserListReq) -> AppResultPage<Vec<UserResp>> {
+    pub async fn query_sys_user_list(item:  QueryUserListReq) -> AppResultPage<UserResp> {
         
         log::info!("query sys_user_list params: {:?}", &item);
 

@@ -40,7 +40,7 @@ pub async fn query_sys_operate_log_detail(req: JsonBody<QueryOperateLogDetailReq
  *date：2025/01/08 13:51:14
  */
 #[handler]
-pub async fn query_sys_operate_log_list(req: JsonBody<QueryOperateLogListReq>) -> AppResultPage<Vec<OperateLogResp>> {
+pub async fn query_sys_operate_log_list(req: JsonBody<QueryOperateLogListReq>) -> AppResultPage<OperateLogResp> {
     let item = req.into_inner();
     log::info!("query sys_operate_log_list params: {:?}", &item);
 

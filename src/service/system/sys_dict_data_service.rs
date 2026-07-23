@@ -119,7 +119,7 @@ impl DictDataService {
      *author：刘飞华
      *date：2025/01/08 13:51:14
      */
-    pub async fn query_sys_dict_data_list(item: QueryDictDataListReq) -> AppResultPage<Vec<DictDataResp>> {
+    pub async fn query_sys_dict_data_list(item: QueryDictDataListReq) -> AppResultPage<DictDataResp> {
         log::info!("query sys_dict_data_list params: {:?}", &item);
 
         let rb = &mut RB.clone();

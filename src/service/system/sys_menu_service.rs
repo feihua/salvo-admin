@@ -161,7 +161,7 @@ impl MenuService {
      *author：刘飞华
      *date：2025/01/08 13:51:14
      */
-    pub async fn query_sys_menu_resource_list(item: QueryMenuListReq) -> AppResultPage<Vec<MenuResp>> {
+    pub async fn query_sys_menu_resource_list(item: QueryMenuListReq) -> AppResultPage<MenuResp> {
         log::info!("query sys_menu_list params: {:?}", &item);
 
         let rb = &mut RB.clone();

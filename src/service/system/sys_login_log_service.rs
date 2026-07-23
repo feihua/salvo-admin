@@ -42,7 +42,7 @@ impl LoginLogService {
      *author：刘飞华
      *date：2025/01/08 13:51:14
      */
-    pub async fn query_sys_login_log_list(item: QueryLoginLogListReq) -> AppResultPage<Vec<LoginLogResp>> {
+    pub async fn query_sys_login_log_list(item: QueryLoginLogListReq) -> AppResultPage<LoginLogResp> {
         log::info!("query sys_login_log_list params: {:?}", &item);
 
         let rb = &mut RB.clone();

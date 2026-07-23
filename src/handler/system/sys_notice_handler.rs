@@ -78,7 +78,7 @@ pub async fn query_sys_notice_detail(req: JsonBody<QueryNoticeDetailReq>) -> App
  *date：2025/01/08 13:51:14
  */
 #[handler]
-pub async fn query_sys_notice_list(req: JsonBody<QueryNoticeListReq>) -> AppResultPage<Vec<NoticeResp>> {
+pub async fn query_sys_notice_list(req: JsonBody<QueryNoticeListReq>) -> AppResultPage<NoticeResp> {
     let item = req.into_inner();
     log::info!("query sys_notice_list params: {:?}", &item);
 

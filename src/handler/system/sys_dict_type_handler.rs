@@ -76,7 +76,7 @@ pub async fn query_sys_dict_type_detail(req: JsonBody<QueryDictTypeDetailReq>) -
  *date：2025/01/08 13:51:14
  */
 #[handler]
-pub async fn query_sys_dict_type_list(req: JsonBody<QueryDictTypeListReq>) -> AppResultPage<Vec<DictTypeResp>> {
+pub async fn query_sys_dict_type_list(req: JsonBody<QueryDictTypeListReq>) -> AppResultPage<DictTypeResp> {
     let item = req.into_inner();
 
     DictTypeService::query_sys_dict_type_list(item).await

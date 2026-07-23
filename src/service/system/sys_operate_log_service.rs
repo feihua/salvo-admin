@@ -40,7 +40,7 @@ impl OperateLogService {
      *author：刘飞华
      *date：2025/01/08 13:51:14
      */
-    pub async fn query_sys_operate_log_list(item: QueryOperateLogListReq) -> AppResultPage<Vec<OperateLogResp>> {
+    pub async fn query_sys_operate_log_list(item: QueryOperateLogListReq) -> AppResultPage<OperateLogResp> {
         let rb = &mut RB.clone();
 
         OperateLog::select_by_page(rb, &PageRequest::from(&item), &item)

@@ -125,7 +125,7 @@ impl PostService {
      *date：2025/01/08 13:51:14
      */
 
-    pub async fn query_sys_post_list(item: QueryPostListReq) -> AppResultPage<Vec<PostResp>> {
+    pub async fn query_sys_post_list(item: QueryPostListReq) -> AppResultPage<PostResp> {
         let rb = &mut RB.clone();
 
         Post::select_by_page(rb, &PageRequest::from(&item), &item)

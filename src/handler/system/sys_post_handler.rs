@@ -78,7 +78,7 @@ pub async fn query_sys_post_detail(req: JsonBody<QueryPostDetailReq>) -> AppResu
  *date：2025/01/08 13:51:14
  */
 #[handler]
-pub async fn query_sys_post_list(req: JsonBody<QueryPostListReq>) -> AppResultPage<Vec<PostResp>> {
+pub async fn query_sys_post_list(req: JsonBody<QueryPostListReq>) -> AppResultPage<PostResp> {
     let item = req.into_inner();
     log::info!("query sys_post_list params: {:?}", &item);
 

@@ -13,12 +13,9 @@ pub struct BaseResponse<T> {
 }
 
 #[derive(Serialize, Debug, Clone)]
-pub struct ResponsePage<T> {
-    pub code: i32,
-    pub msg: &'static str,
+pub struct PageResult<T> {
+    pub list: Vec<T>,
     pub total: u64,
-    pub success: bool,
-    pub data: Option<T>,
 }
 
 pub fn ok_result() -> AppResult<String> {
@@ -52,15 +49,12 @@ pub fn err_result_msg(msg: String) -> AppResult<String> {
     Ok(Json(response))
 }
 
-pub fn ok_result_page<T: Serialize + Send>(data: T, total: u64) -> AppResultPage<T> {
-    let page = ResponsePage {
-        msg: "操作成功",
+pub fn ok_result_page<T: Serialize + Send>(list: Vec<T>, total: u64) -> AppResultPage<T> {
+    Ok(Json(BaseResponse {
+        msg: "操作成功".to_string(),
         code: 0,
-        success: true,
-        data: Some(data),
-        total,
-    };
-    Ok(Json(page))
+        data: Some(PageResult { list, total }),
+    }))
 }
 
 pub fn serialize_datetime<S>(dt: &Option<DateTime>, serializer: S) -> Result<S::Ok, S::Error>

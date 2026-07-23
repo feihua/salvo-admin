@@ -102,7 +102,7 @@ pub async fn query_sys_menu_list_simple() -> AppResult<Vec<MenuSimpleResp>> {
  *date：2025/01/08 13:51:14
  */
 #[handler]
-pub async fn query_sys_menu_resource_list(req: JsonBody<QueryMenuListReq>) -> AppResultPage<Vec<MenuResp>> {
+pub async fn query_sys_menu_resource_list(req: JsonBody<QueryMenuListReq>) -> AppResultPage<MenuResp> {
     let item = req.into_inner();
     log::info!("query sys_menu_list params: {:?}", &item);
 

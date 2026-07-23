@@ -79,7 +79,7 @@ pub async fn query_sys_role_detail(req: JsonBody<QueryRoleDetailReq>) -> AppResu
  *date：2025/01/08 13:51:14
  */
 #[handler]
-pub async fn query_sys_role_list(req: JsonBody<QueryRoleListReq>) -> AppResultPage<Vec<RoleResp>> {
+pub async fn query_sys_role_list(req: JsonBody<QueryRoleListReq>) -> AppResultPage<RoleResp> {
     let item = req.into_inner();
     log::info!("query sys_role_list params: {:?}", &item);
 
@@ -118,7 +118,7 @@ pub async fn update_role_menu(req: JsonBody<UpdateRoleMenuReq>) -> AppResult<Str
  *date：2025/01/08 13:51:14
  */
 #[handler]
-pub async fn query_allocated_list(req: JsonBody<AllocatedListReq>) -> AppResultPage<Vec<UserResp>> {
+pub async fn query_allocated_list(req: JsonBody<AllocatedListReq>) -> AppResultPage<UserResp> {
     let item = req.into_inner();
     log::info!("update role_menu params: {:?}", &item);
 
@@ -131,7 +131,7 @@ pub async fn query_allocated_list(req: JsonBody<AllocatedListReq>) -> AppResultP
  *date：2025/01/08 13:51:14
  */
 #[handler]
-pub async fn query_unallocated_list(req: JsonBody<UnallocatedListReq>) -> AppResultPage<Vec<UserResp>> {
+pub async fn query_unallocated_list(req: JsonBody<UnallocatedListReq>) -> AppResultPage<UserResp> {
     let item = req.into_inner();
     log::info!("update role_menu params: {:?}", &item);
 

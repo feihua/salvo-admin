@@ -125,7 +125,7 @@ impl DictTypeService {
      *author：刘飞华
      *date：2025/01/08 13:51:14
      */
-    pub async fn query_sys_dict_type_list(item: QueryDictTypeListReq) -> AppResultPage<Vec<DictTypeResp>> {
+    pub async fn query_sys_dict_type_list(item: QueryDictTypeListReq) -> AppResultPage<DictTypeResp> {
         let rb = &mut RB.clone();
 
         DictType::select_by_page(rb, &PageRequest::from(&item), &item)

@@ -78,7 +78,7 @@ pub async fn query_sys_dict_data_detail(req: JsonBody<QueryDictDataDetailReq>) -
  *date：2025/01/08 13:51:14
  */
 #[handler]
-pub async fn query_sys_dict_data_list(req: JsonBody<QueryDictDataListReq>) -> AppResultPage<Vec<DictDataResp>> {
+pub async fn query_sys_dict_data_list(req: JsonBody<QueryDictDataListReq>) -> AppResultPage<DictDataResp> {
     let item = req.into_inner();
     log::info!("query sys_dict_data_list params: {:?}", &item);
 

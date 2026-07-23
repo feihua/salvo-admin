@@ -150,7 +150,7 @@ impl RoleService {
      *author：刘飞华
      *date：2025/01/08 13:51:14
      */
-    pub async fn query_sys_role_list(item:  QueryRoleListReq) -> AppResultPage<Vec<RoleResp>> {
+    pub async fn query_sys_role_list(item:  QueryRoleListReq) -> AppResultPage<RoleResp> {
         
         log::info!("query sys_role_list params: {:?}", &item);
 
@@ -234,7 +234,7 @@ impl RoleService {
      *author：刘飞华
      *date：2025/01/08 13:51:14
      */
-    pub async fn query_allocated_list(item:  AllocatedListReq) -> AppResultPage<Vec<UserResp>> {
+    pub async fn query_allocated_list(item:  AllocatedListReq) -> AppResultPage<UserResp> {
         
         log::info!("update role_menu params: {:?}", &item);
 
@@ -262,7 +262,7 @@ impl RoleService {
      *author：刘飞华
      *date：2025/01/08 13:51:14
      */
-    pub async fn query_unallocated_list(item:  UnallocatedListReq) -> AppResultPage<Vec<UserResp>> {
+    pub async fn query_unallocated_list(item:  UnallocatedListReq) -> AppResultPage<UserResp> {
         
         log::info!("update role_menu params: {:?}", &item);
 
