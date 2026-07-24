@@ -3,6 +3,7 @@ use crate::utils::jwt_util::JwtToken;
 use salvo::prelude::*;
 use salvo::{Depot, FlowCtrl, Request, Response};
 use std::collections::HashMap;
+use tracing::error;
 
 #[handler]
 pub async fn auth_token(req: &mut Request, res: &mut Response, ctrl: &mut FlowCtrl, depot: &mut Depot) {
@@ -15,7 +16,6 @@ pub async fn auth_token(req: &mut Request, res: &mut Response, ctrl: &mut FlowCt
 
     let authorization = item.get("authorization");
     let path = req.uri().path().to_string();
-    log::info!("req url:{}", path);
 
     match authorization {
         None => er_res(res, ctrl, "token不能为空"),
@@ -61,7 +61,7 @@ pub async fn auth_token(req: &mut Request, res: &mut Response, ctrl: &mut FlowCt
                                 depot.insert("userId", jwt_token.id.clone());
                                 depot.insert("username", jwt_token.username.clone());
                             } else {
-                                log::error!("你没有权限访问: {:?}", path);
+                                error!("你没有权限访问: {:?}", path);
                                 er_res(res, ctrl, format!("你没有权限访问: {}", path).as_str())
                             }
                         } else {

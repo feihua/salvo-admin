@@ -7,6 +7,7 @@ use crate::service::system::sys_dict_type_service::DictTypeService;
 use crate::vo::system::sys_dict_type_vo::*;
 use salvo::oapi::extract::JsonBody;
 use salvo::prelude::*;
+use tracing::info;
 /*
  *添加字典类型
  *author：刘飞华
@@ -15,7 +16,7 @@ use salvo::prelude::*;
 #[handler]
 pub async fn add_sys_dict_type(req: JsonBody<DictTypeReq>) -> AppResult<String> {
     let item = req.into_inner();
-    log::info!("add sys_dict_type params: {:?}", &item);
+    info!("add sys_dict_type params: {:?}", &item);
 
     DictTypeService::add_sys_dict_type(item).await
 }
@@ -28,7 +29,7 @@ pub async fn add_sys_dict_type(req: JsonBody<DictTypeReq>) -> AppResult<String> 
 #[handler]
 pub async fn delete_sys_dict_type(req: JsonBody<DeleteDictTypeReq>) -> AppResult<String> {
     let item = req.into_inner();
-    log::info!("delete sys_dict_type params: {:?}", &item);
+    info!("delete sys_dict_type params: {:?}", &item);
 
     DictTypeService::delete_sys_dict_type(item).await
 }
@@ -41,7 +42,7 @@ pub async fn delete_sys_dict_type(req: JsonBody<DeleteDictTypeReq>) -> AppResult
 #[handler]
 pub async fn update_sys_dict_type(req: JsonBody<DictTypeReq>) -> AppResult<String> {
     let item = req.into_inner();
-    log::info!("update sys_dict_type params: {:?}", &item);
+    info!("update sys_dict_type params: {:?}", &item);
 
     DictTypeService::update_sys_dict_type(item).await
 }

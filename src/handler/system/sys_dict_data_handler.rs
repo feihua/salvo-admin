@@ -7,6 +7,7 @@ use crate::service::system::sys_dict_data_service::DictDataService;
 use crate::vo::system::sys_dict_data_vo::*;
 use salvo::oapi::extract::JsonBody;
 use salvo::prelude::*;
+use tracing::info;
 /*
  *添加字典数据
  *author：刘飞华
@@ -16,7 +17,7 @@ use salvo::prelude::*;
 pub async fn add_sys_dict_data(req: JsonBody<DictDataReq>) -> AppResult<String> {
     let item = req.into_inner();
 
-    log::info!("add sys_dict_data params: {:?}", &item);
+    info!("add sys_dict_data params: {:?}", &item);
 
     DictDataService::add_sys_dict_data(item).await
 }
@@ -29,7 +30,7 @@ pub async fn add_sys_dict_data(req: JsonBody<DictDataReq>) -> AppResult<String> 
 #[handler]
 pub async fn delete_sys_dict_data(req: JsonBody<DeleteDictDataReq>) -> AppResult<String> {
     let item = req.into_inner();
-    log::info!("delete sys_dict_data params: {:?}", &item);
+    info!("delete sys_dict_data params: {:?}", &item);
 
     DictDataService::delete_sys_dict_data(item).await
 }
@@ -41,7 +42,7 @@ pub async fn delete_sys_dict_data(req: JsonBody<DeleteDictDataReq>) -> AppResult
 #[handler]
 pub async fn update_sys_dict_data(req: JsonBody<DictDataReq>) -> AppResult<String> {
     let item = req.into_inner();
-    log::info!("update sys_dict_data params: {:?}", &item);
+    info!("update sys_dict_data params: {:?}", &item);
 
     DictDataService::update_sys_dict_data(item).await
 }
@@ -54,7 +55,7 @@ pub async fn update_sys_dict_data(req: JsonBody<DictDataReq>) -> AppResult<Strin
 #[handler]
 pub async fn update_sys_dict_data_status(req: JsonBody<UpdateDictDataStatusReq>) -> AppResult<String> {
     let item = req.into_inner();
-    log::info!("update sys_dict_data_status params: {:?}", &item);
+    info!("update sys_dict_data_status params: {:?}", &item);
 
     DictDataService::update_sys_dict_data_status(item).await
 }
@@ -67,7 +68,7 @@ pub async fn update_sys_dict_data_status(req: JsonBody<UpdateDictDataStatusReq>)
 #[handler]
 pub async fn query_sys_dict_data_detail(req: JsonBody<QueryDictDataDetailReq>) -> AppResult<DictDataResp> {
     let item = req.into_inner();
-    log::info!("query sys_dict_data_detail params: {:?}", &item);
+    info!("query sys_dict_data_detail params: {:?}", &item);
 
     DictDataService::query_sys_dict_data_detail(item).await
 }
@@ -80,7 +81,7 @@ pub async fn query_sys_dict_data_detail(req: JsonBody<QueryDictDataDetailReq>) -
 #[handler]
 pub async fn query_sys_dict_data_list(req: JsonBody<QueryDictDataListReq>) -> AppResultPage<DictDataResp> {
     let item = req.into_inner();
-    log::info!("query sys_dict_data_list params: {:?}", &item);
+    info!("query sys_dict_data_list params: {:?}", &item);
 
     DictDataService::query_sys_dict_data_list(item).await
 }

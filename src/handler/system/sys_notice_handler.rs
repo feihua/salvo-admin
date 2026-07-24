@@ -7,6 +7,7 @@ use crate::service::system::sys_notice_service::NoticeService;
 use crate::vo::system::sys_notice_vo::*;
 use salvo::oapi::extract::JsonBody;
 use salvo::prelude::*;
+use tracing::info;
 /*
  *添加通知公告
  *author：刘飞华
@@ -15,7 +16,7 @@ use salvo::prelude::*;
 #[handler]
 pub async fn add_sys_notice(req: JsonBody<NoticeReq>) -> AppResult<String> {
     let item = req.into_inner();
-    log::info!("add sys_notice params: {:?}", &item);
+    info!("add sys_notice params: {:?}", &item);
 
     NoticeService::add_sys_notice(item).await
 }
@@ -28,7 +29,7 @@ pub async fn add_sys_notice(req: JsonBody<NoticeReq>) -> AppResult<String> {
 #[handler]
 pub async fn delete_sys_notice(req: JsonBody<DeleteNoticeReq>) -> AppResult<String> {
     let item = req.into_inner();
-    log::info!("delete sys_notice params: {:?}", &item);
+    info!("delete sys_notice params: {:?}", &item);
 
     NoticeService::delete_sys_notice(item).await
 }
@@ -41,7 +42,7 @@ pub async fn delete_sys_notice(req: JsonBody<DeleteNoticeReq>) -> AppResult<Stri
 #[handler]
 pub async fn update_sys_notice(req: JsonBody<NoticeReq>) -> AppResult<String> {
     let item = req.into_inner();
-    log::info!("update sys_notice params: {:?}", &item);
+    info!("update sys_notice params: {:?}", &item);
 
     NoticeService::update_sys_notice(item).await
 }
@@ -54,7 +55,7 @@ pub async fn update_sys_notice(req: JsonBody<NoticeReq>) -> AppResult<String> {
 #[handler]
 pub async fn update_sys_notice_status(req: JsonBody<UpdateNoticeStatusReq>) -> AppResult<String> {
     let item = req.into_inner();
-    log::info!("update sys_notice_status params: {:?}", &item);
+    info!("update sys_notice_status params: {:?}", &item);
 
     NoticeService::update_sys_notice_status(item).await
 }
@@ -67,7 +68,7 @@ pub async fn update_sys_notice_status(req: JsonBody<UpdateNoticeStatusReq>) -> A
 #[handler]
 pub async fn query_sys_notice_detail(req: JsonBody<QueryNoticeDetailReq>) -> AppResult<NoticeResp> {
     let item = req.into_inner();
-    log::info!("query sys_notice_detail params: {:?}", &item);
+    info!("query sys_notice_detail params: {:?}", &item);
 
     NoticeService::query_sys_notice_detail(item).await
 }
@@ -80,7 +81,7 @@ pub async fn query_sys_notice_detail(req: JsonBody<QueryNoticeDetailReq>) -> App
 #[handler]
 pub async fn query_sys_notice_list(req: JsonBody<QueryNoticeListReq>) -> AppResultPage<NoticeResp> {
     let item = req.into_inner();
-    log::info!("query sys_notice_list params: {:?}", &item);
+    info!("query sys_notice_list params: {:?}", &item);
 
     NoticeService::query_sys_notice_list(item).await
 }

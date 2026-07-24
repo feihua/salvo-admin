@@ -20,8 +20,6 @@ impl DictDataService {
      *date：2025/01/08 13:51:14
      */
     pub async fn add_sys_dict_data(mut item: DictDataReq) -> AppResult<String> {
-        log::info!("add sys_dict_data params: {:?}", &item);
-
         let rb = &mut RB.clone();
 
         let condition = value! {"dict_type":&item.dict_type,"dict_label":&item.dict_label};
@@ -44,8 +42,6 @@ impl DictDataService {
      *date：2025/01/08 13:51:14
      */
     pub async fn delete_sys_dict_data(item: DeleteDictDataReq) -> AppResult<String> {
-        log::info!("delete sys_dict_data params: {:?}", &item);
-
         let rb = &mut RB.clone();
 
         DictData::delete_by_map(rb, value! {"id": item.ids}).await.map(|_| ok_result())?
@@ -57,8 +53,6 @@ impl DictDataService {
      *date：2025/01/08 13:51:14
      */
     pub async fn update_sys_dict_data(item: DictDataReq) -> AppResult<String> {
-        log::info!("update sys_dict_data params: {:?}", &item);
-
         let rb = &mut RB.clone();
 
         let id = item.id;
@@ -88,8 +82,6 @@ impl DictDataService {
      *date：2025/01/08 13:51:14
      */
     pub async fn update_sys_dict_data_status(item: UpdateDictDataStatusReq) -> AppResult<String> {
-        log::info!("update sys_dict_data_status params: {:?}", &item);
-
         let update_sql = format!(
             "update sys_dict_data set status = ? ,update_time = ? where id in ({})",
             item.ids.iter().map(|_| "?").collect::<Vec<&str>>().join(", ")
@@ -107,8 +99,6 @@ impl DictDataService {
      *date：2025/01/08 13:51:14
      */
     pub async fn query_sys_dict_data_detail(item: QueryDictDataDetailReq) -> AppResult<DictDataResp> {
-        log::info!("query sys_dict_data_detail params: {:?}", &item);
-
         DictData::select_by_id(&mut RB.clone(), &item.id)
             .await?
             .map_or_else(|| Err(AppError::BusinessError("字典数据不存在")), |x| ok_result_data(x.into()))
@@ -120,8 +110,6 @@ impl DictDataService {
      *date：2025/01/08 13:51:14
      */
     pub async fn query_sys_dict_data_list(item: QueryDictDataListReq) -> AppResultPage<DictDataResp> {
-        log::info!("query sys_dict_data_list params: {:?}", &item);
-
         let rb = &mut RB.clone();
 
         DictData::select_by_page(rb, &PageRequest::from(&item), &item)

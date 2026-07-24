@@ -7,6 +7,7 @@ use crate::service::system::sys_post_service::PostService;
 use crate::vo::system::sys_post_vo::*;
 use salvo::oapi::extract::JsonBody;
 use salvo::prelude::*;
+use tracing::info;
 /*
  *添加岗位信息
  *author：刘飞华
@@ -15,7 +16,7 @@ use salvo::prelude::*;
 #[handler]
 pub async fn add_sys_post(req: JsonBody<PostReq>) -> AppResult<String> {
     let item = req.into_inner();
-    log::info!("add sys_post params: {:?}", &item);
+    info!("add sys_post params: {:?}", &item);
 
     PostService::add_sys_post(item).await
 }
@@ -28,7 +29,7 @@ pub async fn add_sys_post(req: JsonBody<PostReq>) -> AppResult<String> {
 #[handler]
 pub async fn delete_sys_post(req: JsonBody<DeletePostReq>) -> AppResult<String> {
     let item = req.into_inner();
-    log::info!("delete sys_post params: {:?}", &item);
+    info!("delete sys_post params: {:?}", &item);
 
     PostService::delete_sys_post(item).await
 }
@@ -41,7 +42,7 @@ pub async fn delete_sys_post(req: JsonBody<DeletePostReq>) -> AppResult<String> 
 #[handler]
 pub async fn update_sys_post(req: JsonBody<PostReq>) -> AppResult<String> {
     let item = req.into_inner();
-    log::info!("update sys_post params: {:?}", &item);
+    info!("update sys_post params: {:?}", &item);
 
     PostService::update_sys_post(item).await
 }
@@ -54,7 +55,7 @@ pub async fn update_sys_post(req: JsonBody<PostReq>) -> AppResult<String> {
 #[handler]
 pub async fn update_sys_post_status(req: JsonBody<UpdatePostStatusReq>) -> AppResult<String> {
     let item = req.into_inner();
-    log::info!("update sys_post_status params: {:?}", &item);
+    info!("update sys_post_status params: {:?}", &item);
 
     PostService::update_sys_post_status(item).await
 }
@@ -67,7 +68,7 @@ pub async fn update_sys_post_status(req: JsonBody<UpdatePostStatusReq>) -> AppRe
 #[handler]
 pub async fn query_sys_post_detail(req: JsonBody<QueryPostDetailReq>) -> AppResult<PostResp> {
     let item = req.into_inner();
-    log::info!("query sys_post_detail params: {:?}", &item);
+    info!("query sys_post_detail params: {:?}", &item);
 
     PostService::query_sys_post_detail(item).await
 }
@@ -80,7 +81,7 @@ pub async fn query_sys_post_detail(req: JsonBody<QueryPostDetailReq>) -> AppResu
 #[handler]
 pub async fn query_sys_post_list(req: JsonBody<QueryPostListReq>) -> AppResultPage<PostResp> {
     let item = req.into_inner();
-    log::info!("query sys_post_list params: {:?}", &item);
+    info!("query sys_post_list params: {:?}", &item);
 
     PostService::query_sys_post_list(item).await
 }

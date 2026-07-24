@@ -14,6 +14,9 @@ use salvo::prelude::*;
 use salvo::server::ServerHandle;
 use serde::Deserialize;
 use tokio::signal;
+use tracing_appender::rolling;
+use tracing_subscriber::fmt::time::ChronoLocal;
+use tracing_subscriber::{fmt, layer::SubscriberExt, util::SubscriberInitExt, Layer};
 
 pub mod common;
 pub mod handler;
@@ -68,9 +71,22 @@ struct JwtConfig {
 // 主函数，异步运行
 #[tokio::main]
 async fn main() {
-    // 初始化日志系统
-    log4rs::init_file("src/config/log4rs.yaml", Default::default()).unwrap();
-    // tracing_subscriber::fmt().init();
+    let file_appender = rolling::daily("logs", "app.log");
+    let (non_blocking, _guard) = tracing_appender::non_blocking(file_appender);
+
+    let timer = ChronoLocal::new("%Y-%m-%d %H:%M:%S%.3f".to_string());
+    let format = fmt::format().with_target(false).with_timer(timer).with_file(true).with_line_number(true);
+
+    let console_layer = fmt::layer()
+        .event_format(format.clone())
+        .with_writer(std::io::stdout)
+        .with_filter(tracing_subscriber::filter::LevelFilter::DEBUG);
+    let file_layer = fmt::layer()
+        .event_format(format.clone())
+        .with_writer(non_blocking)
+        .with_filter(tracing_subscriber::filter::LevelFilter::DEBUG);
+
+    tracing_subscriber::registry().with(console_layer).with(file_layer).init();
 
     // 加载和解析配置文件
     let config = Config::builder().add_source(File::with_name("config.toml")).build().unwrap().try_deserialize::<Config1>().unwrap();
@@ -104,7 +120,7 @@ fn route(url: &str, secret: String) -> Router {
         .path("/api")
         .get(hello)
         .push(Router::new().path("/system/user/login").post(login))
-        .push(Router::new().hoop(auth_token).push(build_system_route()).push(build_other_route()))
+        .push(Router::new().hoop(auth_token).push(build_system_route()).push(build_other_route())).hoop(Logger::new())
 }
 
 async fn listen_shutdown_signal(handle: ServerHandle) {

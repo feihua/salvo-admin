@@ -20,8 +20,6 @@ impl DeptService {
      *date：2025/01/08 13:51:14
      */
     pub async fn add_sys_dept(item: DeptReq) -> AppResult<String> {
-        log::info!("add sys_dept params: {:?}", &item);
-
         let rb = &mut RB.clone();
 
         let condition = value! {"dept_name":&item.dept_name,"parent_id":item.parent_id};
@@ -50,8 +48,6 @@ impl DeptService {
      *date：2025/01/08 13:51:14
      */
     pub async fn delete_sys_dept(item: DeleteDeptReq) -> AppResult<String> {
-        log::info!("delete sys_dept params: {:?}", &item);
-
         let rb = &mut RB.clone();
         if Dept::select_dept_count(rb, &item.id).await? > 0 {
             return Err(AppError::BusinessError("存在下级部门,不允许删除"));
@@ -71,7 +67,6 @@ impl DeptService {
      */
     pub async fn update_sys_dept(mut item: DeptReq) -> AppResult<String> {
         let rb = &mut RB.clone();
-        log::info!("update sys_dept params: {:?}", &item);
 
         let id = item.id;
         if id.is_none() {
@@ -131,8 +126,6 @@ impl DeptService {
      *date：2025/01/08 13:51:14
      */
     pub async fn update_sys_dept_status(item: UpdateDeptStatusReq) -> AppResult<String> {
-        log::info!("update sys_dept_status params: {:?}", &item);
-
         let rb = &mut RB.clone();
 
         let ids = item.ids;
@@ -170,8 +163,6 @@ impl DeptService {
      *date：2025/01/08 13:51:14
      */
     pub async fn query_sys_dept_detail(item: QueryDeptDetailReq) -> AppResult<DeptResp> {
-        log::info!("query sys_dept_detail params: {:?}", &item);
-
         match Dept::select_by_id(&mut RB.clone(), &item.id).await? {
             Some(x) => ok_result_data(x.into()),
             None => Err(AppError::BusinessError("部门不存在")),
@@ -184,8 +175,6 @@ impl DeptService {
      *date：2025/01/08 13:51:14
      */
     pub async fn query_sys_dept_list(item: QueryDeptListReq) -> AppResult<Vec<DeptResp>> {
-        log::info!("query sys_dept_list params: {:?}", &item);
-
         let rb = &mut RB.clone();
 
         Dept::select_by_page(rb, &item)

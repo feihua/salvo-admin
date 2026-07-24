@@ -21,8 +21,6 @@ impl MenuService {
      *date：2025/01/08 13:51:14
      */
     pub async fn add_sys_menu(mut item: MenuReq) -> AppResult<String> {
-        log::info!("add sys_menu params: {:?}", &item);
-
         let rb = &mut RB.clone();
         if Menu::select_by_map(rb, value! {"menu_name": &item.menu_name}).await?.len() > 0 {
             return Err(AppError::BusinessError("菜单名称已存在"));
@@ -46,8 +44,6 @@ impl MenuService {
      *date：2025/01/08 13:51:14
      */
     pub async fn delete_sys_menu(item: DeleteMenuReq) -> AppResult<String> {
-        log::info!("delete sys_menu params: {:?}", &item);
-
         let rb = &mut RB.clone();
 
         let ids = item.ids;
@@ -70,8 +66,6 @@ impl MenuService {
      *date：2025/01/08 13:51:14
      */
     pub async fn update_sys_menu(item: MenuReq) -> AppResult<String> {
-        log::info!("update sys_menu params: {:?}", &item);
-
         let rb = &mut RB.clone();
 
         let id = item.id;
@@ -106,8 +100,6 @@ impl MenuService {
      *date：2025/01/08 13:51:14
      */
     pub async fn update_sys_menu_status(item: UpdateMenuStatusReq) -> AppResult<String> {
-        log::info!("update sys_menu_status params: {:?}", &item);
-
         let update_sql = format!(
             "update sys_menu set status = ? ,update_time = ? where id in ({})",
             item.ids.iter().map(|_| "?").collect::<Vec<&str>>().join(", ")
@@ -125,8 +117,6 @@ impl MenuService {
      *date：2025/01/08 13:51:14
      */
     pub async fn query_sys_menu_detail(item: QueryMenuDetailReq) -> AppResult<MenuResp> {
-        log::info!("query sys_menu_detail params: {:?}", &item);
-
         Menu::select_by_id(&mut RB.clone(), &item.id)
             .await?
             .map_or_else(|| Err(AppError::BusinessError("菜单信息不存在")), |x| ok_result_data(x.into()))
@@ -137,9 +127,7 @@ impl MenuService {
      *author：刘飞华
      *date：2025/01/08 13:51:14
      */
-    pub async fn query_sys_menu_list(item: QueryMenuListReq) -> AppResult<Vec<MenuResp>> {
-        log::info!("query sys_menu_list params: {:?}", &item);
-
+    pub async fn query_sys_menu_list(_: QueryMenuListReq) -> AppResult<Vec<MenuResp>> {
         Menu::select_by_map(&mut RB.clone(), value! {})
             .await
             .map(|x| ok_result_data(x.into_iter().map(|x| x.into()).collect::<Vec<MenuResp>>()))?
@@ -162,8 +150,6 @@ impl MenuService {
      *date：2025/01/08 13:51:14
      */
     pub async fn query_sys_menu_resource_list(item: QueryMenuListReq) -> AppResultPage<MenuResp> {
-        log::info!("query sys_menu_list params: {:?}", &item);
-
         let rb = &mut RB.clone();
 
         Menu::select_by_page(rb, &PageRequest::from(&item), &item)

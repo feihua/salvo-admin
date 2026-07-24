@@ -30,7 +30,6 @@ impl LoginLogService {
      *date：2025/01/08 13:51:14
      */
     pub async fn query_sys_login_log_detail(item: QueryLoginLogDetailReq) -> AppResult<LoginLogResp> {
-        log::info!("query sys_login_log_detail params: {:?}", &item);
 
         LoginLog::select_by_id(&mut RB.clone(), &item.id)
             .await?
@@ -43,8 +42,6 @@ impl LoginLogService {
      *date：2025/01/08 13:51:14
      */
     pub async fn query_sys_login_log_list(item: QueryLoginLogListReq) -> AppResultPage<LoginLogResp> {
-        log::info!("query sys_login_log_list params: {:?}", &item);
-
         let rb = &mut RB.clone();
 
         LoginLog::select_by_page(rb, &PageRequest::from(&item), &item)

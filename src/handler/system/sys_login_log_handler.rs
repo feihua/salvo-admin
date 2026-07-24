@@ -7,6 +7,7 @@ use crate::service::system::sys_login_log_service::LoginLogService;
 use crate::vo::system::sys_login_log_vo::*;
 use salvo::oapi::extract::JsonBody;
 use salvo::prelude::*;
+use tracing::info;
 /*
  *删除系统访问记录
  *author：刘飞华
@@ -15,7 +16,7 @@ use salvo::prelude::*;
 #[handler]
 pub async fn delete_sys_login_log(req: JsonBody<DeleteLoginLogReq>) -> AppResult<String> {
     let item = req.into_inner();
-    log::info!("delete sys_login_log params: {:?}", &item);
+    info!("delete sys_login_log params: {:?}", &item);
 
     LoginLogService::delete_sys_login_log(item).await
 }
@@ -28,7 +29,7 @@ pub async fn delete_sys_login_log(req: JsonBody<DeleteLoginLogReq>) -> AppResult
 #[handler]
 pub async fn query_sys_login_log_detail(req: JsonBody<QueryLoginLogDetailReq>) -> AppResult<LoginLogResp> {
     let item = req.into_inner();
-    log::info!("query sys_login_log_detail params: {:?}", &item);
+    info!("query sys_login_log_detail params: {:?}", &item);
 
     LoginLogService::query_sys_login_log_detail(item).await
 }
@@ -41,7 +42,7 @@ pub async fn query_sys_login_log_detail(req: JsonBody<QueryLoginLogDetailReq>) -
 #[handler]
 pub async fn query_sys_login_log_list(req: JsonBody<QueryLoginLogListReq>) -> AppResultPage<LoginLogResp> {
     let item = req.into_inner();
-    log::info!("query sys_login_log_list params: {:?}", &item);
+    info!("query sys_login_log_list params: {:?}", &item);
 
     LoginLogService::query_sys_login_log_list(item).await
 }

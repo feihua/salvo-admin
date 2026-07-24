@@ -24,6 +24,7 @@ use rbatis::rbdc::datetime::DateTime;
 use rbs::value;
 use salvo::{Depot, Request};
 use std::collections::{HashMap, HashSet};
+use tracing::{error, info};
 
 pub struct UserService;
 
@@ -34,8 +35,6 @@ impl UserService {
      *date：2025/01/08 13:51:14
      */
     pub async fn add_sys_user(mut item: UserReq) -> AppResult<String> {
-        log::info!("add sys_user params: {:?}", &item);
-
         let rb = &mut RB.clone();
         if User::select_by_map(rb, value! {"user_name": &item.user_name}).await?.len() > 0 {
             return Err(AppError::BusinessError("登录账号已存在"));
@@ -74,8 +73,6 @@ impl UserService {
      *date：2025/01/08 13:51:14
      */
     pub async fn delete_sys_user(depot: &mut Depot, item: DeleteUserReq) -> AppResult<String> {
-        log::info!("delete sys_user params: {:?}", &item);
-
         if let Ok(user_id) = depot.get::<i64>("userId").copied() {
             let ids = item.ids;
             if ids.contains(&user_id) {
@@ -102,8 +99,6 @@ impl UserService {
      *date：2025/01/08 13:51:14
      */
     pub async fn update_sys_user(item: UserReq) -> AppResult<String> {
-        log::info!("update sys_user params: {:?}", &item);
-
         let rb = &mut RB.clone();
 
         let id = item.id;
@@ -154,8 +149,6 @@ impl UserService {
      *date：2025/01/08 13:51:14
      */
     pub async fn update_sys_user_status(item: UpdateUserStatusReq) -> AppResult<String> {
-        log::info!("update sys_user_status params: {:?}", &item);
-
         let ids = item.ids;
         if ids.contains(&1) {
             return Err(AppError::BusinessError("不允许操作超级管理员用户"));
@@ -178,8 +171,6 @@ impl UserService {
      *date：2025/01/08 13:51:14
      */
     pub async fn reset_sys_user_password(item: ResetUserPwdReq) -> AppResult<String> {
-        log::info!("update sys_user_password params: {:?}", &item);
-
         let rb = &mut RB.clone();
 
         let id = item.id.clone();
@@ -203,8 +194,6 @@ impl UserService {
      *date：2025/01/08 13:51:14
      */
     pub async fn update_sys_user_password(item: UpdateUserPwdReq, depot: &mut Depot) -> AppResult<String> {
-        log::info!("update sys_user_password params: {:?}", &item);
-
         if let Ok(user_id) = depot.get::<i64>("userId").copied() {
             let rb = &mut RB.clone();
 
@@ -231,8 +220,6 @@ impl UserService {
      *date：2025/01/08 13:51:14
      */
     pub async fn query_sys_user_detail(item: QueryUserDetailReq) -> AppResult<UserResp> {
-        log::info!("query sys_user_detail params: {:?}", &item);
-
         let rb = &mut RB.clone();
 
         let mut x = match User::select_by_id(rb, &item.id).await? {
@@ -266,8 +253,6 @@ impl UserService {
      *date：2025/01/08 13:51:14
      */
     pub async fn query_sys_user_list(item: QueryUserListReq) -> AppResultPage<UserResp> {
-        log::info!("query sys_user_list params: {:?}", &item);
-
         let rb = &mut RB.clone();
 
         User::select_by_page(rb, &PageRequest::from(&item), &item)
@@ -282,15 +267,15 @@ impl UserService {
      */
     pub async fn login(depot: &mut Depot, req: &mut Request) -> AppResult<String> {
         let item = req.parse_json::<UserLoginReq>().await?;
-        log::info!("user login params: {:?}", &item);
+        info!("user login params: {:?}", &item);
 
         let user_agent = req.header::<&str>("user-agent").unwrap_or_default();
-        log::info!("user agent: {:?}", user_agent);
+        info!("user agent: {:?}", user_agent);
         let agent = UserAgentUtil::new(user_agent);
 
         let rb = &mut RB.clone();
         let user_result = User::select_by_account(rb, &item.account).await?;
-        log::info!("query user by account: {:?}", user_result);
+        info!("query user by account: {:?}", user_result);
 
         match user_result.get(0) {
             None => {
@@ -372,8 +357,8 @@ impl UserService {
         };
 
         match LoginLog::insert(&mut RB.clone(), &sys_login_log).await {
-            Ok(_u) => log::info!("add_login_log success: {:?}", sys_login_log),
-            Err(err) => log::error!("add_login_log error params: {:?}, error message: {:?}", sys_login_log, err),
+            Ok(_u) => info!("add_login_log success: {:?}", sys_login_log),
+            Err(err) => error!("add_login_log error params: {:?}, error message: {:?}", sys_login_log, err),
         }
     }
 
@@ -390,7 +375,7 @@ impl UserService {
             for x in Menu::select_by_map(rb, value! {"api_url !=":""}).await.unwrap_or_default() {
                 btn_menu.push(x.api_url.unwrap_or_default());
             }
-            log::info!("The current user is a super administrator");
+            info!("The current user is a super administrator");
             (btn_menu, true)
         } else {
             let sql_str = "select distinct u.api_url from sys_user_role t left join sys_role usr on t.role_id = usr.id left join sys_role_menu srm on usr.id = srm.role_id left join sys_menu u on srm.menu_id = u.id where u.api_url !='' and t.user_id = ?";
@@ -400,7 +385,7 @@ impl UserService {
                     btn_menu.push(api_url.to_string());
                 }
             }
-            log::info!("The current user is not a super administrator");
+            info!("The current user is not a super administrator");
             (btn_menu, false)
         }
     }
@@ -411,8 +396,6 @@ impl UserService {
      *date：2025/01/08 13:51:14
      */
     pub async fn query_user_role(item: QueryUserRoleReq) -> AppResult<QueryUserRoleResp> {
-        log::info!("query_user_role params: {:?}", item);
-
         let rb = &mut RB.clone();
         let mut user_role_ids: Vec<i64> = Vec::new();
 
@@ -432,8 +415,6 @@ impl UserService {
      *date：2025/01/08 13:51:14
      */
     pub async fn update_user_role(item: UpdateUserRoleReq) -> AppResult<String> {
-        log::info!("update_user_role params: {:?}", item);
-
         let user_id = item.user_id;
 
         let rb = &mut RB.clone();
@@ -464,10 +445,10 @@ impl UserService {
                 let sys_menu_list: Vec<Menu>;
 
                 if UserRole::is_admin(rb, &user_id).await? > 0 {
-                    log::info!("The current user is a super administrator");
+                    info!("The current user is a super administrator");
                     sys_menu_list = Menu::select_by_map(rb, value! {}).await?;
                 } else {
-                    log::info!("The current user is not a super administrator");
+                    info!("The current user is not a super administrator");
                     let sql_str = "select u.* from sys_user_role t left join sys_role usr on t.role_id = usr.id left join sys_role_menu srm on usr.id = srm.role_id left join sys_menu u on srm.menu_id = u.id where t.user_id = ?";
                     sys_menu_list = RB.exec_decode(sql_str, vec![value!(user.id)]).await?;
                 }

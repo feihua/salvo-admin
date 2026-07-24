@@ -7,6 +7,7 @@ use crate::service::system::sys_menu_service::MenuService;
 use crate::vo::system::sys_menu_vo::*;
 use salvo::oapi::extract::JsonBody;
 use salvo::prelude::*;
+use tracing::info;
 /*
  *添加菜单信息
  *author：刘飞华
@@ -15,7 +16,7 @@ use salvo::prelude::*;
 #[handler]
 pub async fn add_sys_menu(req: JsonBody<MenuReq>) -> AppResult<String> {
     let item = req.into_inner();
-    log::info!("add sys_menu params: {:?}", &item);
+    info!("add sys_menu params: {:?}", &item);
 
     MenuService::add_sys_menu(item).await
 }
@@ -28,7 +29,7 @@ pub async fn add_sys_menu(req: JsonBody<MenuReq>) -> AppResult<String> {
 #[handler]
 pub async fn delete_sys_menu(req: JsonBody<DeleteMenuReq>) -> AppResult<String> {
     let item = req.into_inner();
-    log::info!("delete sys_menu params: {:?}", &item);
+    info!("delete sys_menu params: {:?}", &item);
 
     MenuService::delete_sys_menu(item).await
 }
@@ -41,7 +42,7 @@ pub async fn delete_sys_menu(req: JsonBody<DeleteMenuReq>) -> AppResult<String> 
 #[handler]
 pub async fn update_sys_menu(req: JsonBody<MenuReq>) -> AppResult<String> {
     let item = req.into_inner();
-    log::info!("update sys_menu params: {:?}", &item);
+    info!("update sys_menu params: {:?}", &item);
 
     MenuService::update_sys_menu(item).await
 }
@@ -55,7 +56,7 @@ pub async fn update_sys_menu(req: JsonBody<MenuReq>) -> AppResult<String> {
 pub async fn update_sys_menu_status(req: JsonBody<UpdateMenuStatusReq>) -> AppResult<String> {
     let item = req.into_inner();
 
-    log::info!("update sys_menu_status params: {:?}", &item);
+    info!("update sys_menu_status params: {:?}", &item);
 
     MenuService::update_sys_menu_status(item).await
 }
@@ -68,7 +69,7 @@ pub async fn update_sys_menu_status(req: JsonBody<UpdateMenuStatusReq>) -> AppRe
 #[handler]
 pub async fn query_sys_menu_detail(req: JsonBody<QueryMenuDetailReq>) -> AppResult<MenuResp> {
     let item = req.into_inner();
-    log::info!("query sys_menu_detail params: {:?}", &item);
+    info!("query sys_menu_detail params: {:?}", &item);
 
     MenuService::query_sys_menu_detail(item).await
 }
@@ -81,7 +82,7 @@ pub async fn query_sys_menu_detail(req: JsonBody<QueryMenuDetailReq>) -> AppResu
 #[handler]
 pub async fn query_sys_menu_list(req: JsonBody<QueryMenuListReq>) -> AppResult<Vec<MenuResp>> {
     let item = req.into_inner();
-    log::info!("query sys_menu_list params: {:?}", &item);
+    info!("query sys_menu_list params: {:?}", &item);
 
     MenuService::query_sys_menu_list(item).await
 }
@@ -104,7 +105,7 @@ pub async fn query_sys_menu_list_simple() -> AppResult<Vec<MenuSimpleResp>> {
 #[handler]
 pub async fn query_sys_menu_resource_list(req: JsonBody<QueryMenuListReq>) -> AppResultPage<MenuResp> {
     let item = req.into_inner();
-    log::info!("query sys_menu_list params: {:?}", &item);
+    info!("query sys_menu_list params: {:?}", &item);
 
     MenuService::query_sys_menu_resource_list(item).await
 }

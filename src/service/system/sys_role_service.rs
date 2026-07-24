@@ -26,8 +26,6 @@ impl RoleService {
      *date：2025/01/08 13:51:14
      */
     pub async fn add_sys_role(mut item: RoleReq) -> AppResult<String> {
-        log::info!("add sys_role params: {:?}", &item);
-
         let rb = &mut RB.clone();
         if Role::select_by_map(rb, value! {"role_name": &item.role_name}).await?.len() > 0 {
             return Err(AppError::BusinessError("角色名称已存在"));
@@ -47,8 +45,6 @@ impl RoleService {
      *date：2025/01/08 13:51:14
      */
     pub async fn delete_sys_role(item: DeleteRoleReq) -> AppResult<String> {
-        log::info!("delete sys_role params: {:?}", &item);
-
         let ids = item.ids;
 
         if ids.contains(&1) {
@@ -78,8 +74,6 @@ impl RoleService {
      *date：2025/01/08 13:51:14
      */
     pub async fn update_sys_role(item: RoleReq) -> AppResult<String> {
-        log::info!("update sys_role params: {:?}", &item);
-
         let rb = &mut RB.clone();
 
         let id = item.id;
@@ -111,8 +105,6 @@ impl RoleService {
      *date：2025/01/08 13:51:14
      */
     pub async fn update_sys_role_status(item: UpdateRoleStatusReq) -> AppResult<String> {
-        log::info!("update sys_role_status params: {:?}", &item);
-
         if item.ids.contains(&1) {
             return Err(AppError::BusinessError("不允许操作超级管理员角色"));
         }
@@ -134,8 +126,6 @@ impl RoleService {
      *date：2025/01/08 13:51:14
      */
     pub async fn query_sys_role_detail(item: QueryRoleDetailReq) -> AppResult<RoleResp> {
-        log::info!("query sys_role_detail params: {:?}", &item);
-
         Role::select_by_id(&mut RB.clone(), &item.id)
             .await?
             .map_or_else(|| Err(AppError::BusinessError("角色不存在")), |x| ok_result_data(x.into()))
@@ -147,8 +137,6 @@ impl RoleService {
      *date：2025/01/08 13:51:14
      */
     pub async fn query_sys_role_list(item: QueryRoleListReq) -> AppResultPage<RoleResp> {
-        log::info!("query sys_role_list params: {:?}", &item);
-
         let rb = &mut RB.clone();
 
         Role::select_by_page(rb, &PageRequest::from(&item), &item)
@@ -162,8 +150,6 @@ impl RoleService {
      *date：2025/01/08 13:51:14
      */
     pub async fn query_role_menu(item: QueryRoleMenuReq) -> AppResult<QueryRoleMenuData> {
-        log::info!("query role_menu params: {:?}", &item);
-
         let rb = &mut RB.clone();
         let menu_list_all = Menu::select_by_map(rb, value! {}).await?;
 
@@ -202,7 +188,6 @@ impl RoleService {
      *date：2025/01/08 13:51:14
      */
     pub async fn update_role_menu(item: UpdateRoleMenuReq) -> AppResult<String> {
-        log::info!("update_role_menu params: {:?}", &item);
         let role_id = item.role_id;
 
         if role_id == 1 {
@@ -228,8 +213,6 @@ impl RoleService {
      *date：2025/01/08 13:51:14
      */
     pub async fn query_allocated_list(item: AllocatedListReq) -> AppResultPage<UserResp> {
-        log::info!("update role_menu params: {:?}", &item);
-
         let page_no = item.page_no;
         let page_size = item.page_size;
         let role_id = item.role_id;
@@ -255,8 +238,6 @@ impl RoleService {
      *date：2025/01/08 13:51:14
      */
     pub async fn query_unallocated_list(item: UnallocatedListReq) -> AppResultPage<UserResp> {
-        log::info!("update role_menu params: {:?}", &item);
-
         let page_no = item.page_no;
         let page_size = item.page_size;
         let role_id = item.role_id;
@@ -283,8 +264,6 @@ impl RoleService {
      *date：2025/01/08 13:51:14
      */
     pub async fn cancel_auth_user(item: CancelAuthUserReq) -> AppResult<String> {
-        log::info!("update role_menu params: {:?}", &item);
-
         let rb = &mut RB.clone();
 
         UserRole::delete_user_role_by_role_id_user_id(rb, item.role_id, item.user_id).await?;
@@ -297,8 +276,6 @@ impl RoleService {
      *date：2025/01/08 13:51:14
      */
     pub async fn batch_cancel_auth_user(item: CancelAuthUserAllReq) -> AppResult<String> {
-        log::info!("cancel auth_user_all params: {:?}", &item);
-
         let update_sql = format!(
             "delete from sys_user_role where role_id = ? and user_id in ({})",
             item.user_ids.iter().map(|_| "?").collect::<Vec<&str>>().join(", ")
@@ -317,7 +294,6 @@ impl RoleService {
      *date：2025/01/08 13:51:14
      */
     pub async fn batch_auth_user(item: SelectAuthUserAllReq) -> AppResult<String> {
-        log::info!("select all_auth_user params: {:?}", &item);
         let role_id = item.role_id;
 
         let user_role: Vec<UserRole> = item.user_ids.into_iter().map(|user_id| UserRole { id: None, role_id, user_id }).collect();

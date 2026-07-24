@@ -21,8 +21,6 @@ impl DictTypeService {
      *date：2025/01/08 13:51:14
      */
     pub async fn add_sys_dict_type(mut item: DictTypeReq) -> AppResult<String> {
-        log::info!("add sys_dict_type params: {:?}", &item);
-
         let rb = &mut RB.clone();
         if DictType::select_by_map(rb, value! {"dict_type": &item.dict_type}).await?.len() > 0 {
             return Err(AppError::BusinessError("字典类型已存在"));
@@ -38,8 +36,6 @@ impl DictTypeService {
      *date：2025/01/08 13:51:14
      */
     pub async fn delete_sys_dict_type(item: DeleteDictTypeReq) -> AppResult<String> {
-        log::info!("delete sys_dict_type params: {:?}", &item);
-
         let rb = &mut RB.clone();
         let ids = item.ids;
         for id in &ids {
@@ -62,8 +58,6 @@ impl DictTypeService {
      *date：2025/01/08 13:51:14
      */
     pub async fn update_sys_dict_type(item: DictTypeReq) -> AppResult<String> {
-        log::info!("update sys_dict_type params: {:?}", &item);
-
         let rb = &mut RB.clone();
         let id = item.id;
 
@@ -94,7 +88,6 @@ impl DictTypeService {
      */
     pub async fn update_sys_dict_type_status(item: UpdateDictTypeStatusReq) -> AppResult<String> {
         let rb = &mut RB.clone();
-        log::info!("update sys_dict_type_status params: {:?}", &item);
 
         let update_sql = format!(
             "update sys_dict_type set status = ? ,update_time = ? where id in ({})",
@@ -113,7 +106,6 @@ impl DictTypeService {
      *date：2025/01/08 13:51:14
      */
     pub async fn query_sys_dict_type_detail(item: QueryDictTypeDetailReq) -> AppResult<DictTypeResp> {
-        log::info!("query sys_dict_type_detail params: {:?}", &item);
 
         DictType::select_by_id(&mut RB.clone(), &item.id)
             .await?

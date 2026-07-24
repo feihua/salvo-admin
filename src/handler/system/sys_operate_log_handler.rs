@@ -7,6 +7,7 @@ use crate::service::system::sys_operate_log_service::OperateLogService;
 use crate::vo::system::sys_operate_log_vo::*;
 use salvo::oapi::extract::JsonBody;
 use salvo::prelude::*;
+use tracing::info;
 /*
  *删除操作日志记录
  *author：刘飞华
@@ -15,7 +16,7 @@ use salvo::prelude::*;
 #[handler]
 pub async fn delete_sys_operate_log(req: JsonBody<DeleteOperateLogReq>) -> AppResult<String> {
     let item = req.into_inner();
-    log::info!("delete sys_operate_log params: {:?}", &item);
+    info!("delete sys_operate_log params: {:?}", &item);
 
     OperateLogService::delete_sys_operate_log(item).await
 }
@@ -29,7 +30,7 @@ pub async fn delete_sys_operate_log(req: JsonBody<DeleteOperateLogReq>) -> AppRe
 pub async fn query_sys_operate_log_detail(req: JsonBody<QueryOperateLogDetailReq>) -> AppResult<OperateLogResp> {
     let item = req.into_inner();
 
-    log::info!("query sys_operate_log_detail params: {:?}", &item);
+    info!("query sys_operate_log_detail params: {:?}", &item);
 
     OperateLogService::query_sys_operate_log_detail(item).await
 }
@@ -42,7 +43,7 @@ pub async fn query_sys_operate_log_detail(req: JsonBody<QueryOperateLogDetailReq
 #[handler]
 pub async fn query_sys_operate_log_list(req: JsonBody<QueryOperateLogListReq>) -> AppResultPage<OperateLogResp> {
     let item = req.into_inner();
-    log::info!("query sys_operate_log_list params: {:?}", &item);
+    info!("query sys_operate_log_list params: {:?}", &item);
 
     OperateLogService::query_sys_operate_log_list(item).await
 }
