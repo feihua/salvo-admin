@@ -11,7 +11,9 @@ use rbatis::RBatis;
 use rbdc_mysql::MysqlDriver;
 use rbdc_pool_fast::FastPool;
 use salvo::prelude::*;
+use salvo::server::ServerHandle;
 use serde::Deserialize;
+use tokio::signal;
 
 pub mod common;
 pub mod handler;
@@ -82,7 +84,13 @@ async fn main() {
 
     // 创建TCP监听器并启动服务器
     let acceptor = TcpListener::new(config.server.addr).bind().await;
-    Server::new(acceptor).serve(route(config.redis.url.as_str(), config.jwt.secret)).await;
+
+    let server = Server::new(acceptor);
+    let handle = server.handle();
+
+    tokio::spawn(listen_shutdown_signal(handle));
+
+    server.serve(route(config.redis.url.as_str(), config.jwt.secret)).await;
 }
 
 // 定义路由配置函数
@@ -97,4 +105,39 @@ fn route(url: &str, secret: String) -> Router {
         .get(hello)
         .push(Router::new().path("/system/user/login").post(login))
         .push(Router::new().hoop(auth_token).push(build_system_route()).push(build_other_route()))
+}
+
+async fn listen_shutdown_signal(handle: ServerHandle) {
+    // Wait Shutdown Signal
+    let ctrl_c = async {
+        // Handle Ctrl+C signal
+        signal::ctrl_c()
+            .await
+            .expect("failed to install Ctrl+C handler");
+    };
+
+    #[cfg(unix)]
+    let terminate = async {
+        // Handle SIGTERM on Unix systems
+        signal::unix::signal(signal::unix::SignalKind::terminate())
+            .expect("failed to install signal handler")
+            .recv()
+            .await;
+    };
+
+    #[cfg(windows)]
+    let terminate = async {
+        // Handle Ctrl+C on Windows (alternative implementation)
+        signal::windows::ctrl_c()
+            .expect("failed to install signal handler")
+            .recv()
+            .await;
+    };
+
+    tokio::select! {
+        _ = ctrl_c => println!("ctrl_c signal received"),
+        _ = terminate => println!("terminate signal received"),
+    };
+
+    handle.stop_graceful(None);
 }
