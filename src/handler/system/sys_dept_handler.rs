@@ -2,7 +2,7 @@
 // author：刘飞华
 // date：2025/01/08 13:51:14
 
-use crate::common::error::{AppResult};
+use crate::common::error::AppResult;
 use crate::service::system::sys_dept_service::DeptService;
 use crate::vo::system::sys_dept_vo::*;
 use salvo::oapi::extract::JsonBody;

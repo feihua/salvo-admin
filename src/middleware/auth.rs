@@ -56,7 +56,7 @@ pub async fn auth_token(req: &mut Request, res: &mut Response, ctrl: &mut FlowCt
                             }
                             let is_admin = values.get("is_admin").map(|v| v == "1").unwrap_or(false);
                             depot.insert("is_admin", is_admin);
-                            
+
                             if is_admin || has_permission(&permissions, path.as_str()) {
                                 depot.insert("userId", jwt_token.id.clone());
                                 depot.insert("username", jwt_token.username.clone());

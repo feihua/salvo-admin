@@ -3,10 +3,10 @@
 // date：2025/01/08 13:51:14
 
 use crate::common::error::{AppResult, AppResultPage};
+use crate::service::system::sys_user_service::UserService;
 use crate::vo::system::sys_user_vo::*;
 use salvo::oapi::extract::JsonBody;
 use salvo::prelude::*;
-use crate::service::system::sys_user_service::UserService;
 /*
  *添加用户信息
  *author：刘飞华

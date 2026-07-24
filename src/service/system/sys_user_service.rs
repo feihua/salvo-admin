@@ -22,8 +22,8 @@ use rbatis::plugin::page::PageRequest;
 use rbatis::rbatis_codegen::ops::AsProxy;
 use rbatis::rbdc::datetime::DateTime;
 use rbs::value;
-use std::collections::{HashMap, HashSet};
 use salvo::{Depot, Request};
+use std::collections::{HashMap, HashSet};
 
 pub struct UserService;
 
@@ -33,7 +33,7 @@ impl UserService {
      *author：刘飞华
      *date：2025/01/08 13:51:14
      */
-    pub async fn add_sys_user(mut item:  UserReq) -> AppResult<String> {
+    pub async fn add_sys_user(mut item: UserReq) -> AppResult<String> {
         log::info!("add sys_user params: {:?}", &item);
 
         let rb = &mut RB.clone();
@@ -73,8 +73,7 @@ impl UserService {
      *author：刘飞华
      *date：2025/01/08 13:51:14
      */
-    pub async fn delete_sys_user(depot: &mut Depot, item:  DeleteUserReq) -> AppResult<String> {
-        
+    pub async fn delete_sys_user(depot: &mut Depot, item: DeleteUserReq) -> AppResult<String> {
         log::info!("delete sys_user params: {:?}", &item);
 
         if let Ok(user_id) = depot.get::<i64>("userId").copied() {
@@ -102,8 +101,7 @@ impl UserService {
      *author：刘飞华
      *date：2025/01/08 13:51:14
      */
-    pub async fn update_sys_user(item:  UserReq) -> AppResult<String> {
-        
+    pub async fn update_sys_user(item: UserReq) -> AppResult<String> {
         log::info!("update sys_user params: {:?}", &item);
 
         let rb = &mut RB.clone();
@@ -155,8 +153,7 @@ impl UserService {
      *author：刘飞华
      *date：2025/01/08 13:51:14
      */
-    pub async fn update_sys_user_status(item:  UpdateUserStatusReq) -> AppResult<String> {
-        
+    pub async fn update_sys_user_status(item: UpdateUserStatusReq) -> AppResult<String> {
         log::info!("update sys_user_status params: {:?}", &item);
 
         let ids = item.ids;
@@ -180,8 +177,7 @@ impl UserService {
      *author：刘飞华
      *date：2025/01/08 13:51:14
      */
-    pub async fn reset_sys_user_password(item:  ResetUserPwdReq) -> AppResult<String> {
-        
+    pub async fn reset_sys_user_password(item: ResetUserPwdReq) -> AppResult<String> {
         log::info!("update sys_user_password params: {:?}", &item);
 
         let rb = &mut RB.clone();
@@ -206,8 +202,7 @@ impl UserService {
      *author：刘飞华
      *date：2025/01/08 13:51:14
      */
-    pub async fn update_sys_user_password(item:  UpdateUserPwdReq, depot: &mut Depot) -> AppResult<String> {
-        
+    pub async fn update_sys_user_password(item: UpdateUserPwdReq, depot: &mut Depot) -> AppResult<String> {
         log::info!("update sys_user_password params: {:?}", &item);
 
         if let Ok(user_id) = depot.get::<i64>("userId").copied() {
@@ -235,8 +230,7 @@ impl UserService {
      *author：刘飞华
      *date：2025/01/08 13:51:14
      */
-    pub async fn query_sys_user_detail(item:  QueryUserDetailReq) -> AppResult<UserResp> {
-        
+    pub async fn query_sys_user_detail(item: QueryUserDetailReq) -> AppResult<UserResp> {
         log::info!("query sys_user_detail params: {:?}", &item);
 
         let rb = &mut RB.clone();
@@ -271,8 +265,7 @@ impl UserService {
      *author：刘飞华
      *date：2025/01/08 13:51:14
      */
-    pub async fn query_sys_user_list(item:  QueryUserListReq) -> AppResultPage<UserResp> {
-        
+    pub async fn query_sys_user_list(item: QueryUserListReq) -> AppResultPage<UserResp> {
         log::info!("query sys_user_list params: {:?}", &item);
 
         let rb = &mut RB.clone();
@@ -417,8 +410,7 @@ impl UserService {
      *author：刘飞华
      *date：2025/01/08 13:51:14
      */
-    pub async fn query_user_role(item:  QueryUserRoleReq) -> AppResult<QueryUserRoleResp> {
-        
+    pub async fn query_user_role(item: QueryUserRoleReq) -> AppResult<QueryUserRoleResp> {
         log::info!("query_user_role params: {:?}", item);
 
         let rb = &mut RB.clone();
@@ -439,8 +431,7 @@ impl UserService {
      *author：刘飞华
      *date：2025/01/08 13:51:14
      */
-    pub async fn update_user_role(item:  UpdateUserRoleReq) -> AppResult<String> {
-        
+    pub async fn update_user_role(item: UpdateUserRoleReq) -> AppResult<String> {
         log::info!("update_user_role params: {:?}", item);
 
         let user_id = item.user_id;

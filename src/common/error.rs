@@ -6,14 +6,6 @@ use thiserror::Error;
 
 #[derive(Error, Debug)]
 pub enum AppError {
-    // #[error("Failed to complete an HTTP request")]
-    // Http { #[from] source: reqwest::Error },
-    //
-    #[error("Failed to read the cache file")]
-    DiskCacheRead { source: std::io::Error },
-    //
-    // #[error("Failed to update the cache file")]
-    // DiskCacheWrite { source: std::io::Error },
     #[error("")]
     JwtTokenError(String),
 
@@ -36,11 +28,6 @@ pub type AppResultPage<T> = Result<Json<BaseResponse<PageResult<T>>>, AppError>;
 #[async_trait]
 impl Writer for AppError {
     async fn write(mut self, _req: &mut Request, _: &mut Depot, res: &mut Response) {
-        // let user_id = depot.get::<i64>("userId").copied().unwrap();
-        // let username = depot.get::<String>("username").unwrap();
-        // log::info!("query user user_id params {:?}", user_id);
-        // log::info!("query user username params {:?}", username);
-
         res.render(Json(BaseResponse {
             msg: self.to_string(),
             code: 1,

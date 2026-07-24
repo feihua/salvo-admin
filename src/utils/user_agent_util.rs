@@ -38,7 +38,7 @@ impl UserAgentUtil {
         (?P<extra>[^\s]+)?                    # 其他信息（可选）
     ",
         )
-        .unwrap();
+            .unwrap();
 
         // 使用正则表达式进行匹配
         if let Some(captures) = re.captures(user_agent) {

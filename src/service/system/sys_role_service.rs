@@ -25,7 +25,7 @@ impl RoleService {
      *author：刘飞华
      *date：2025/01/08 13:51:14
      */
-    pub async fn add_sys_role(mut item:  RoleReq) -> AppResult<String> {
+    pub async fn add_sys_role(mut item: RoleReq) -> AppResult<String> {
         log::info!("add sys_role params: {:?}", &item);
 
         let rb = &mut RB.clone();
@@ -46,8 +46,7 @@ impl RoleService {
      *author：刘飞华
      *date：2025/01/08 13:51:14
      */
-    pub async fn delete_sys_role(item:  DeleteRoleReq) -> AppResult<String> {
-        
+    pub async fn delete_sys_role(item: DeleteRoleReq) -> AppResult<String> {
         log::info!("delete sys_role params: {:?}", &item);
 
         let ids = item.ids;
@@ -78,8 +77,7 @@ impl RoleService {
      *author：刘飞华
      *date：2025/01/08 13:51:14
      */
-    pub async fn update_sys_role(item:  RoleReq) -> AppResult<String> {
-        
+    pub async fn update_sys_role(item: RoleReq) -> AppResult<String> {
         log::info!("update sys_role params: {:?}", &item);
 
         let rb = &mut RB.clone();
@@ -112,8 +110,7 @@ impl RoleService {
      *author：刘飞华
      *date：2025/01/08 13:51:14
      */
-    pub async fn update_sys_role_status(item:  UpdateRoleStatusReq) -> AppResult<String> {
-        
+    pub async fn update_sys_role_status(item: UpdateRoleStatusReq) -> AppResult<String> {
         log::info!("update sys_role_status params: {:?}", &item);
 
         if item.ids.contains(&1) {
@@ -136,8 +133,7 @@ impl RoleService {
      *author：刘飞华
      *date：2025/01/08 13:51:14
      */
-    pub async fn query_sys_role_detail(item:  QueryRoleDetailReq) -> AppResult<RoleResp> {
-        
+    pub async fn query_sys_role_detail(item: QueryRoleDetailReq) -> AppResult<RoleResp> {
         log::info!("query sys_role_detail params: {:?}", &item);
 
         Role::select_by_id(&mut RB.clone(), &item.id)
@@ -150,8 +146,7 @@ impl RoleService {
      *author：刘飞华
      *date：2025/01/08 13:51:14
      */
-    pub async fn query_sys_role_list(item:  QueryRoleListReq) -> AppResultPage<RoleResp> {
-        
+    pub async fn query_sys_role_list(item: QueryRoleListReq) -> AppResultPage<RoleResp> {
         log::info!("query sys_role_list params: {:?}", &item);
 
         let rb = &mut RB.clone();
@@ -166,8 +161,7 @@ impl RoleService {
      *author：刘飞华
      *date：2025/01/08 13:51:14
      */
-    pub async fn query_role_menu(item:  QueryRoleMenuReq) -> AppResult<QueryRoleMenuData> {
-        
+    pub async fn query_role_menu(item: QueryRoleMenuReq) -> AppResult<QueryRoleMenuData> {
         log::info!("query role_menu params: {:?}", &item);
 
         let rb = &mut RB.clone();
@@ -207,8 +201,7 @@ impl RoleService {
      *author：刘飞华
      *date：2025/01/08 13:51:14
      */
-    pub async fn update_role_menu(item:  UpdateRoleMenuReq) -> AppResult<String> {
-        
+    pub async fn update_role_menu(item: UpdateRoleMenuReq) -> AppResult<String> {
         log::info!("update_role_menu params: {:?}", &item);
         let role_id = item.role_id;
 
@@ -234,8 +227,7 @@ impl RoleService {
      *author：刘飞华
      *date：2025/01/08 13:51:14
      */
-    pub async fn query_allocated_list(item:  AllocatedListReq) -> AppResultPage<UserResp> {
-        
+    pub async fn query_allocated_list(item: AllocatedListReq) -> AppResultPage<UserResp> {
         log::info!("update role_menu params: {:?}", &item);
 
         let page_no = item.page_no;
@@ -262,8 +254,7 @@ impl RoleService {
      *author：刘飞华
      *date：2025/01/08 13:51:14
      */
-    pub async fn query_unallocated_list(item:  UnallocatedListReq) -> AppResultPage<UserResp> {
-        
+    pub async fn query_unallocated_list(item: UnallocatedListReq) -> AppResultPage<UserResp> {
         log::info!("update role_menu params: {:?}", &item);
 
         let page_no = item.page_no;
@@ -291,8 +282,7 @@ impl RoleService {
      *author：刘飞华
      *date：2025/01/08 13:51:14
      */
-    pub async fn cancel_auth_user(item:  CancelAuthUserReq) -> AppResult<String> {
-        
+    pub async fn cancel_auth_user(item: CancelAuthUserReq) -> AppResult<String> {
         log::info!("update role_menu params: {:?}", &item);
 
         let rb = &mut RB.clone();
@@ -306,8 +296,7 @@ impl RoleService {
      *author：刘飞华
      *date：2025/01/08 13:51:14
      */
-    pub async fn batch_cancel_auth_user(item:  CancelAuthUserAllReq) -> AppResult<String> {
-        
+    pub async fn batch_cancel_auth_user(item: CancelAuthUserAllReq) -> AppResult<String> {
         log::info!("cancel auth_user_all params: {:?}", &item);
 
         let update_sql = format!(
@@ -327,8 +316,7 @@ impl RoleService {
      *author：刘飞华
      *date：2025/01/08 13:51:14
      */
-    pub async fn batch_auth_user(item:  SelectAuthUserAllReq) -> AppResult<String> {
-        
+    pub async fn batch_auth_user(item: SelectAuthUserAllReq) -> AppResult<String> {
         log::info!("select all_auth_user params: {:?}", &item);
         let role_id = item.role_id;
 
