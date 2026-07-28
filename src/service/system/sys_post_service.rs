@@ -2,8 +2,7 @@
 // author：刘飞华
 // date：2025/01/08 13:51:14
 
-use crate::common::error::{AppError, AppResult, AppResultPage};
-use crate::common::result::{ok_result, ok_result_data, ok_result_page};
+use crate::common::error::AppError;
 use crate::model::system::sys_post_model::Post;
 use crate::model::system::sys_user_post_model::UserPost;
 use crate::vo::system::sys_post_vo::*;
@@ -21,7 +20,7 @@ impl PostService {
      *date：2025/01/08 13:51:14
      */
 
-    pub async fn add_sys_post(mut item: PostReq) -> AppResult<String> {
+    pub async fn add_sys_post(mut item: PostReq) -> Result<u64, AppError> {
         let rb = &mut RB.clone();
 
         if Post::select_by_map(rb, value! {"post_name": &item.post_name}).await?.len() > 0 {
@@ -33,7 +32,8 @@ impl PostService {
         }
 
         item.id = None;
-        Post::insert(rb, &Post::from(item)).await.map(|_| ok_result())?
+        let exec_result = Post::insert(rb, &Post::from(item)).await?;
+        Ok(exec_result.last_insert_id.as_u64().unwrap_or_default())
     }
 
     /*
@@ -42,7 +42,7 @@ impl PostService {
      *date：2025/01/08 13:51:14
      */
 
-    pub async fn delete_sys_post(item: DeletePostReq) -> AppResult<String> {
+    pub async fn delete_sys_post(item: DeletePostReq) -> Result<u64, AppError> {
         let rb = &mut RB.clone();
 
         let ids = item.ids;
@@ -57,7 +57,7 @@ impl PostService {
             };
         }
 
-        Post::delete_by_map(rb, value! {"id": ids}).await.map(|_| ok_result())?
+        Post::delete_by_map(rb, value! {"id": ids}).await.map(|x| Ok(x.rows_affected))?
     }
 
     /*
@@ -66,7 +66,7 @@ impl PostService {
      *date：2025/01/08 13:51:14
      */
 
-    pub async fn update_sys_post(item: PostReq) -> AppResult<String> {
+    pub async fn update_sys_post(item: PostReq) -> Result<u64, AppError> {
         let rb = &mut RB.clone();
 
         let id = item.id;
@@ -86,7 +86,7 @@ impl PostService {
             return Err(AppError::BusinessError("岗位编码已存在"));
         }
 
-        Post::update_by_map(rb, &Post::from(item), value! {"id": id}).await.map(|_| ok_result())?
+        Post::update_by_map(rb, &Post::from(item), value! {"id": id}).await.map(|x| Ok(x.rows_affected))?
     }
 
     /*
@@ -95,7 +95,7 @@ impl PostService {
      *date：2025/01/08 13:51:14
      */
 
-    pub async fn update_sys_post_status(item: UpdatePostStatusReq) -> AppResult<String> {
+    pub async fn update_sys_post_status(item: UpdatePostStatusReq) -> Result<u64, AppError> {
         let update_sql = format!(
             "update sys_post set status = ? ,update_time = ? where id in ({})",
             item.ids.iter().map(|_| "?").collect::<Vec<&str>>().join(", ")
@@ -104,7 +104,7 @@ impl PostService {
         let mut param = vec![value!(item.status), value!(DateTime::now())];
         param.extend(item.ids.iter().map(|&id| value!(id)));
 
-        RB.clone().exec(&update_sql, param).await.map(|_| ok_result())?
+        RB.clone().exec(&update_sql, param).await.map(|x| Ok(x.rows_affected))?
     }
 
     /*
@@ -113,10 +113,11 @@ impl PostService {
      *date：2025/01/08 13:51:14
      */
 
-    pub async fn query_sys_post_detail(item: QueryPostDetailReq) -> AppResult<PostResp> {
-        Post::select_by_id(&mut RB.clone(), &item.id)
-            .await?
-            .map_or_else(|| Err(AppError::BusinessError("岗位不存在")), |x| ok_result_data(x.into()))
+    pub async fn query_sys_post_detail(item: QueryPostDetailReq) -> Result<PostResp, AppError> {
+        match Post::select_by_id(&mut RB.clone(), &item.id).await? {
+            None => Err(AppError::BusinessError("岗位不存在")),
+            Some(x) => Ok(x.into()),
+        }
     }
 
     /*
@@ -125,11 +126,11 @@ impl PostService {
      *date：2025/01/08 13:51:14
      */
 
-    pub async fn query_sys_post_list(item: QueryPostListReq) -> AppResultPage<PostResp> {
+    pub async fn query_sys_post_list(item: QueryPostListReq) -> Result<(Vec<PostResp>, u64), AppError> {
         let rb = &mut RB.clone();
 
         Post::select_by_page(rb, &PageRequest::from(&item), &item)
             .await
-            .map(|x| ok_result_page(x.records.into_iter().map(|x| x.into()).collect::<Vec<PostResp>>(), x.total))?
+            .map(|x| Ok((x.records.into_iter().map(|x| x.into()).collect::<Vec<PostResp>>(), x.total)))?
     }
 }

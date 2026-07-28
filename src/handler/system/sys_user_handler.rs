@@ -3,6 +3,7 @@
 // date：2025/01/08 13:51:14
 
 use crate::common::error::{AppResult, AppResultPage};
+use crate::common::result::{ok_result_data, ok_result_page};
 use crate::service::system::sys_user_service::UserService;
 use crate::vo::system::sys_user_vo::*;
 use salvo::oapi::extract::JsonBody;
@@ -14,11 +15,11 @@ use tracing::info;
  *date：2025/01/08 13:51:14
  */
 #[handler]
-pub async fn add_sys_user(req: JsonBody<UserReq>) -> AppResult<String> {
+pub async fn add_sys_user(req: JsonBody<UserReq>) -> AppResult<u64> {
     let item = req.into_inner();
     info!("add sys_user params: {:?}", &item);
 
-    UserService::add_sys_user(item).await
+    UserService::add_sys_user(item).await.map(|last_insert_id| ok_result_data(last_insert_id))?
 }
 
 /*
@@ -27,11 +28,11 @@ pub async fn add_sys_user(req: JsonBody<UserReq>) -> AppResult<String> {
  *date：2025/01/08 13:51:14
  */
 #[handler]
-pub async fn delete_sys_user(depot: &mut Depot, req: JsonBody<DeleteUserReq>) -> AppResult<String> {
+pub async fn delete_sys_user(depot: &mut Depot, req: JsonBody<DeleteUserReq>) -> AppResult<u64> {
     let item = req.into_inner();
     info!("delete sys_user params: {:?}", &item);
 
-    UserService::delete_sys_user(depot, item).await
+    UserService::delete_sys_user(depot, item).await.map(|rows_affected| ok_result_data(rows_affected))?
 }
 
 /*
@@ -40,11 +41,11 @@ pub async fn delete_sys_user(depot: &mut Depot, req: JsonBody<DeleteUserReq>) ->
  *date：2025/01/08 13:51:14
  */
 #[handler]
-pub async fn update_sys_user(req: JsonBody<UserReq>) -> AppResult<String> {
+pub async fn update_sys_user(req: JsonBody<UserReq>) -> AppResult<u64> {
     let item = req.into_inner();
     info!("update sys_user params: {:?}", &item);
 
-    UserService::update_sys_user(item).await
+    UserService::update_sys_user(item).await.map(|rows_affected| ok_result_data(rows_affected))?
 }
 
 /*
@@ -53,11 +54,11 @@ pub async fn update_sys_user(req: JsonBody<UserReq>) -> AppResult<String> {
  *date：2025/01/08 13:51:14
  */
 #[handler]
-pub async fn update_sys_user_status(req: JsonBody<UpdateUserStatusReq>) -> AppResult<String> {
+pub async fn update_sys_user_status(req: JsonBody<UpdateUserStatusReq>) -> AppResult<u64> {
     let item = req.into_inner();
     info!("update sys_user_status params: {:?}", &item);
 
-    UserService::update_sys_user_status(item).await
+    UserService::update_sys_user_status(item).await.map(|rows_affected| ok_result_data(rows_affected))?
 }
 
 /*
@@ -66,11 +67,11 @@ pub async fn update_sys_user_status(req: JsonBody<UpdateUserStatusReq>) -> AppRe
  *date：2025/01/08 13:51:14
  */
 #[handler]
-pub async fn reset_sys_user_password(req: JsonBody<ResetUserPwdReq>) -> AppResult<String> {
+pub async fn reset_sys_user_password(req: JsonBody<ResetUserPwdReq>) -> AppResult<u64> {
     let item = req.into_inner();
     info!("update sys_user_password params: {:?}", &item);
 
-    UserService::reset_sys_user_password(item).await
+    UserService::reset_sys_user_password(item).await.map(|rows_affected| ok_result_data(rows_affected))?
 }
 
 /*
@@ -79,11 +80,11 @@ pub async fn reset_sys_user_password(req: JsonBody<ResetUserPwdReq>) -> AppResul
  *date：2025/01/08 13:51:14
  */
 #[handler]
-pub async fn update_sys_user_password(req: JsonBody<UpdateUserPwdReq>, depot: &mut Depot) -> AppResult<String> {
+pub async fn update_sys_user_password(req: JsonBody<UpdateUserPwdReq>, depot: &mut Depot) -> AppResult<u64> {
     let item = req.into_inner();
     info!("update sys_user_password params: {:?}", &item);
 
-    UserService::update_sys_user_password(item, depot).await
+    UserService::update_sys_user_password(item, depot).await.map(|rows_affected| ok_result_data(rows_affected))?
 }
 
 /*
@@ -96,7 +97,7 @@ pub async fn query_sys_user_detail(req: JsonBody<QueryUserDetailReq>) -> AppResu
     let item = req.into_inner();
     info!("query sys_user_detail params: {:?}", &item);
 
-    UserService::query_sys_user_detail(item).await
+    UserService::query_sys_user_detail(item).await.map(|record| ok_result_data(record))?
 }
 
 /*
@@ -109,7 +110,7 @@ pub async fn query_sys_user_list(req: JsonBody<QueryUserListReq>) -> AppResultPa
     let item = req.into_inner();
     info!("query sys_user_list params: {:?}", &item);
 
-    UserService::query_sys_user_list(item).await
+    UserService::query_sys_user_list(item).await.map(|(list, total)| ok_result_page(list, total))?
 }
 
 /*
@@ -119,7 +120,7 @@ pub async fn query_sys_user_list(req: JsonBody<QueryUserListReq>) -> AppResultPa
  */
 #[handler]
 pub async fn login(depot: &mut Depot, req: &mut Request) -> AppResult<String> {
-    UserService::login(depot, req).await
+    UserService::login(depot, req).await.map(|record| ok_result_data(record))?
 }
 
 /*
@@ -132,7 +133,7 @@ pub async fn query_user_role(req: JsonBody<QueryUserRoleReq>) -> AppResult<Query
     let item = req.into_inner();
     info!("query_user_role params: {:?}", item);
 
-    UserService::query_user_role(item).await
+    UserService::query_user_role(item).await.map(|record| ok_result_data(record))?
 }
 
 /*
@@ -141,11 +142,11 @@ pub async fn query_user_role(req: JsonBody<QueryUserRoleReq>) -> AppResult<Query
  *date：2025/01/08 13:51:14
  */
 #[handler]
-pub async fn update_user_role(req: JsonBody<UpdateUserRoleReq>) -> AppResult<String> {
+pub async fn update_user_role(req: JsonBody<UpdateUserRoleReq>) -> AppResult<u64> {
     let item = req.into_inner();
     info!("update_user_role params: {:?}", item);
 
-    UserService::update_user_role(item).await
+    UserService::update_user_role(item).await.map(|rows_affected| ok_result_data(rows_affected))?
 }
 
 /*
@@ -160,5 +161,5 @@ pub async fn query_user_menu(depot: &mut Depot) -> AppResult<QueryUserMenuResp> 
     info!("query user menu params user_id {:?}", user_id);
     info!("query user menu params user_name {:?}", user_name);
 
-    UserService::query_user_menu(user_id).await
+    UserService::query_user_menu(user_id).await.map(|record| ok_result_data(record))?
 }

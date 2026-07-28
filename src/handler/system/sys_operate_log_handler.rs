@@ -3,6 +3,7 @@
 // date：2025/01/08 13:51:14
 
 use crate::common::error::{AppResult, AppResultPage};
+use crate::common::result::{ok_result_data, ok_result_page};
 use crate::service::system::sys_operate_log_service::OperateLogService;
 use crate::vo::system::sys_operate_log_vo::*;
 use salvo::oapi::extract::JsonBody;
@@ -14,11 +15,11 @@ use tracing::info;
  *date：2025/01/08 13:51:14
  */
 #[handler]
-pub async fn delete_sys_operate_log(req: JsonBody<DeleteOperateLogReq>) -> AppResult<String> {
+pub async fn delete_sys_operate_log(req: JsonBody<DeleteOperateLogReq>) -> AppResult<u64> {
     let item = req.into_inner();
     info!("delete sys_operate_log params: {:?}", &item);
 
-    OperateLogService::delete_sys_operate_log(item).await
+    OperateLogService::delete_sys_operate_log(item).await.map(|rows_affected| ok_result_data(rows_affected))?
 }
 
 /*
@@ -32,7 +33,7 @@ pub async fn query_sys_operate_log_detail(req: JsonBody<QueryOperateLogDetailReq
 
     info!("query sys_operate_log_detail params: {:?}", &item);
 
-    OperateLogService::query_sys_operate_log_detail(item).await
+    OperateLogService::query_sys_operate_log_detail(item).await.map(|record| ok_result_data(record))?
 }
 
 /*
@@ -45,5 +46,5 @@ pub async fn query_sys_operate_log_list(req: JsonBody<QueryOperateLogListReq>) -
     let item = req.into_inner();
     info!("query sys_operate_log_list params: {:?}", &item);
 
-    OperateLogService::query_sys_operate_log_list(item).await
+    OperateLogService::query_sys_operate_log_list(item).await.map(|(list, total)| ok_result_page(list, total))?
 }

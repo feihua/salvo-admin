@@ -2,8 +2,7 @@
 // author：刘飞华
 // date：2025/01/08 13:51:14
 
-use crate::common::error::{AppError, AppResult, AppResultPage};
-use crate::common::result::{ok_result, ok_result_data, ok_result_page};
+use crate::common::error::AppError;
 use crate::model::system::sys_dict_data_model::DictData;
 use crate::vo::system::sys_dict_data_vo::*;
 use crate::RB;
@@ -19,7 +18,7 @@ impl DictDataService {
      *author：刘飞华
      *date：2025/01/08 13:51:14
      */
-    pub async fn add_sys_dict_data(mut item: DictDataReq) -> AppResult<String> {
+    pub async fn add_sys_dict_data(mut item: DictDataReq) -> Result<u64, AppError> {
         let rb = &mut RB.clone();
 
         let condition = value! {"dict_type":&item.dict_type,"dict_label":&item.dict_label};
@@ -33,7 +32,8 @@ impl DictDataService {
         }
 
         item.id = None;
-        DictData::insert(rb, &DictData::from(item)).await.map(|_| ok_result())?
+        let exec_result = DictData::insert(rb, &DictData::from(item)).await?;
+        Ok(exec_result.last_insert_id.as_u64().unwrap_or_default())
     }
 
     /*
@@ -41,10 +41,10 @@ impl DictDataService {
      *author：刘飞华
      *date：2025/01/08 13:51:14
      */
-    pub async fn delete_sys_dict_data(item: DeleteDictDataReq) -> AppResult<String> {
+    pub async fn delete_sys_dict_data(item: DeleteDictDataReq) -> Result<u64, AppError> {
         let rb = &mut RB.clone();
 
-        DictData::delete_by_map(rb, value! {"id": item.ids}).await.map(|_| ok_result())?
+        DictData::delete_by_map(rb, value! {"id": item.ids}).await.map(|x| Ok(x.rows_affected))?
     }
 
     /*
@@ -52,7 +52,7 @@ impl DictDataService {
      *author：刘飞华
      *date：2025/01/08 13:51:14
      */
-    pub async fn update_sys_dict_data(item: DictDataReq) -> AppResult<String> {
+    pub async fn update_sys_dict_data(item: DictDataReq) -> Result<u64, AppError> {
         let rb = &mut RB.clone();
 
         let id = item.id;
@@ -73,7 +73,7 @@ impl DictDataService {
             return Err(AppError::BusinessError("字典键值已存在"));
         }
 
-        DictData::update_by_map(rb, &DictData::from(item), value! {"id": id}).await.map(|_| ok_result())?
+        DictData::update_by_map(rb, &DictData::from(item), value! {"id": id}).await.map(|x| Ok(x.rows_affected))?
     }
 
     /*
@@ -81,7 +81,7 @@ impl DictDataService {
      *author：刘飞华
      *date：2025/01/08 13:51:14
      */
-    pub async fn update_sys_dict_data_status(item: UpdateDictDataStatusReq) -> AppResult<String> {
+    pub async fn update_sys_dict_data_status(item: UpdateDictDataStatusReq) -> Result<u64, AppError> {
         let update_sql = format!(
             "update sys_dict_data set status = ? ,update_time = ? where id in ({})",
             item.ids.iter().map(|_| "?").collect::<Vec<&str>>().join(", ")
@@ -90,7 +90,7 @@ impl DictDataService {
         let mut param = vec![value!(item.status), value!(DateTime::now())];
         param.extend(item.ids.iter().map(|&id| value!(id)));
 
-        RB.clone().exec(&update_sql, param).await.map(|_| ok_result())?
+        RB.clone().exec(&update_sql, param).await.map(|x| Ok(x.rows_affected))?
     }
 
     /*
@@ -98,10 +98,11 @@ impl DictDataService {
      *author：刘飞华
      *date：2025/01/08 13:51:14
      */
-    pub async fn query_sys_dict_data_detail(item: QueryDictDataDetailReq) -> AppResult<DictDataResp> {
-        DictData::select_by_id(&mut RB.clone(), &item.id)
-            .await?
-            .map_or_else(|| Err(AppError::BusinessError("字典数据不存在")), |x| ok_result_data(x.into()))
+    pub async fn query_sys_dict_data_detail(item: QueryDictDataDetailReq) -> Result<DictDataResp, AppError> {
+        match DictData::select_by_id(&mut RB.clone(), &item.id).await? {
+            None => Err(AppError::BusinessError("字典数据不存在")),
+            Some(x) => Ok(x.into()),
+        }
     }
 
     /*
@@ -109,11 +110,11 @@ impl DictDataService {
      *author：刘飞华
      *date：2025/01/08 13:51:14
      */
-    pub async fn query_sys_dict_data_list(item: QueryDictDataListReq) -> AppResultPage<DictDataResp> {
+    pub async fn query_sys_dict_data_list(item: QueryDictDataListReq) -> Result<(Vec<DictDataResp>, u64), AppError> {
         let rb = &mut RB.clone();
 
         DictData::select_by_page(rb, &PageRequest::from(&item), &item)
             .await
-            .map(|x| ok_result_page(x.records.into_iter().map(|x| x.into()).collect::<Vec<DictDataResp>>(), x.total))?
+            .map(|x| Ok((x.records.into_iter().map(|x| x.into()).collect::<Vec<DictDataResp>>(), x.total)))?
     }
 }

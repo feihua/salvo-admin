@@ -2,8 +2,7 @@
 // author：刘飞华
 // date：2025/01/08 13:51:14
 
-use crate::common::error::{AppError, AppResult, AppResultPage};
-use crate::common::result::{ok_result, ok_result_data, ok_result_page};
+use crate::common::error::AppError;
 use crate::model::system::sys_login_log_model::LoginLog;
 use crate::vo::system::sys_login_log_vo::*;
 use crate::RB;
@@ -18,10 +17,10 @@ impl LoginLogService {
      *author：刘飞华
      *date：2025/01/08 13:51:14
      */
-    pub async fn delete_sys_login_log(item: DeleteLoginLogReq) -> AppResult<String> {
+    pub async fn delete_sys_login_log(item: DeleteLoginLogReq) -> Result<u64, AppError> {
         let rb = &mut RB.clone();
 
-        LoginLog::delete_by_map(rb, value! {"id": &item.ids}).await.map(|_| ok_result())?
+        LoginLog::delete_by_map(rb, value! {"id": &item.ids}).await.map(|x| Ok(x.rows_affected))?
     }
 
     /*
@@ -29,11 +28,11 @@ impl LoginLogService {
      *author：刘飞华
      *date：2025/01/08 13:51:14
      */
-    pub async fn query_sys_login_log_detail(item: QueryLoginLogDetailReq) -> AppResult<LoginLogResp> {
-
-        LoginLog::select_by_id(&mut RB.clone(), &item.id)
-            .await?
-            .map_or_else(|| Err(AppError::BusinessError("系统访问记录不存在")), |x| ok_result_data(x.into()))
+    pub async fn query_sys_login_log_detail(item: QueryLoginLogDetailReq) -> Result<LoginLogResp, AppError> {
+        match LoginLog::select_by_id(&mut RB.clone(), &item.id).await? {
+            None => Err(AppError::BusinessError("系统访问记录不存在")),
+            Some(x) => Ok(x.into()),
+        }
     }
 
     /*
@@ -41,11 +40,11 @@ impl LoginLogService {
      *author：刘飞华
      *date：2025/01/08 13:51:14
      */
-    pub async fn query_sys_login_log_list(item: QueryLoginLogListReq) -> AppResultPage<LoginLogResp> {
+    pub async fn query_sys_login_log_list(item: QueryLoginLogListReq) -> Result<(Vec<LoginLogResp>, u64), AppError> {
         let rb = &mut RB.clone();
 
         LoginLog::select_by_page(rb, &PageRequest::from(&item), &item)
             .await
-            .map(|x| ok_result_page(x.records.into_iter().map(|x| x.into()).collect::<Vec<LoginLogResp>>(), x.total))?
+            .map(|x| Ok((x.records.into_iter().map(|x| x.into()).collect::<Vec<LoginLogResp>>(), x.total)))?
     }
 }

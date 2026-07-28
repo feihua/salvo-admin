@@ -2,8 +2,7 @@
 // author：刘飞华
 // date：2025/01/08 13:51:14
 
-use crate::common::error::{AppError, AppResult, AppResultPage};
-use crate::common::result::{ok_result, ok_result_data, ok_result_page};
+use crate::common::error::AppError;
 use crate::model::system::sys_menu_model::{select_count_menu_by_parent_id, Menu};
 use crate::model::system::sys_role_menu_model::RoleMenu;
 use crate::vo::system::sys_menu_vo::*;
@@ -20,7 +19,7 @@ impl MenuService {
      *author：刘飞华
      *date：2025/01/08 13:51:14
      */
-    pub async fn add_sys_menu(mut item: MenuReq) -> AppResult<String> {
+    pub async fn add_sys_menu(mut item: MenuReq) -> Result<u64, AppError> {
         let rb = &mut RB.clone();
         if Menu::select_by_map(rb, value! {"menu_name": &item.menu_name}).await?.len() > 0 {
             return Err(AppError::BusinessError("菜单名称已存在"));
@@ -35,7 +34,8 @@ impl MenuService {
         }
 
         item.id = None;
-        Menu::insert(rb, &Menu::from(item)).await.map(|_| ok_result())?
+        let exec_result = Menu::insert(rb, &Menu::from(item)).await?;
+        Ok(exec_result.last_insert_id.as_u64().unwrap_or_default())
     }
 
     /*
@@ -43,7 +43,7 @@ impl MenuService {
      *author：刘飞华
      *date：2025/01/08 13:51:14
      */
-    pub async fn delete_sys_menu(item: DeleteMenuReq) -> AppResult<String> {
+    pub async fn delete_sys_menu(item: DeleteMenuReq) -> Result<u64, AppError> {
         let rb = &mut RB.clone();
 
         let ids = item.ids;
@@ -57,7 +57,7 @@ impl MenuService {
             }
         }
 
-        Menu::delete_by_map(rb, value! {"id": ids}).await.map(|_| ok_result())?
+        Menu::delete_by_map(rb, value! {"id": ids}).await.map(|x| Ok(x.rows_affected))?
     }
 
     /*
@@ -65,7 +65,7 @@ impl MenuService {
      *author：刘飞华
      *date：2025/01/08 13:51:14
      */
-    pub async fn update_sys_menu(item: MenuReq) -> AppResult<String> {
+    pub async fn update_sys_menu(item: MenuReq) -> Result<u64, AppError> {
         let rb = &mut RB.clone();
 
         let id = item.id;
@@ -91,7 +91,7 @@ impl MenuService {
             }
         }
 
-        Menu::update_by_map(rb, &Menu::from(item), value! {"id": id}).await.map(|_| ok_result())?
+        Menu::update_by_map(rb, &Menu::from(item), value! {"id": id}).await.map(|x| Ok(x.rows_affected))?
     }
 
     /*
@@ -99,7 +99,7 @@ impl MenuService {
      *author：刘飞华
      *date：2025/01/08 13:51:14
      */
-    pub async fn update_sys_menu_status(item: UpdateMenuStatusReq) -> AppResult<String> {
+    pub async fn update_sys_menu_status(item: UpdateMenuStatusReq) -> Result<u64, AppError> {
         let update_sql = format!(
             "update sys_menu set status = ? ,update_time = ? where id in ({})",
             item.ids.iter().map(|_| "?").collect::<Vec<&str>>().join(", ")
@@ -108,7 +108,7 @@ impl MenuService {
         let mut param = vec![value!(item.status), value!(DateTime::now())];
         param.extend(item.ids.iter().map(|&id| value!(id)));
 
-        RB.clone().exec(&update_sql, param).await.map(|_| ok_result())?
+        RB.clone().exec(&update_sql, param).await.map(|x| Ok(x.rows_affected))?
     }
 
     /*
@@ -116,10 +116,11 @@ impl MenuService {
      *author：刘飞华
      *date：2025/01/08 13:51:14
      */
-    pub async fn query_sys_menu_detail(item: QueryMenuDetailReq) -> AppResult<MenuResp> {
-        Menu::select_by_id(&mut RB.clone(), &item.id)
-            .await?
-            .map_or_else(|| Err(AppError::BusinessError("菜单信息不存在")), |x| ok_result_data(x.into()))
+    pub async fn query_sys_menu_detail(item: QueryMenuDetailReq) -> Result<MenuResp, AppError> {
+        match Menu::select_by_id(&mut RB.clone(), &item.id).await? {
+            None => Err(AppError::BusinessError("菜单信息不存在")),
+            Some(x) => Ok(x.into()),
+        }
     }
 
     /*
@@ -127,10 +128,10 @@ impl MenuService {
      *author：刘飞华
      *date：2025/01/08 13:51:14
      */
-    pub async fn query_sys_menu_list(_: QueryMenuListReq) -> AppResult<Vec<MenuResp>> {
+    pub async fn query_sys_menu_list(_: QueryMenuListReq) -> Result<Vec<MenuResp>, AppError> {
         Menu::select_by_map(&mut RB.clone(), value! {})
             .await
-            .map(|x| ok_result_data(x.into_iter().map(|x| x.into()).collect::<Vec<MenuResp>>()))?
+            .map(|x| Ok(x.into_iter().map(|x| x.into()).collect::<Vec<MenuResp>>()))?
     }
 
     /*
@@ -138,10 +139,10 @@ impl MenuService {
      *author：刘飞华
      *date：2025/01/08 13:51:14
      */
-    pub async fn query_sys_menu_list_simple() -> AppResult<Vec<MenuSimpleResp>> {
+    pub async fn query_sys_menu_list_simple() -> Result<Vec<MenuSimpleResp>, AppError> {
         Menu::select_by_map(&mut RB.clone(), value! {"menu_type!=": 3, "status": 1})
             .await
-            .map(|x| ok_result_data(x.into_iter().map(|x| MenuSimpleResp::from(x)).collect::<Vec<MenuSimpleResp>>()))?
+            .map(|x| Ok(x.into_iter().map(|x| MenuSimpleResp::from(x)).collect::<Vec<MenuSimpleResp>>()))?
     }
 
     /*
@@ -149,11 +150,11 @@ impl MenuService {
      *author：刘飞华
      *date：2025/01/08 13:51:14
      */
-    pub async fn query_sys_menu_resource_list(item: QueryMenuListReq) -> AppResultPage<MenuResp> {
+    pub async fn query_sys_menu_resource_list(item: QueryMenuListReq) -> Result<(Vec<MenuResp>, u64), AppError> {
         let rb = &mut RB.clone();
 
         Menu::select_by_page(rb, &PageRequest::from(&item), &item)
             .await
-            .map(|x| ok_result_page(x.records.into_iter().map(|x| x.into()).collect::<Vec<MenuResp>>(), x.total))?
+            .map(|x| Ok((x.records.into_iter().map(|x| x.into()).collect::<Vec<MenuResp>>(), x.total)))?
     }
 }

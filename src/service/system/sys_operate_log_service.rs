@@ -2,8 +2,7 @@
 // author：刘飞华
 // date：2025/01/08 13:51:14
 
-use crate::common::error::{AppError, AppResult, AppResultPage};
-use crate::common::result::{ok_result, ok_result_data, ok_result_page};
+use crate::common::error::AppError;
 use crate::model::system::sys_operate_log_model::OperateLog;
 use crate::vo::system::sys_operate_log_vo::*;
 use crate::RB;
@@ -18,10 +17,10 @@ impl OperateLogService {
      *author：刘飞华
      *date：2025/01/08 13:51:14
      */
-    pub async fn delete_sys_operate_log(item: DeleteOperateLogReq) -> AppResult<String> {
+    pub async fn delete_sys_operate_log(item: DeleteOperateLogReq) -> Result<u64, AppError> {
         let rb = &mut RB.clone();
 
-        OperateLog::delete_by_map(rb, value! {"id": & item.ids}).await.map(|_| ok_result())?
+        OperateLog::delete_by_map(rb, value! {"id": & item.ids}).await.map(|x| Ok(x.rows_affected))?
     }
 
     /*
@@ -29,10 +28,11 @@ impl OperateLogService {
      *author：刘飞华
      *date：2025/01/08 13:51:14
      */
-    pub async fn query_sys_operate_log_detail(item: QueryOperateLogDetailReq) -> AppResult<OperateLogResp> {
-        OperateLog::select_by_id(&mut RB.clone(), &item.id)
-            .await?
-            .map_or_else(|| Err(AppError::BusinessError("操作日志不存在")), |x| ok_result_data(x.into()))
+    pub async fn query_sys_operate_log_detail(item: QueryOperateLogDetailReq) -> Result<OperateLogResp, AppError> {
+        match OperateLog::select_by_id(&mut RB.clone(), &item.id).await? {
+            None => Err(AppError::BusinessError("操作日志不存在")),
+            Some(x) => Ok(x.into()),
+        }
     }
 
     /*
@@ -40,11 +40,11 @@ impl OperateLogService {
      *author：刘飞华
      *date：2025/01/08 13:51:14
      */
-    pub async fn query_sys_operate_log_list(item: QueryOperateLogListReq) -> AppResultPage<OperateLogResp> {
+    pub async fn query_sys_operate_log_list(item: QueryOperateLogListReq) -> Result<(Vec<OperateLogResp>, u64), AppError> {
         let rb = &mut RB.clone();
 
         OperateLog::select_by_page(rb, &PageRequest::from(&item), &item)
             .await
-            .map(|x| ok_result_page(x.records.into_iter().map(|x| x.into()).collect::<Vec<OperateLogResp>>(), x.total))?
+            .map(|x| Ok((x.records.into_iter().map(|x| x.into()).collect::<Vec<OperateLogResp>>(), x.total)))?
     }
 }

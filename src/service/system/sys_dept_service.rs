@@ -2,8 +2,7 @@
 // author：刘飞华
 // date：2025/01/08 13:51:14
 
-use crate::common::error::{AppError, AppResult};
-use crate::common::result::{ok_result, ok_result_data};
+use crate::common::error::AppError;
 use crate::model::system::sys_dept_model::Dept;
 use crate::vo::system::sys_dept_vo::*;
 use crate::RB;
@@ -19,7 +18,7 @@ impl DeptService {
      *author：刘飞华
      *date：2025/01/08 13:51:14
      */
-    pub async fn add_sys_dept(item: DeptReq) -> AppResult<String> {
+    pub async fn add_sys_dept(item: DeptReq) -> Result<u64, AppError> {
         let rb = &mut RB.clone();
 
         let condition = value! {"dept_name":&item.dept_name,"parent_id":item.parent_id};
@@ -37,7 +36,9 @@ impl DeptService {
                 let mut sys_dept = Dept::from(item);
                 sys_dept.ancestors = Some(ancestors);
                 sys_dept.id = None;
-                Dept::insert(rb, &sys_dept).await.map(|_| ok_result())?
+
+                let exec_result = Dept::insert(rb, &sys_dept).await?;
+                Ok(exec_result.last_insert_id.as_u64().unwrap_or_default())
             }
         }
     }
@@ -47,7 +48,7 @@ impl DeptService {
      *author：刘飞华
      *date：2025/01/08 13:51:14
      */
-    pub async fn delete_sys_dept(item: DeleteDeptReq) -> AppResult<String> {
+    pub async fn delete_sys_dept(item: DeleteDeptReq) -> Result<u64, AppError> {
         let rb = &mut RB.clone();
         if Dept::select_dept_count(rb, &item.id).await? > 0 {
             return Err(AppError::BusinessError("存在下级部门,不允许删除"));
@@ -57,7 +58,8 @@ impl DeptService {
             return Err(AppError::BusinessError("部门存在用户,不允许删除"));
         }
 
-        Dept::delete_by_map(rb, value! {"id": item.id}).await.map(|_| ok_result())?
+        let exec_result = Dept::delete_by_map(rb, value! {"id": item.id}).await?;
+        Ok(exec_result.rows_affected)
     }
 
     /*
@@ -65,7 +67,7 @@ impl DeptService {
      *author：刘飞华
      *date：2025/01/08 13:51:14
      */
-    pub async fn update_sys_dept(mut item: DeptReq) -> AppResult<String> {
+    pub async fn update_sys_dept(mut item: DeptReq) -> Result<u64, AppError> {
         let rb = &mut RB.clone();
 
         let id = item.id;
@@ -117,7 +119,8 @@ impl DeptService {
         }
         item.ancestors = Some(ancestors);
 
-        Dept::update_by_map(rb, &Dept::from(item), value! {"id":  id}).await.map(|_| ok_result())?
+        let exec_result = Dept::update_by_map(rb, &Dept::from(item), value! {"id":  id}).await?;
+        Ok(exec_result.rows_affected)
     }
 
     /*
@@ -125,7 +128,7 @@ impl DeptService {
      *author：刘飞华
      *date：2025/01/08 13:51:14
      */
-    pub async fn update_sys_dept_status(item: UpdateDeptStatusReq) -> AppResult<String> {
+    pub async fn update_sys_dept_status(item: UpdateDeptStatusReq) -> Result<u64, AppError> {
         let rb = &mut RB.clone();
 
         let ids = item.ids;
@@ -154,7 +157,8 @@ impl DeptService {
 
         let mut param = vec![value!(item.status), value!(DateTime::now())];
         param.extend(ids.iter().map(|&id| value!(id)));
-        rb.exec(&update_sql, param).await.map(|_| ok_result())?
+        let exec_result = rb.exec(&update_sql, param).await?;
+        Ok(exec_result.rows_affected)
     }
 
     /*
@@ -162,9 +166,9 @@ impl DeptService {
      *author：刘飞华
      *date：2025/01/08 13:51:14
      */
-    pub async fn query_sys_dept_detail(item: QueryDeptDetailReq) -> AppResult<DeptResp> {
+    pub async fn query_sys_dept_detail(item: QueryDeptDetailReq) -> Result<DeptResp, AppError> {
         match Dept::select_by_id(&mut RB.clone(), &item.id).await? {
-            Some(x) => ok_result_data(x.into()),
+            Some(x) => Ok(x.into()),
             None => Err(AppError::BusinessError("部门不存在")),
         }
     }
@@ -174,11 +178,9 @@ impl DeptService {
      *author：刘飞华
      *date：2025/01/08 13:51:14
      */
-    pub async fn query_sys_dept_list(item: QueryDeptListReq) -> AppResult<Vec<DeptResp>> {
+    pub async fn query_sys_dept_list(item: QueryDeptListReq) -> Result<Vec<DeptResp>, AppError> {
         let rb = &mut RB.clone();
 
-        Dept::select_by_page(rb, &item)
-            .await
-            .map(|x| ok_result_data(x.into_iter().map(|x| x.into()).collect::<Vec<DeptResp>>()))?
+        Dept::select_by_page(rb, &item).await.map(|x| Ok(x.into_iter().map(|x| x.into()).collect::<Vec<DeptResp>>()))?
     }
 }

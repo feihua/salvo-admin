@@ -2,8 +2,7 @@
 // author：刘飞华
 // date：2025/01/08 13:51:14
 
-use crate::common::error::{AppError, AppResult, AppResultPage};
-use crate::common::result::{ok_result, ok_result_data, ok_result_page};
+use crate::common::error::AppError;
 use crate::model::system::sys_menu_model::Menu;
 use crate::model::system::sys_role_dept_model::RoleDept;
 use crate::model::system::sys_role_menu_model::RoleMenu;
@@ -25,7 +24,7 @@ impl RoleService {
      *author：刘飞华
      *date：2025/01/08 13:51:14
      */
-    pub async fn add_sys_role(mut item: RoleReq) -> AppResult<String> {
+    pub async fn add_sys_role(mut item: RoleReq) -> Result<u64, AppError> {
         let rb = &mut RB.clone();
         if Role::select_by_map(rb, value! {"role_name": &item.role_name}).await?.len() > 0 {
             return Err(AppError::BusinessError("角色名称已存在"));
@@ -36,7 +35,8 @@ impl RoleService {
         }
 
         item.id = None;
-        Role::insert(rb, &Role::from(item)).await.map(|_| ok_result())?
+        let exec_result = Role::insert(rb, &Role::from(item)).await?;
+        Ok(exec_result.last_insert_id.as_u64().unwrap_or_default())
     }
 
     /*
@@ -44,7 +44,7 @@ impl RoleService {
      *author：刘飞华
      *date：2025/01/08 13:51:14
      */
-    pub async fn delete_sys_role(item: DeleteRoleReq) -> AppResult<String> {
+    pub async fn delete_sys_role(item: DeleteRoleReq) -> Result<u64, AppError> {
         let ids = item.ids;
 
         if ids.contains(&1) {
@@ -65,7 +65,7 @@ impl RoleService {
         RoleMenu::delete_by_map(rb, value! {"role_id": &ids}).await?;
         RoleDept::delete_by_map(rb, value! {"role_id": &ids}).await?;
 
-        Role::delete_by_map(rb, value! {"id": ids}).await.map(|_| ok_result())?
+        Role::delete_by_map(rb, value! {"id": ids}).await.map(|x| Ok(x.rows_affected))?
     }
 
     /*
@@ -73,7 +73,7 @@ impl RoleService {
      *author：刘飞华
      *date：2025/01/08 13:51:14
      */
-    pub async fn update_sys_role(item: RoleReq) -> AppResult<String> {
+    pub async fn update_sys_role(item: RoleReq) -> Result<u64, AppError> {
         let rb = &mut RB.clone();
 
         let id = item.id;
@@ -96,7 +96,7 @@ impl RoleService {
             return Err(AppError::BusinessError("角色权限已存在"));
         }
 
-        Role::update_by_map(rb, &Role::from(item), value! {"id": id}).await.map(|_| ok_result())?
+        Role::update_by_map(rb, &Role::from(item), value! {"id": id}).await.map(|x| Ok(x.rows_affected))?
     }
 
     /*
@@ -104,7 +104,7 @@ impl RoleService {
      *author：刘飞华
      *date：2025/01/08 13:51:14
      */
-    pub async fn update_sys_role_status(item: UpdateRoleStatusReq) -> AppResult<String> {
+    pub async fn update_sys_role_status(item: UpdateRoleStatusReq) -> Result<u64, AppError> {
         if item.ids.contains(&1) {
             return Err(AppError::BusinessError("不允许操作超级管理员角色"));
         }
@@ -117,7 +117,7 @@ impl RoleService {
         let mut param = vec![value!(item.status), value!(DateTime::now())];
         param.extend(item.ids.iter().map(|&id| value!(id)));
 
-        RB.clone().exec(&update_sql, param).await.map(|_| ok_result())?
+        RB.clone().exec(&update_sql, param).await.map(|x| Ok(x.rows_affected))?
     }
 
     /*
@@ -125,10 +125,11 @@ impl RoleService {
      *author：刘飞华
      *date：2025/01/08 13:51:14
      */
-    pub async fn query_sys_role_detail(item: QueryRoleDetailReq) -> AppResult<RoleResp> {
-        Role::select_by_id(&mut RB.clone(), &item.id)
-            .await?
-            .map_or_else(|| Err(AppError::BusinessError("角色不存在")), |x| ok_result_data(x.into()))
+    pub async fn query_sys_role_detail(item: QueryRoleDetailReq) -> Result<RoleResp, AppError> {
+        match Role::select_by_id(&mut RB.clone(), &item.id).await? {
+            None => Err(AppError::BusinessError("角色不存在")),
+            Some(x) => Ok(x.into()),
+        }
     }
 
     /*
@@ -136,12 +137,12 @@ impl RoleService {
      *author：刘飞华
      *date：2025/01/08 13:51:14
      */
-    pub async fn query_sys_role_list(item: QueryRoleListReq) -> AppResultPage<RoleResp> {
+    pub async fn query_sys_role_list(item: QueryRoleListReq) -> Result<(Vec<RoleResp>, u64), AppError> {
         let rb = &mut RB.clone();
 
         Role::select_by_page(rb, &PageRequest::from(&item), &item)
             .await
-            .map(|x| ok_result_page(x.records.into_iter().map(|x| x.into()).collect::<Vec<RoleResp>>(), x.total))?
+            .map(|x| Ok((x.records.into_iter().map(|x| x.into()).collect::<Vec<RoleResp>>(), x.total)))?
     }
 
     /*
@@ -149,7 +150,7 @@ impl RoleService {
      *author：刘飞华
      *date：2025/01/08 13:51:14
      */
-    pub async fn query_role_menu(item: QueryRoleMenuReq) -> AppResult<QueryRoleMenuData> {
+    pub async fn query_role_menu(item: QueryRoleMenuReq) -> Result<QueryRoleMenuData, AppError> {
         let rb = &mut RB.clone();
         let menu_list_all = Menu::select_by_map(rb, value! {}).await?;
 
@@ -179,7 +180,7 @@ impl RoleService {
             }
         }
 
-        ok_result_data(QueryRoleMenuData { menu_ids, menu_list })
+        Ok(QueryRoleMenuData { menu_ids, menu_list })
     }
 
     /*
@@ -187,7 +188,7 @@ impl RoleService {
      *author：刘飞华
      *date：2025/01/08 13:51:14
      */
-    pub async fn update_role_menu(item: UpdateRoleMenuReq) -> AppResult<String> {
+    pub async fn update_role_menu(item: UpdateRoleMenuReq) -> Result<u64, AppError> {
         let role_id = item.role_id;
 
         if role_id == 1 {
@@ -203,8 +204,7 @@ impl RoleService {
             role_menu.push(RoleMenu { id: None, menu_id: *id, role_id })
         }
 
-        RoleMenu::insert_batch(rb, &role_menu, item.menu_ids.len() as u64).await?;
-        ok_result()
+        RoleMenu::insert_batch(rb, &role_menu, item.menu_ids.len() as u64).await.map(|x| Ok(x.rows_affected))?
     }
 
     /*
@@ -212,7 +212,7 @@ impl RoleService {
      *author：刘飞华
      *date：2025/01/08 13:51:14
      */
-    pub async fn query_allocated_list(item: AllocatedListReq) -> AppResultPage<UserResp> {
+    pub async fn query_allocated_list(item: AllocatedListReq) -> Result<(Vec<UserResp>, u64), AppError> {
         let page_no = item.page_no;
         let page_size = item.page_size;
         let role_id = item.role_id;
@@ -229,7 +229,7 @@ impl RoleService {
         }
 
         let total = User::count_allocated_list(rb, role_id, user_name, mobile).await?;
-        ok_result_page(list, total)
+        Ok((list, total))
     }
 
     /*
@@ -237,7 +237,7 @@ impl RoleService {
      *author：刘飞华
      *date：2025/01/08 13:51:14
      */
-    pub async fn query_unallocated_list(item: UnallocatedListReq) -> AppResultPage<UserResp> {
+    pub async fn query_unallocated_list(item: UnallocatedListReq) -> Result<(Vec<UserResp>, u64), AppError> {
         let page_no = item.page_no;
         let page_size = item.page_size;
         let role_id = item.role_id;
@@ -255,7 +255,7 @@ impl RoleService {
         }
 
         let total = User::count_unallocated_list(rb, role_id, user_name, mobile).await?;
-        ok_result_page(list, total)
+        Ok((list, total))
     }
 
     /*
@@ -263,11 +263,10 @@ impl RoleService {
      *author：刘飞华
      *date：2025/01/08 13:51:14
      */
-    pub async fn cancel_auth_user(item: CancelAuthUserReq) -> AppResult<String> {
+    pub async fn cancel_auth_user(item: CancelAuthUserReq) -> Result<i64, AppError> {
         let rb = &mut RB.clone();
 
-        UserRole::delete_user_role_by_role_id_user_id(rb, item.role_id, item.user_id).await?;
-        ok_result()
+        UserRole::delete_user_role_by_role_id_user_id(rb, item.role_id, item.user_id).await.map(|x| Ok(x.unwrap_or_default()))?
     }
 
     /*
@@ -275,7 +274,7 @@ impl RoleService {
      *author：刘飞华
      *date：2025/01/08 13:51:14
      */
-    pub async fn batch_cancel_auth_user(item: CancelAuthUserAllReq) -> AppResult<String> {
+    pub async fn batch_cancel_auth_user(item: CancelAuthUserAllReq) -> Result<u64, AppError> {
         let update_sql = format!(
             "delete from sys_user_role where role_id = ? and user_id in ({})",
             item.user_ids.iter().map(|_| "?").collect::<Vec<&str>>().join(", ")
@@ -284,8 +283,8 @@ impl RoleService {
         let mut param = vec![value!(item.role_id)];
         param.extend(item.user_ids.iter().map(|&id| value!(id)));
 
-        let _ = &mut RB.clone().exec(&update_sql, param).await?;
-        ok_result()
+        let exce = &mut RB.clone().exec(&update_sql, param).await?;
+        Ok(exce.rows_affected)
     }
 
     /*
@@ -293,14 +292,13 @@ impl RoleService {
      *author：刘飞华
      *date：2025/01/08 13:51:14
      */
-    pub async fn batch_auth_user(item: SelectAuthUserAllReq) -> AppResult<String> {
+    pub async fn batch_auth_user(item: SelectAuthUserAllReq) -> Result<u64, AppError> {
         let role_id = item.role_id;
 
         let user_role: Vec<UserRole> = item.user_ids.into_iter().map(|user_id| UserRole { id: None, role_id, user_id }).collect();
 
         let rb = &mut RB.clone();
 
-        UserRole::insert_batch(rb, &user_role, user_role.len() as u64).await?;
-        ok_result()
+        UserRole::insert_batch(rb, &user_role, user_role.len() as u64).await.map(|x| Ok(x.rows_affected))?
     }
 }

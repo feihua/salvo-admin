@@ -3,6 +3,7 @@
 // date：2025/01/08 13:51:14
 
 use crate::common::error::{AppResult, AppResultPage};
+use crate::common::result::{ok_result_data, ok_result_page};
 use crate::service::system::sys_dict_type_service::DictTypeService;
 use crate::vo::system::sys_dict_type_vo::*;
 use salvo::oapi::extract::JsonBody;
@@ -14,11 +15,11 @@ use tracing::info;
  *date：2025/01/08 13:51:14
  */
 #[handler]
-pub async fn add_sys_dict_type(req: JsonBody<DictTypeReq>) -> AppResult<String> {
+pub async fn add_sys_dict_type(req: JsonBody<DictTypeReq>) -> AppResult<u64> {
     let item = req.into_inner();
     info!("add sys_dict_type params: {:?}", &item);
 
-    DictTypeService::add_sys_dict_type(item).await
+    DictTypeService::add_sys_dict_type(item).await.map(|last_insert_id| ok_result_data(last_insert_id))?
 }
 
 /*
@@ -27,11 +28,11 @@ pub async fn add_sys_dict_type(req: JsonBody<DictTypeReq>) -> AppResult<String> 
  *date：2025/01/08 13:51:14
  */
 #[handler]
-pub async fn delete_sys_dict_type(req: JsonBody<DeleteDictTypeReq>) -> AppResult<String> {
+pub async fn delete_sys_dict_type(req: JsonBody<DeleteDictTypeReq>) -> AppResult<u64> {
     let item = req.into_inner();
     info!("delete sys_dict_type params: {:?}", &item);
 
-    DictTypeService::delete_sys_dict_type(item).await
+    DictTypeService::delete_sys_dict_type(item).await.map(|rows_affected| ok_result_data(rows_affected))?
 }
 
 /*
@@ -40,11 +41,11 @@ pub async fn delete_sys_dict_type(req: JsonBody<DeleteDictTypeReq>) -> AppResult
  *date：2025/01/08 13:51:14
  */
 #[handler]
-pub async fn update_sys_dict_type(req: JsonBody<DictTypeReq>) -> AppResult<String> {
+pub async fn update_sys_dict_type(req: JsonBody<DictTypeReq>) -> AppResult<u64> {
     let item = req.into_inner();
     info!("update sys_dict_type params: {:?}", &item);
 
-    DictTypeService::update_sys_dict_type(item).await
+    DictTypeService::update_sys_dict_type(item).await.map(|rows_affected| ok_result_data(rows_affected))?
 }
 
 /*
@@ -53,10 +54,10 @@ pub async fn update_sys_dict_type(req: JsonBody<DictTypeReq>) -> AppResult<Strin
  *date：2025/01/08 13:51:14
  */
 #[handler]
-pub async fn update_sys_dict_type_status(req: JsonBody<UpdateDictTypeStatusReq>) -> AppResult<String> {
+pub async fn update_sys_dict_type_status(req: JsonBody<UpdateDictTypeStatusReq>) -> AppResult<u64> {
     let item = req.into_inner();
 
-    DictTypeService::update_sys_dict_type_status(item).await
+    DictTypeService::update_sys_dict_type_status(item).await.map(|rows_affected| ok_result_data(rows_affected))?
 }
 
 /*
@@ -68,7 +69,7 @@ pub async fn update_sys_dict_type_status(req: JsonBody<UpdateDictTypeStatusReq>)
 pub async fn query_sys_dict_type_detail(req: JsonBody<QueryDictTypeDetailReq>) -> AppResult<DictTypeResp> {
     let item = req.into_inner();
 
-    DictTypeService::query_sys_dict_type_detail(item).await
+    DictTypeService::query_sys_dict_type_detail(item).await.map(|record| ok_result_data(record))?
 }
 
 /*
@@ -80,5 +81,5 @@ pub async fn query_sys_dict_type_detail(req: JsonBody<QueryDictTypeDetailReq>) -
 pub async fn query_sys_dict_type_list(req: JsonBody<QueryDictTypeListReq>) -> AppResultPage<DictTypeResp> {
     let item = req.into_inner();
 
-    DictTypeService::query_sys_dict_type_list(item).await
+    DictTypeService::query_sys_dict_type_list(item).await.map(|(list, total)| ok_result_page(list, total))?
 }

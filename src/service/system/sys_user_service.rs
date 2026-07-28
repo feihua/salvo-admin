@@ -2,8 +2,7 @@
 // author：刘飞华
 // date：2025/01/08 13:51:14
 
-use crate::common::error::{AppError, AppResult, AppResultPage};
-use crate::common::result::{ok_result, ok_result_data, ok_result_page};
+use crate::common::error::AppError;
 use crate::model::system::sys_dept_model::Dept;
 use crate::model::system::sys_login_log_model::LoginLog;
 use crate::model::system::sys_menu_model::Menu;
@@ -34,7 +33,7 @@ impl UserService {
      *author：刘飞华
      *date：2025/01/08 13:51:14
      */
-    pub async fn add_sys_user(mut item: UserReq) -> AppResult<String> {
+    pub async fn add_sys_user(mut item: UserReq) -> Result<u64, AppError> {
         let rb = &mut RB.clone();
         if User::select_by_map(rb, value! {"user_name": &item.user_name}).await?.len() > 0 {
             return Err(AppError::BusinessError("登录账号已存在"));
@@ -64,7 +63,8 @@ impl UserService {
             .collect::<Vec<UserPost>>();
 
         let size = user_post_list.len() as u64;
-        UserPost::insert_batch(rb, &user_post_list, size).await.map(|_| ok_result())?
+        let exec_result = UserPost::insert_batch(rb, &user_post_list, size).await?;
+        Ok(exec_result.last_insert_id.as_u64().unwrap_or_default())
     }
 
     /*
@@ -72,7 +72,7 @@ impl UserService {
      *author：刘飞华
      *date：2025/01/08 13:51:14
      */
-    pub async fn delete_sys_user(depot: &mut Depot, item: DeleteUserReq) -> AppResult<String> {
+    pub async fn delete_sys_user(depot: &mut Depot, item: DeleteUserReq) -> Result<u64, AppError> {
         if let Ok(user_id) = depot.get::<i64>("userId").copied() {
             let ids = item.ids;
             if ids.contains(&user_id) {
@@ -87,7 +87,7 @@ impl UserService {
 
             UserPost::delete_by_map(rb, value! {"user_id": &ids}).await?;
 
-            User::delete_by_map(rb, value! {"id": ids}).await.map(|_| ok_result())?
+            User::delete_by_map(rb, value! {"id": ids}).await.map(|x| Ok(x.rows_affected))?
         } else {
             Err(AppError::BusinessError("参数错误"))
         }
@@ -98,7 +98,7 @@ impl UserService {
      *author：刘飞华
      *date：2025/01/08 13:51:14
      */
-    pub async fn update_sys_user(item: UserReq) -> AppResult<String> {
+    pub async fn update_sys_user(item: UserReq) -> Result<u64, AppError> {
         let rb = &mut RB.clone();
 
         let id = item.id;
@@ -140,7 +140,7 @@ impl UserService {
         UserPost::delete_by_map(rb, value! {"user_id": &item.id}).await?;
         UserPost::insert_batch(rb, &user_post_list, user_post_list.len() as u64).await?;
 
-        User::update_by_map(rb, &User::from(item), value! {"id": id}).await.map(|_| ok_result())?
+        User::update_by_map(rb, &User::from(item), value! {"id": id}).await.map(|x| Ok(x.rows_affected))?
     }
 
     /*
@@ -148,7 +148,7 @@ impl UserService {
      *author：刘飞华
      *date：2025/01/08 13:51:14
      */
-    pub async fn update_sys_user_status(item: UpdateUserStatusReq) -> AppResult<String> {
+    pub async fn update_sys_user_status(item: UpdateUserStatusReq) -> Result<u64, AppError> {
         let ids = item.ids;
         if ids.contains(&1) {
             return Err(AppError::BusinessError("不允许操作超级管理员用户"));
@@ -162,7 +162,7 @@ impl UserService {
         let mut param = vec![value!(item.status), value!(DateTime::now())];
         param.extend(ids.iter().map(|&id| value!(id)));
 
-        RB.clone().exec(&update_sql, param).await.map(|_| ok_result())?
+        RB.clone().exec(&update_sql, param).await.map(|x| Ok(x.rows_affected))?
     }
 
     /*
@@ -170,7 +170,7 @@ impl UserService {
      *author：刘飞华
      *date：2025/01/08 13:51:14
      */
-    pub async fn reset_sys_user_password(item: ResetUserPwdReq) -> AppResult<String> {
+    pub async fn reset_sys_user_password(item: ResetUserPwdReq) -> Result<u64, AppError> {
         let rb = &mut RB.clone();
 
         let id = item.id.clone();
@@ -183,7 +183,7 @@ impl UserService {
             Some(x) => {
                 let mut user = x;
                 user.password = item.password;
-                User::update_by_map(rb, &user, value! {"id": user.id}).await.map(|_| ok_result())?
+                User::update_by_map(rb, &user, value! {"id": user.id}).await.map(|x| Ok(x.rows_affected))?
             }
         }
     }
@@ -193,7 +193,7 @@ impl UserService {
      *author：刘飞华
      *date：2025/01/08 13:51:14
      */
-    pub async fn update_sys_user_password(item: UpdateUserPwdReq, depot: &mut Depot) -> AppResult<String> {
+    pub async fn update_sys_user_password(item: UpdateUserPwdReq, depot: &mut Depot) -> Result<u64, AppError> {
         if let Ok(user_id) = depot.get::<i64>("userId").copied() {
             let rb = &mut RB.clone();
 
@@ -206,7 +206,7 @@ impl UserService {
                     }
                     user.password = item.re_pwd;
 
-                    User::update_by_map(rb, &user, value! {"id": user.id}).await.map(|_| ok_result())?
+                    User::update_by_map(rb, &user, value! {"id": user.id}).await.map(|x| Ok(x.rows_affected))?
                 }
             }
         } else {
@@ -219,7 +219,7 @@ impl UserService {
      *author：刘飞华
      *date：2025/01/08 13:51:14
      */
-    pub async fn query_sys_user_detail(item: QueryUserDetailReq) -> AppResult<UserResp> {
+    pub async fn query_sys_user_detail(item: QueryUserDetailReq) -> Result<UserResp, AppError> {
         let rb = &mut RB.clone();
 
         let mut x = match User::select_by_id(rb, &item.id).await? {
@@ -244,7 +244,7 @@ impl UserService {
         x.dept_info = dept;
         x.post_ids = Some(post_ids);
 
-        ok_result_data(x)
+        Ok(x)
     }
 
     /*
@@ -252,12 +252,12 @@ impl UserService {
      *author：刘飞华
      *date：2025/01/08 13:51:14
      */
-    pub async fn query_sys_user_list(item: QueryUserListReq) -> AppResultPage<UserResp> {
+    pub async fn query_sys_user_list(item: QueryUserListReq) -> Result<(Vec<UserResp>, u64), AppError> {
         let rb = &mut RB.clone();
 
         User::select_by_page(rb, &PageRequest::from(&item), &item)
             .await
-            .map(|x| ok_result_page(x.records.into_iter().map(|x| x.into()).collect::<Vec<UserResp>>(), x.total))?
+            .map(|x| Ok((x.records.into_iter().map(|x| x.into()).collect::<Vec<UserResp>>(), x.total)))?
     }
 
     /*
@@ -265,7 +265,7 @@ impl UserService {
      *author：刘飞华
      *date：2025/01/08 13:51:14
      */
-    pub async fn login(depot: &mut Depot, req: &mut Request) -> AppResult<String> {
+    pub async fn login(depot: &mut Depot, req: &mut Request) -> Result<String, AppError> {
         let item = req.parse_json::<UserLoginReq>().await?;
         info!("user login params: {:?}", &item);
 
@@ -327,7 +327,7 @@ impl UserService {
                 s_user.login_date = Some(DateTime::now());
 
                 User::update_by_map(rb, &s_user, value! {"id": s_user.id}).await?;
-                ok_result_data(token)
+                Ok(token)
             }
         }
     }
@@ -395,7 +395,7 @@ impl UserService {
      *author：刘飞华
      *date：2025/01/08 13:51:14
      */
-    pub async fn query_user_role(item: QueryUserRoleReq) -> AppResult<QueryUserRoleResp> {
+    pub async fn query_user_role(item: QueryUserRoleReq) -> Result<QueryUserRoleResp, AppError> {
         let rb = &mut RB.clone();
         let mut user_role_ids: Vec<i64> = Vec::new();
 
@@ -406,7 +406,7 @@ impl UserService {
 
         let sys_role_list = Role::select_by_map(rb, value! {}).await.map(|x| x.into_iter().map(|x| x.into()).collect::<Vec<RoleResp>>())?;
 
-        ok_result_data(QueryUserRoleResp { sys_role_list, user_role_ids })
+        Ok(QueryUserRoleResp { sys_role_list, user_role_ids })
     }
 
     /*
@@ -414,7 +414,7 @@ impl UserService {
      *author：刘飞华
      *date：2025/01/08 13:51:14
      */
-    pub async fn update_user_role(item: UpdateUserRoleReq) -> AppResult<String> {
+    pub async fn update_user_role(item: UpdateUserRoleReq) -> Result<u64, AppError> {
         let user_id = item.user_id;
 
         let rb = &mut RB.clone();
@@ -427,7 +427,7 @@ impl UserService {
 
         let list: Vec<UserRole> = item.role_ids.into_iter().map(|role_id| UserRole { id: None, role_id, user_id }).collect();
 
-        UserRole::insert_batch(rb, &list, list.len() as u64).await.map(|_| ok_result())?
+        UserRole::insert_batch(rb, &list, list.len() as u64).await.map(|x| Ok(x.rows_affected))?
     }
 
     /*
@@ -435,7 +435,7 @@ impl UserService {
      *author：刘飞华
      *date：2025/01/08 13:51:14
      */
-    pub async fn query_user_menu(user_id: i64) -> AppResult<QueryUserMenuResp> {
+    pub async fn query_user_menu(user_id: i64) -> Result<QueryUserMenuResp, AppError> {
         //根据id查询用户
         let rb = &mut RB.clone();
 
@@ -489,7 +489,7 @@ impl UserService {
                     avatar: "https://gw.alipayobjects.com/zos/antfincdn/XAosXuNZyF/BiazfanxmamNRoxxVxka.png".to_string(),
                     name: user.user_name,
                 };
-                ok_result_data(data)
+                Ok(data)
             }
         }
     }
