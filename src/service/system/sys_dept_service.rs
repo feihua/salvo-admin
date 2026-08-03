@@ -3,6 +3,7 @@
 // date：2025/01/08 13:51:14
 
 use crate::common::error::AppError;
+use crate::common::error::AppError::BusinessError;
 use crate::model::system::sys_dept_model::Dept;
 use crate::vo::system::sys_dept_vo::*;
 use crate::RB;
@@ -23,14 +24,14 @@ impl DeptService {
 
         let condition = value! {"dept_name":&item.dept_name,"parent_id":item.parent_id};
         if Dept::select_by_map(rb, condition).await?.len() > 0 {
-            return Err(AppError::BusinessError("部门名称已存在"));
+            return Err(BusinessError("部门名称已存在"));
         }
 
         match Dept::select_by_id(rb, &item.parent_id).await? {
             None => Err(AppError::BusinessError("添加失败,上级部门不存在")),
             Some(dept) => {
                 if dept.status == 0 {
-                    return Err(AppError::BusinessError("部门停用，不允许添加"));
+                    return Err(BusinessError("部门停用，不允许添加"));
                 }
                 let ancestors = format!("{},{}", dept.ancestors.unwrap_or_default(), item.parent_id);
                 let mut sys_dept = Dept::from(item);
@@ -50,11 +51,11 @@ impl DeptService {
     pub async fn delete_sys_dept(item: DeleteDeptReq) -> Result<u64, AppError> {
         let rb = &mut RB.clone();
         if Dept::select_dept_count(rb, &item.id).await? > 0 {
-            return Err(AppError::BusinessError("存在下级部门,不允许删除"));
+            return Err(BusinessError("存在下级部门,不允许删除"));
         }
 
         if Dept::check_dept_exist_user(rb, &item.id).await? > 0 {
-            return Err(AppError::BusinessError("部门存在用户,不允许删除"));
+            return Err(BusinessError("部门存在用户,不允许删除"));
         }
 
         Dept::delete(rb, item.id).await.map(|x| Ok(x))?
@@ -70,19 +71,19 @@ impl DeptService {
 
         let id = item.id;
         if id.is_none() {
-            return Err(AppError::BusinessError("主键不能为空"));
+            return Err(BusinessError("主键不能为空"));
         }
         if Some(item.parent_id) == id {
-            return Err(AppError::BusinessError("上级部门不能是自己"));
+            return Err(BusinessError("上级部门不能是自己"));
         }
 
         let old_ancestors = match Dept::select_by_id(rb, &id.unwrap_or_default()).await? {
-            None => return Err(AppError::BusinessError("部门不存在")),
+            None => return Err(BusinessError("部门不存在")),
             Some(dept) => dept.ancestors.unwrap_or_default(),
         };
 
         let ancestors = match Dept::select_by_id(rb, &item.parent_id).await? {
-            None => return Err(AppError::BusinessError("上级部门不存在")),
+            None => return Err(BusinessError("上级部门不存在")),
             Some(dept) => {
                 format!("{},{}", dept.ancestors.unwrap_or_default(), &item.parent_id)
             }
@@ -90,11 +91,11 @@ impl DeptService {
 
         let condition = value! {"dept_name":&item.dept_name,"parent_id":item.parent_id,"id !=":id};
         if Dept::select_by_map(rb, condition).await?.len() > 0 {
-            return Err(AppError::BusinessError("部门名称已存在"));
+            return Err(BusinessError("部门名称已存在"));
         }
 
         if Dept::select_normal_children_dept_by_id(rb, &id.unwrap_or_default()).await? > 0 && item.status == 0 {
-            return Err(AppError::BusinessError("该部门包含未停用的子部门"));
+            return Err(BusinessError("该部门包含未停用的子部门"));
         }
 
         for mut x in Dept::select_children_dept_by_id(rb, &id.unwrap_or_default()).await? {
@@ -149,7 +150,7 @@ impl DeptService {
     pub async fn query_sys_dept_detail(item: QueryDeptDetailReq) -> Result<DeptResp, AppError> {
         match Dept::select_by_id(&mut RB.clone(), &item.id).await? {
             Some(x) => Ok(x.into()),
-            None => Err(AppError::BusinessError("部门不存在")),
+            None => Err(BusinessError("部门不存在")),
         }
     }
 

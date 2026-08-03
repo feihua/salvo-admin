@@ -3,6 +3,7 @@
 // date：2025/01/08 13:51:14
 
 use crate::common::error::AppError;
+use crate::common::error::AppError::BusinessError;
 use crate::model::system::sys_dict_data_model::DictData;
 use crate::model::system::sys_dict_type_model::DictType;
 use crate::vo::system::sys_dict_type_vo::*;
@@ -21,7 +22,7 @@ impl DictTypeService {
     pub async fn add_sys_dict_type(mut item: DictTypeReq) -> Result<u64, AppError> {
         let rb = &mut RB.clone();
         if DictType::select_by_map(rb, value! {"dict_type": &item.dict_type}).await?.len() > 0 {
-            return Err(AppError::BusinessError("字典类型已存在"));
+            return Err(BusinessError("字典类型已存在"));
         }
 
         item.id = None;
@@ -38,12 +39,12 @@ impl DictTypeService {
         let ids = item.ids;
         for id in &ids {
             let dict_type = match DictType::select_by_id(rb, id).await? {
-                None => return Err(AppError::BusinessError("字典类型不存在,不能删除")),
+                None => return Err(BusinessError("字典类型不存在,不能删除")),
                 Some(x) => x.dict_type,
             };
 
             if DictData::count_dict_data_by_type(rb, &dict_type).await? > 0 {
-                return Err(AppError::BusinessError("已分配,不能删除"));
+                return Err(BusinessError("已分配,不能删除"));
             }
         }
 
@@ -60,15 +61,15 @@ impl DictTypeService {
         let id = item.id;
 
         if id.is_none() {
-            return Err(AppError::BusinessError("主键不能为空"));
+            return Err(BusinessError("主键不能为空"));
         }
         let option = DictType::select_by_id(rb, &id.unwrap_or_default()).await?;
         if option.is_none() {
-            return Err(AppError::BusinessError("字典类型不存在"));
+            return Err(BusinessError("字典类型不存在"));
         }
 
         if DictType::select_by_map(rb, value! {"dict_type": &item.dict_type,"id !=": id}).await?.len() > 0 {
-            return Err(AppError::BusinessError("字典类型已存在"));
+            return Err(BusinessError("字典类型已存在"));
         }
 
         let dict_type = option.unwrap().dict_type;
@@ -97,7 +98,7 @@ impl DictTypeService {
      */
     pub async fn query_sys_dict_type_detail(item: QueryDictTypeDetailReq) -> Result<DictTypeResp, AppError> {
         match DictType::select_by_id(&mut RB.clone(), &item.id).await? {
-            None => Err(AppError::BusinessError("字典类型不存在")),
+            None => Err(BusinessError("字典类型不存在")),
             Some(x) => Ok(x.into()),
         }
     }

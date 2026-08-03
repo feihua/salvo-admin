@@ -1,4 +1,5 @@
 use crate::common::error::AppError;
+use crate::common::error::AppError::BusinessError;
 use crate::model::system::sys_notice_model::Notice;
 use crate::vo::system::sys_notice_vo::*;
 use crate::RB;
@@ -21,7 +22,7 @@ impl NoticeService {
         };
 
         if Notice::select_by_map(rb, condition).await?.len() > 0 {
-            return Err(AppError::BusinessError("公告标题已存在"));
+            return Err(BusinessError("公告标题已存在"));
         }
 
         item.id = None;
@@ -49,11 +50,11 @@ impl NoticeService {
 
         let id = item.id;
         if id.is_none() {
-            return Err(AppError::BusinessError("主键不能为空"));
+            return Err(BusinessError("主键不能为空"));
         }
 
         if Notice::select_by_id(rb, id.unwrap_or_default()).await?.is_none() {
-            return Err(AppError::BusinessError("通知公告不存在"));
+            return Err(BusinessError("通知公告不存在"));
         };
 
         let condition = value! {
@@ -62,7 +63,7 @@ impl NoticeService {
         };
 
         if Notice::select_by_map(rb, condition).await?.len() > 0 {
-            return Err(AppError::BusinessError("公告标题已存在"));
+            return Err(BusinessError("公告标题已存在"));
         }
 
         Notice::update(rb, &Notice::from(item), id.unwrap_or_default()).await.map(|x| Ok(x))?
@@ -85,7 +86,7 @@ impl NoticeService {
      */
     pub async fn query_sys_notice_detail(item: QueryNoticeDetailReq) -> Result<NoticeResp, AppError> {
         match Notice::select_by_id(&mut RB.clone(), item.id).await? {
-            None => Err(AppError::BusinessError("通知公告不存在")),
+            None => Err(BusinessError("通知公告不存在")),
             Some(x) => Ok(x.into()),
         }
     }

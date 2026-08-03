@@ -3,6 +3,7 @@
 // date：2025/01/08 13:51:14
 
 use crate::common::error::AppError;
+use crate::common::error::AppError::BusinessError;
 use crate::model::system::sys_dept_model::Dept;
 use crate::model::system::sys_login_log_model::LoginLog;
 use crate::model::system::sys_menu_model::Menu;
@@ -36,15 +37,15 @@ impl UserService {
     pub async fn add_sys_user(mut item: UserReq) -> Result<u64, AppError> {
         let rb = &mut RB.clone();
         if User::select_by_map(rb, value! {"user_name": &item.user_name}).await?.len() > 0 {
-            return Err(AppError::BusinessError("登录账号已存在"));
+            return Err(BusinessError("登录账号已存在"));
         }
 
         if User::select_by_map(rb, value! {"mobile": &item.mobile}).await?.len() > 0 {
-            return Err(AppError::BusinessError("手机号码已存在"));
+            return Err(BusinessError("手机号码已存在"));
         }
 
         if User::select_by_map(rb, value! {"email": &item.email}).await?.len() > 0 {
-            return Err(AppError::BusinessError("邮箱账号已存在"));
+            return Err(BusinessError("邮箱账号已存在"));
         }
 
         let post_ids = item.post_ids.clone();
@@ -76,10 +77,10 @@ impl UserService {
         if let Ok(user_id) = depot.get::<i64>("userId").copied() {
             let ids = item.ids;
             if ids.contains(&user_id) {
-                return Err(AppError::BusinessError("当前用户不能删除"));
+                return Err(BusinessError("当前用户不能删除"));
             }
             if ids.contains(&1) {
-                return Err(AppError::BusinessError("不允许操作超级管理员用户"));
+                return Err(BusinessError("不允许操作超级管理员用户"));
             }
 
             let rb = &mut RB.clone();
@@ -89,7 +90,7 @@ impl UserService {
 
             User::delete(rb, ids).await.map(|x| Ok(x))?
         } else {
-            Err(AppError::BusinessError("参数错误"))
+            Err(BusinessError("参数错误"))
         }
     }
 
@@ -103,28 +104,28 @@ impl UserService {
 
         let id = item.id;
         if id.is_none() {
-            return Err(AppError::BusinessError("主键不能为空"));
+            return Err(BusinessError("主键不能为空"));
         }
 
         if UserRole::is_admin(rb, &id.unwrap_or_default()).await? > 0 {
-            return Err(AppError::BusinessError("不允许操作超级管理员用户"));
+            return Err(BusinessError("不允许操作超级管理员用户"));
         }
 
         let user = match User::select_by_id(rb, &id.unwrap_or_default()).await? {
-            None => return Err(AppError::BusinessError("用户不存在")),
+            None => return Err(BusinessError("用户不存在")),
             Some(x) => x,
         };
 
         if User::select_by_map(rb, value! {"user_name": &item.user_name,"id !=": id}).await?.len() > 0 {
-            return Err(AppError::BusinessError("登录账号已存在"));
+            return Err(BusinessError("登录账号已存在"));
         }
 
         if User::select_by_map(rb, value! {"mobile": &item.mobile,"id !=": id}).await?.len() > 0 {
-            return Err(AppError::BusinessError("手机号码已存在"));
+            return Err(BusinessError("手机号码已存在"));
         }
 
         if User::select_by_map(rb, value! {"email": &item.email,"id !=": id}).await?.len() > 0 {
-            return Err(AppError::BusinessError("邮箱账号已存在"));
+            return Err(BusinessError("邮箱账号已存在"));
         }
 
         let user_post_list = item
@@ -151,7 +152,7 @@ impl UserService {
     pub async fn update_sys_user_status(item: UpdateUserStatusReq) -> Result<u64, AppError> {
         let ids = item.ids;
         if ids.contains(&1) {
-            return Err(AppError::BusinessError("不允许操作超级管理员用户"));
+            return Err(BusinessError("不允许操作超级管理员用户"));
         }
 
         let rb = &mut RB.clone();
@@ -169,11 +170,11 @@ impl UserService {
 
         let id = item.id.clone();
         if UserRole::is_admin(rb, &id).await? > 0 {
-            return Err(AppError::BusinessError("不允许操作超级管理员用户"));
+            return Err(BusinessError("不允许操作超级管理员用户"));
         }
 
         match User::select_by_id(rb, &item.id).await? {
-            None => Err(AppError::BusinessError("用户不存在")),
+            None => Err(BusinessError("用户不存在")),
             Some(x) => {
                 let mut user = x;
                 user.password = item.password;
@@ -192,11 +193,11 @@ impl UserService {
             let rb = &mut RB.clone();
 
             match User::select_by_id(rb, &user_id).await? {
-                None => Err(AppError::BusinessError("用户不存在")),
+                None => Err(BusinessError("用户不存在")),
                 Some(x) => {
                     let mut user = x;
                     if user.password != item.pwd {
-                        return Err(AppError::BusinessError("旧密码不正确"));
+                        return Err(BusinessError("旧密码不正确"));
                     }
                     user.password = item.re_pwd;
 
@@ -204,7 +205,7 @@ impl UserService {
                 }
             }
         } else {
-            Err(AppError::BusinessError("用户ID不能为空"))
+            Err(BusinessError("用户ID不能为空"))
         }
     }
 
@@ -217,7 +218,7 @@ impl UserService {
         let rb = &mut RB.clone();
 
         let mut x = match User::select_by_id(rb, &item.id).await? {
-            None => return Err(AppError::BusinessError("用户不存在")),
+            None => return Err(BusinessError("用户不存在")),
             Some(user) => {
                 let a: UserResp = user.into();
                 a
@@ -225,7 +226,7 @@ impl UserService {
         };
 
         let dept = match Dept::select_by_id(rb, &x.dept_id).await? {
-            None => return Err(AppError::BusinessError("部门不存在")),
+            None => return Err(BusinessError("部门不存在")),
 
             Some(y) => {
                 let a: DeptResp = y.into();
@@ -274,7 +275,7 @@ impl UserService {
         match user_result.get(0) {
             None => {
                 Self::add_login_log(item.account, 0, "用户不存在", agent).await;
-                Err(AppError::BusinessError("用户不存在"))
+                Err(BusinessError("用户不存在"))
             }
             Some(user) => {
                 let mut s_user = user.clone();
@@ -284,21 +285,21 @@ impl UserService {
 
                 if password.ne(&item.password) {
                     Self::add_login_log(item.account, 0, "密码不正确", agent).await;
-                    return Err(AppError::BusinessError("密码不正确"));
+                    return Err(BusinessError("密码不正确"));
                 }
 
                 let (btn_menu, is_super) = Self::query_btn_menu(&id).await;
 
                 if btn_menu.len() == 0 {
                     Self::add_login_log(item.account, 0, "用户没有分配角色或者菜单,不能登录", agent).await;
-                    return Err(AppError::BusinessError("用户没有分配角色或者菜单,不能登录"));
+                    return Err(BusinessError("用户没有分配角色或者菜单,不能登录"));
                 }
 
-                let secret = depot.get::<String>("secret").map_err(|_| AppError::BusinessError("获取jwt密钥异常"))?;
+                let secret = depot.get::<String>("secret").map_err(|_| BusinessError("获取jwt密钥异常"))?;
                 let token = JwtToken::new(id, &username).create_token(secret)?;
 
-                let pool = depot.get::<deadpool_redis::Pool>("pool").map_err(|_| AppError::BusinessError("获取redis连接池异常"))?;
-                let mut conn = pool.get().await.map_err(|_| AppError::BusinessError("获取redis连接异常"))?;
+                let pool = depot.get::<deadpool_redis::Pool>("pool").map_err(|_| BusinessError("获取redis连接池异常"))?;
+                let mut conn = pool.get().await.map_err(|_| BusinessError("获取redis连接异常"))?;
                 let key = format!("salvo:admin:user:info:{:?}", s_user.id.unwrap_or_default());
                 deadpool_redis::redis::cmd("HSET")
                     .arg(&key)
@@ -414,7 +415,7 @@ impl UserService {
         let rb = &mut RB.clone();
 
         if UserRole::is_admin(rb, &user_id).await? > 0 {
-            return Err(AppError::BusinessError("不能修改超级管理员的角色"));
+            return Err(BusinessError("不能修改超级管理员的角色"));
         }
 
         UserRole::delete_by_map(rb, value! {"user_id": user_id}).await?;
@@ -434,7 +435,7 @@ impl UserService {
         let rb = &mut RB.clone();
 
         match User::select_by_id(rb, &user_id).await? {
-            None => Err(AppError::BusinessError("用户不存在")),
+            None => Err(BusinessError("用户不存在")),
             Some(user) => {
                 let sys_menu_list: Vec<Menu>;
 

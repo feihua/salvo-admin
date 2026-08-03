@@ -3,6 +3,7 @@
 // date：2025/01/08 13:51:14
 
 use crate::common::error::AppError;
+use crate::common::error::AppError::BusinessError;
 use crate::model::system::sys_post_model::Post;
 use crate::model::system::sys_user_post_model::UserPost;
 use crate::vo::system::sys_post_vo::*;
@@ -23,11 +24,11 @@ impl PostService {
         let rb = &mut RB.clone();
 
         if Post::select_by_map(rb, value! {"post_name": &item.post_name}).await?.len() > 0 {
-            return Err(AppError::BusinessError("岗位名称已存在"));
+            return Err(BusinessError("岗位名称已存在"));
         }
 
         if Post::select_by_map(rb, value! {"post_code": &item.post_code}).await?.len() > 0 {
-            return Err(AppError::BusinessError("岗位编码已存在"));
+            return Err(BusinessError("岗位编码已存在"));
         }
 
         item.id = None;
@@ -46,10 +47,10 @@ impl PostService {
         let ids = item.ids;
         for id in &ids {
             match Post::select_by_id(rb, id).await? {
-                None => return Err(AppError::BusinessError("不能删除")),
+                None => return Err(BusinessError("不能删除")),
                 Some(_) => {
                     if UserPost::count_user_post_by_id(rb, id).await? > 0 {
-                        return Err(AppError::BusinessError("已分配,不能删除"));
+                        return Err(BusinessError("已分配,不能删除"));
                     }
                 }
             };
@@ -70,18 +71,18 @@ impl PostService {
         let id = item.id;
 
         if id.is_none() {
-            return Err(AppError::BusinessError("主键不能为空"));
+            return Err(BusinessError("主键不能为空"));
         }
         if Post::select_by_id(rb, &id.unwrap_or_default()).await?.is_none() {
-            return Err(AppError::BusinessError("岗位不存在"));
+            return Err(BusinessError("岗位不存在"));
         }
 
         if Post::select_by_map(rb, value! {"post_name": &item.post_name, "id !=": id}).await?.len() > 0 {
-            return Err(AppError::BusinessError("岗位名称已存在"));
+            return Err(BusinessError("岗位名称已存在"));
         }
 
         if Post::select_by_map(rb, value! {"post_code": &item.post_code, "id !=": id}).await?.len() > 0 {
-            return Err(AppError::BusinessError("岗位编码已存在"));
+            return Err(BusinessError("岗位编码已存在"));
         }
 
         Post::update(rb, &Post::from(item), id.unwrap_or_default()).await.map(|x| Ok(x))?
@@ -107,7 +108,7 @@ impl PostService {
 
     pub async fn query_sys_post_detail(item: QueryPostDetailReq) -> Result<PostResp, AppError> {
         match Post::select_by_id(&mut RB.clone(), &item.id).await? {
-            None => Err(AppError::BusinessError("岗位不存在")),
+            None => Err(BusinessError("岗位不存在")),
             Some(x) => Ok(x.into()),
         }
     }
