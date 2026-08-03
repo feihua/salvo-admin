@@ -7,7 +7,6 @@ use crate::model::system::sys_dict_data_model::DictData;
 use crate::vo::system::sys_dict_data_vo::*;
 use crate::RB;
 use rbatis::plugin::page::PageRequest;
-use rbatis::rbdc::DateTime;
 use rbs::value;
 
 pub struct DictDataService;
@@ -32,8 +31,7 @@ impl DictDataService {
         }
 
         item.id = None;
-        let exec_result = DictData::insert(rb, &DictData::from(item)).await?;
-        Ok(exec_result.last_insert_id.as_u64().unwrap_or_default())
+        DictData::add(rb, &DictData::from(item)).await.map(|id| Ok(id.unwrap_or_default()))?
     }
 
     /*
@@ -44,7 +42,7 @@ impl DictDataService {
     pub async fn delete_sys_dict_data(item: DeleteDictDataReq) -> Result<u64, AppError> {
         let rb = &mut RB.clone();
 
-        DictData::delete_by_map(rb, value! {"id": item.ids}).await.map(|x| Ok(x.rows_affected))?
+        DictData::delete(rb, item.ids).await.map(|x| Ok(x))?
     }
 
     /*
@@ -73,7 +71,7 @@ impl DictDataService {
             return Err(AppError::BusinessError("字典键值已存在"));
         }
 
-        DictData::update_by_map(rb, &DictData::from(item), value! {"id": id}).await.map(|x| Ok(x.rows_affected))?
+        DictData::update(rb, &DictData::from(item), id.unwrap_or_default()).await.map(|x| Ok(x))?
     }
 
     /*
@@ -82,15 +80,9 @@ impl DictDataService {
      *date：2025/01/08 13:51:14
      */
     pub async fn update_sys_dict_data_status(item: UpdateDictDataStatusReq) -> Result<u64, AppError> {
-        let update_sql = format!(
-            "update sys_dict_data set status = ? ,update_time = ? where id in ({})",
-            item.ids.iter().map(|_| "?").collect::<Vec<&str>>().join(", ")
-        );
+        let rb = &mut RB.clone();
 
-        let mut param = vec![value!(item.status), value!(DateTime::now())];
-        param.extend(item.ids.iter().map(|&id| value!(id)));
-
-        RB.clone().exec(&update_sql, param).await.map(|x| Ok(x.rows_affected))?
+        DictData::update_status(rb, item.ids, item.status).await.map(|x| Ok(x))?
     }
 
     /*

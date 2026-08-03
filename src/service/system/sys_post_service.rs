@@ -8,7 +8,6 @@ use crate::model::system::sys_user_post_model::UserPost;
 use crate::vo::system::sys_post_vo::*;
 use crate::RB;
 use rbatis::plugin::page::PageRequest;
-use rbatis::rbdc::DateTime;
 use rbs::value;
 
 pub struct PostService;
@@ -32,8 +31,7 @@ impl PostService {
         }
 
         item.id = None;
-        let exec_result = Post::insert(rb, &Post::from(item)).await?;
-        Ok(exec_result.last_insert_id.as_u64().unwrap_or_default())
+        Post::add(rb, &Post::from(item)).await.map(|id| Ok(id.unwrap_or_default()))?
     }
 
     /*
@@ -57,7 +55,7 @@ impl PostService {
             };
         }
 
-        Post::delete_by_map(rb, value! {"id": ids}).await.map(|x| Ok(x.rows_affected))?
+        Post::delete(rb, ids).await.map(|x| Ok(x))?
     }
 
     /*
@@ -86,7 +84,7 @@ impl PostService {
             return Err(AppError::BusinessError("岗位编码已存在"));
         }
 
-        Post::update_by_map(rb, &Post::from(item), value! {"id": id}).await.map(|x| Ok(x.rows_affected))?
+        Post::update(rb, &Post::from(item), id.unwrap_or_default()).await.map(|x| Ok(x))?
     }
 
     /*
@@ -96,15 +94,9 @@ impl PostService {
      */
 
     pub async fn update_sys_post_status(item: UpdatePostStatusReq) -> Result<u64, AppError> {
-        let update_sql = format!(
-            "update sys_post set status = ? ,update_time = ? where id in ({})",
-            item.ids.iter().map(|_| "?").collect::<Vec<&str>>().join(", ")
-        );
+        let rb = &mut RB.clone();
 
-        let mut param = vec![value!(item.status), value!(DateTime::now())];
-        param.extend(item.ids.iter().map(|&id| value!(id)));
-
-        RB.clone().exec(&update_sql, param).await.map(|x| Ok(x.rows_affected))?
+        Post::update_status(rb, item.ids, item.status).await.map(|x| Ok(x))?
     }
 
     /*

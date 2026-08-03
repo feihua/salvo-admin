@@ -49,7 +49,7 @@ impl UserService {
 
         let post_ids = item.post_ids.clone();
         item.id = None;
-        let id = User::insert(rb, &User::from(item)).await?.last_insert_id;
+        let id = User::add(rb, &User::from(item)).await?.unwrap_or_default();
 
         UserPost::delete_by_map(rb, value! {"user_id": &id}).await?;
 
@@ -63,8 +63,8 @@ impl UserService {
             .collect::<Vec<UserPost>>();
 
         let size = user_post_list.len() as u64;
-        let exec_result = UserPost::insert_batch(rb, &user_post_list, size).await?;
-        Ok(exec_result.last_insert_id.as_u64().unwrap_or_default())
+        UserPost::insert_batch(rb, &user_post_list, size).await?;
+        Ok(id)
     }
 
     /*
@@ -87,7 +87,7 @@ impl UserService {
 
             UserPost::delete_by_map(rb, value! {"user_id": &ids}).await?;
 
-            User::delete_by_map(rb, value! {"id": ids}).await.map(|x| Ok(x.rows_affected))?
+            User::delete(rb, ids).await.map(|x| Ok(x))?
         } else {
             Err(AppError::BusinessError("参数错误"))
         }
@@ -140,7 +140,7 @@ impl UserService {
         UserPost::delete_by_map(rb, value! {"user_id": &item.id}).await?;
         UserPost::insert_batch(rb, &user_post_list, user_post_list.len() as u64).await?;
 
-        User::update_by_map(rb, &User::from(item), value! {"id": id}).await.map(|x| Ok(x.rows_affected))?
+        User::update(rb, &User::from(item), id.unwrap_or_default()).await.map(|x| Ok(x))?
     }
 
     /*
@@ -154,15 +154,9 @@ impl UserService {
             return Err(AppError::BusinessError("不允许操作超级管理员用户"));
         }
 
-        let update_sql = format!(
-            "update sys_user set status = ? ,update_time = ? where id in ({})",
-            ids.iter().map(|_| "?").collect::<Vec<&str>>().join(", ")
-        );
+        let rb = &mut RB.clone();
 
-        let mut param = vec![value!(item.status), value!(DateTime::now())];
-        param.extend(ids.iter().map(|&id| value!(id)));
-
-        RB.clone().exec(&update_sql, param).await.map(|x| Ok(x.rows_affected))?
+        User::update_status(rb, ids, item.status).await.map(|x| Ok(x))?
     }
 
     /*

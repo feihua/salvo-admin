@@ -3,7 +3,6 @@ use crate::model::system::sys_notice_model::Notice;
 use crate::vo::system::sys_notice_vo::*;
 use crate::RB;
 use rbatis::plugin::page::PageRequest;
-use rbatis::rbdc::DateTime;
 use rbs::value;
 
 pub struct NoticeService;
@@ -14,7 +13,7 @@ impl NoticeService {
      *author：刘飞华
      *date：2025/01/08 13:51:14
      */
-    pub async fn add_sys_notice(mut item: NoticeReq) -> Result<Option<u64>, AppError> {
+    pub async fn add_sys_notice(mut item: NoticeReq) -> Result<u64, AppError> {
         let rb = &mut RB.clone();
 
         let condition = value! {
@@ -26,7 +25,7 @@ impl NoticeService {
         }
 
         item.id = None;
-        Notice::insert(rb, &Notice::from(item)).await.map(|x| Ok(x.last_insert_id.as_u64()))?
+        Notice::add(rb, &Notice::from(item)).await.map(|id| Ok(id.unwrap_or_default()))?
     }
 
     /*
@@ -37,7 +36,7 @@ impl NoticeService {
     pub async fn delete_sys_notice(item: DeleteNoticeReq) -> Result<u64, AppError> {
         let rb = &mut RB.clone();
 
-        Notice::delete_by_map(rb, value! {"id": item.ids}).await.map(|x| Ok(x.rows_affected))?
+        Notice::delete(rb, item.ids).await.map(|x| Ok(x))?
     }
 
     /*
@@ -53,7 +52,7 @@ impl NoticeService {
             return Err(AppError::BusinessError("主键不能为空"));
         }
 
-        if Notice::select_by_map(rb, value! {"id":id}).await?.len() == 0 {
+        if Notice::select_by_id(rb, id.unwrap_or_default()).await?.is_none() {
             return Err(AppError::BusinessError("通知公告不存在"));
         };
 
@@ -66,7 +65,7 @@ impl NoticeService {
             return Err(AppError::BusinessError("公告标题已存在"));
         }
 
-        Notice::update_by_map(rb, &Notice::from(item), value! {"id": id}).await.map(|x| Ok(x.rows_affected))?
+        Notice::update(rb, &Notice::from(item), id.unwrap_or_default()).await.map(|x| Ok(x))?
     }
 
     /*
@@ -75,15 +74,8 @@ impl NoticeService {
      *date：2025/01/08 13:51:14
      */
     pub async fn update_sys_notice_status(item: UpdateNoticeStatusReq) -> Result<u64, AppError> {
-        let update_sql = format!(
-            "update sys_notice set status = ? ,update_time = ? where id in ({})",
-            item.ids.iter().map(|_| "?").collect::<Vec<&str>>().join(", ")
-        );
-
-        let mut param = vec![value!(item.status), value!(DateTime::now())];
-        param.extend(item.ids.iter().map(|&id| value!(id)));
-
-        RB.clone().exec(&update_sql, param).await.map(|x| Ok(x.rows_affected))?
+        let rb = &mut RB.clone();
+        Notice::update_status(rb, item.ids, item.status).await.map(|x| Ok(x))?
     }
 
     /*
@@ -92,7 +84,7 @@ impl NoticeService {
      *date：2025/01/08 13:51:14
      */
     pub async fn query_sys_notice_detail(item: QueryNoticeDetailReq) -> Result<NoticeResp, AppError> {
-        match Notice::select_by_id(&mut RB.clone(), &item.id).await? {
+        match Notice::select_by_id(&mut RB.clone(), item.id).await? {
             None => Err(AppError::BusinessError("通知公告不存在")),
             Some(x) => Ok(x.into()),
         }

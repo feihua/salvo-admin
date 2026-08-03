@@ -7,7 +7,6 @@ use crate::model::system::sys_operate_log_model::OperateLog;
 use crate::vo::system::sys_operate_log_vo::*;
 use crate::RB;
 use rbatis::PageRequest;
-use rbs::value;
 
 pub struct OperateLogService;
 
@@ -20,7 +19,7 @@ impl OperateLogService {
     pub async fn delete_sys_operate_log(item: DeleteOperateLogReq) -> Result<u64, AppError> {
         let rb = &mut RB.clone();
 
-        OperateLog::delete_by_map(rb, value! {"id": & item.ids}).await.map(|x| Ok(x.rows_affected))?
+        OperateLog::delete(rb, item.ids).await.map(|x| Ok(x))?
     }
 
     /*

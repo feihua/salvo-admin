@@ -13,7 +13,6 @@ use crate::vo::system::sys_role_vo::*;
 use crate::vo::system::sys_user_vo::UserResp;
 use crate::RB;
 use rbatis::plugin::page::PageRequest;
-use rbatis::rbdc::datetime::DateTime;
 use rbs::value;
 
 pub struct RoleService;
@@ -35,8 +34,7 @@ impl RoleService {
         }
 
         item.id = None;
-        let exec_result = Role::insert(rb, &Role::from(item)).await?;
-        Ok(exec_result.last_insert_id.as_u64().unwrap_or_default())
+        Role::add(rb, &Role::from(item)).await.map(|id| Ok(id.unwrap_or_default()))?
     }
 
     /*
@@ -65,7 +63,7 @@ impl RoleService {
         RoleMenu::delete_by_map(rb, value! {"role_id": &ids}).await?;
         RoleDept::delete_by_map(rb, value! {"role_id": &ids}).await?;
 
-        Role::delete_by_map(rb, value! {"id": ids}).await.map(|x| Ok(x.rows_affected))?
+        Role::delete(rb, ids).await.map(|x| Ok(x))?
     }
 
     /*
@@ -96,7 +94,7 @@ impl RoleService {
             return Err(AppError::BusinessError("角色权限已存在"));
         }
 
-        Role::update_by_map(rb, &Role::from(item), value! {"id": id}).await.map(|x| Ok(x.rows_affected))?
+        Role::update(rb, &Role::from(item), id.unwrap_or_default()).await.map(|x| Ok(x))?
     }
 
     /*
@@ -108,16 +106,9 @@ impl RoleService {
         if item.ids.contains(&1) {
             return Err(AppError::BusinessError("不允许操作超级管理员角色"));
         }
+        let rb = &mut RB.clone();
 
-        let update_sql = format!(
-            "update sys_role set status = ? ,update_time = ? where id in ({})",
-            item.ids.iter().map(|_| "?").collect::<Vec<&str>>().join(", ")
-        );
-
-        let mut param = vec![value!(item.status), value!(DateTime::now())];
-        param.extend(item.ids.iter().map(|&id| value!(id)));
-
-        RB.clone().exec(&update_sql, param).await.map(|x| Ok(x.rows_affected))?
+        Role::update_status(rb, item.ids, item.status).await.map(|x| Ok(x))?
     }
 
     /*

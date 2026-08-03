@@ -8,7 +8,6 @@ use crate::model::system::sys_role_menu_model::RoleMenu;
 use crate::vo::system::sys_menu_vo::*;
 use crate::RB;
 use rbatis::plugin::page::PageRequest;
-use rbatis::rbdc::DateTime;
 use rbs::value;
 
 pub struct MenuService;
@@ -34,8 +33,7 @@ impl MenuService {
         }
 
         item.id = None;
-        let exec_result = Menu::insert(rb, &Menu::from(item)).await?;
-        Ok(exec_result.last_insert_id.as_u64().unwrap_or_default())
+        Menu::add(rb, &Menu::from(item)).await.map(|id| Ok(id.unwrap_or_default()))?
     }
 
     /*
@@ -57,7 +55,7 @@ impl MenuService {
             }
         }
 
-        Menu::delete_by_map(rb, value! {"id": ids}).await.map(|x| Ok(x.rows_affected))?
+        Menu::delete(rb, ids).await.map(|x| Ok(x))?
     }
 
     /*
@@ -91,7 +89,7 @@ impl MenuService {
             }
         }
 
-        Menu::update_by_map(rb, &Menu::from(item), value! {"id": id}).await.map(|x| Ok(x.rows_affected))?
+        Menu::update(rb, &Menu::from(item), id.unwrap_or_default()).await.map(|x| Ok(x))?
     }
 
     /*
@@ -100,15 +98,9 @@ impl MenuService {
      *date：2025/01/08 13:51:14
      */
     pub async fn update_sys_menu_status(item: UpdateMenuStatusReq) -> Result<u64, AppError> {
-        let update_sql = format!(
-            "update sys_menu set status = ? ,update_time = ? where id in ({})",
-            item.ids.iter().map(|_| "?").collect::<Vec<&str>>().join(", ")
-        );
+        let rb = &mut RB.clone();
 
-        let mut param = vec![value!(item.status), value!(DateTime::now())];
-        param.extend(item.ids.iter().map(|&id| value!(id)));
-
-        RB.clone().exec(&update_sql, param).await.map(|x| Ok(x.rows_affected))?
+        Menu::update_status(rb, item.ids, item.status).await.map(|x| Ok(x))?
     }
 
     /*

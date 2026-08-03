@@ -7,7 +7,6 @@ use crate::model::system::sys_login_log_model::LoginLog;
 use crate::vo::system::sys_login_log_vo::*;
 use crate::RB;
 use rbatis::plugin::page::PageRequest;
-use rbs::value;
 
 pub struct LoginLogService;
 
@@ -20,7 +19,7 @@ impl LoginLogService {
     pub async fn delete_sys_login_log(item: DeleteLoginLogReq) -> Result<u64, AppError> {
         let rb = &mut RB.clone();
 
-        LoginLog::delete_by_map(rb, value! {"id": &item.ids}).await.map(|x| Ok(x.rows_affected))?
+        LoginLog::delete(rb, item.ids).await.map(|x| Ok(x))?
     }
 
     /*

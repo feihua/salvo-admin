@@ -37,8 +37,7 @@ impl DeptService {
                 sys_dept.ancestors = Some(ancestors);
                 sys_dept.id = None;
 
-                let exec_result = Dept::insert(rb, &sys_dept).await?;
-                Ok(exec_result.last_insert_id.as_u64().unwrap_or_default())
+                Dept::add(rb, &sys_dept).await.map(|id| Ok(id.unwrap_or_default()))?
             }
         }
     }
@@ -58,8 +57,7 @@ impl DeptService {
             return Err(AppError::BusinessError("部门存在用户,不允许删除"));
         }
 
-        let exec_result = Dept::delete_by_map(rb, value! {"id": item.id}).await?;
-        Ok(exec_result.rows_affected)
+        Dept::delete(rb, item.id).await.map(|x| Ok(x))?
     }
 
     /*
@@ -119,8 +117,7 @@ impl DeptService {
         }
         item.ancestors = Some(ancestors);
 
-        let exec_result = Dept::update_by_map(rb, &Dept::from(item), value! {"id":  id}).await?;
-        Ok(exec_result.rows_affected)
+        Dept::update(rb, &Dept::from(item), id.unwrap_or_default()).await.map(|x| Ok(x))?
     }
 
     /*
@@ -136,29 +133,12 @@ impl DeptService {
             for id in &ids {
                 if let Some(x) = Dept::select_by_id(rb, id).await? {
                     let ancestors = x.ancestors.unwrap_or_default();
-                    let ids = ancestors.split(",").map(|s| s.i64()).collect::<Vec<i64>>();
-
-                    let update_sql = format!(
-                        "update sys_dept set status = ? ,update_time = ? where id in ({})",
-                        ids.iter().map(|_| "?").collect::<Vec<&str>>().join(", ")
-                    );
-
-                    let mut param = vec![value!(item.status), value!(DateTime::now())];
-                    param.extend(ids.iter().map(|&id| value!(id)));
-                    rb.exec(&update_sql, param).await?;
+                    Dept::update_status(rb, ancestors.split(",").map(|s| s.i64()).collect::<Vec<i64>>(), item.status).await?;
                 }
             }
         }
 
-        let update_sql = format!(
-            "update sys_dept set status = ? ,update_time = ? where id in ({})",
-            ids.iter().map(|_| "?").collect::<Vec<&str>>().join(", ")
-        );
-
-        let mut param = vec![value!(item.status), value!(DateTime::now())];
-        param.extend(ids.iter().map(|&id| value!(id)));
-        let exec_result = rb.exec(&update_sql, param).await?;
-        Ok(exec_result.rows_affected)
+        Dept::update_status(rb, ids, item.status).await.map(|x| Ok(x))?
     }
 
     /*

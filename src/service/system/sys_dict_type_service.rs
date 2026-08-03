@@ -8,7 +8,6 @@ use crate::model::system::sys_dict_type_model::DictType;
 use crate::vo::system::sys_dict_type_vo::*;
 use crate::RB;
 use rbatis::plugin::page::PageRequest;
-use rbatis::rbdc::DateTime;
 use rbs::value;
 
 pub struct DictTypeService;
@@ -26,8 +25,7 @@ impl DictTypeService {
         }
 
         item.id = None;
-        let exec_result = DictType::insert(rb, &DictType::from(item)).await?;
-        Ok(exec_result.last_insert_id.as_u64().unwrap_or_default())
+        DictType::add(rb, &DictType::from(item)).await.map(|id| Ok(id.unwrap_or_default()))?
     }
 
     /*
@@ -49,7 +47,7 @@ impl DictTypeService {
             }
         }
 
-        DictType::delete_by_map(rb, value! {"id": ids}).await.map(|x| Ok(x.rows_affected))?
+        DictType::delete(rb, ids).await.map(|x| Ok(x))?
     }
 
     /*
@@ -78,7 +76,7 @@ impl DictTypeService {
             DictData::update_dict_data_type(rb, &*item.dict_type, &dict_type).await?;
         }
 
-        DictType::update_by_map(rb, &DictType::from(item), value! {"id": id}).await.map(|x| Ok(x.rows_affected))?
+        DictType::update(rb, &DictType::from(item), id.unwrap_or_default()).await.map(|x| Ok(x))?
     }
 
     /*
@@ -89,15 +87,7 @@ impl DictTypeService {
     pub async fn update_sys_dict_type_status(item: UpdateDictTypeStatusReq) -> Result<u64, AppError> {
         let rb = &mut RB.clone();
 
-        let update_sql = format!(
-            "update sys_dict_type set status = ? ,update_time = ? where id in ({})",
-            item.ids.iter().map(|_| "?").collect::<Vec<&str>>().join(", ")
-        );
-
-        let mut param = vec![value!(item.status), value!(DateTime::now())];
-        param.extend(item.ids.iter().map(|&id| value!(id)));
-
-        rb.exec(&update_sql, param).await.map(|x| Ok(x.rows_affected))?
+        DictType::update_status(rb, item.ids, item.status).await.map(|x| Ok(x))?
     }
 
     /*

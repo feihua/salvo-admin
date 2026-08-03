@@ -15,7 +15,7 @@ use tracing::info;
  *date：2025/01/08 13:51:14
  */
 #[handler]
-pub async fn add_sys_notice(req: JsonBody<NoticeReq>) -> AppResult<Option<u64>> {
+pub async fn add_sys_notice(req: JsonBody<NoticeReq>) -> AppResult<u64> {
     let item = req.into_inner();
     info!("add sys_notice params: {:?}", &item);
 
