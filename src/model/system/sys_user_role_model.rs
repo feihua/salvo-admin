@@ -2,8 +2,9 @@
 // createTime：2024/12/12 14:41:44
 
 use rbatis::RBatis;
+use rbs::value;
 use serde::{Deserialize, Serialize};
-
+use tracing::error;
 /*
  *角色用户关联表
  *author：刘飞华
@@ -29,9 +30,11 @@ impl UserRole {
      *author：刘飞华
      *date：2024/12/12 14:41:44
      */
-    #[sql("select count(1) from sys_user_role where role_id = 1 and user_id = ?")]
-    pub async fn is_admin(rb: &RBatis, user_id: &i64) -> rbatis::Result<i64> {
-        impled!()
+    pub async fn is_admin(rb: &RBatis, user_id: &i64) -> rbatis::Result<bool> {
+        UserRole::select_by_map(rb, value! {"user_id": user_id, "role_id": 1}).await.map(|x| Ok(x.len() > 0)).map_err(|e| {
+            error!("Database error update sys_user: {:?}", e);
+            e
+        })?
     }
 
     /*

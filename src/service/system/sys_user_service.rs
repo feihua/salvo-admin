@@ -107,7 +107,7 @@ impl UserService {
             return Err(BusinessError("主键不能为空"));
         }
 
-        if UserRole::is_admin(rb, &id.unwrap_or_default()).await? > 0 {
+        if UserRole::is_admin(rb, &id.unwrap_or_default()).await? {
             return Err(BusinessError("不允许操作超级管理员用户"));
         }
 
@@ -169,7 +169,7 @@ impl UserService {
         let rb = &mut RB.clone();
 
         let id = item.id.clone();
-        if UserRole::is_admin(rb, &id).await? > 0 {
+        if UserRole::is_admin(rb, &id).await? {
             return Err(BusinessError("不允许操作超级管理员用户"));
         }
 
@@ -365,7 +365,7 @@ impl UserService {
     async fn query_btn_menu(id: &i64) -> Result<(Vec<String>, bool), AppError> {
         let rb = &mut RB.clone();
 
-        if UserRole::is_admin(rb, id).await.unwrap_or_default() > 0 {
+        if UserRole::is_admin(rb, id).await? {
             info!("The current user is a super administrator");
             Ok((rbatis::table_field_vec!(&Menu::select_by_map(rb, value! {"api_url !=":""}).await?, api_url), true))
         } else {
@@ -405,7 +405,7 @@ impl UserService {
 
         let rb = &mut RB.clone();
 
-        if UserRole::is_admin(rb, &user_id).await? > 0 {
+        if UserRole::is_admin(rb, &user_id).await? {
             return Err(BusinessError("不能修改超级管理员的角色"));
         }
 
@@ -430,7 +430,7 @@ impl UserService {
             Some(user) => {
                 let sys_menu_list: Vec<Menu>;
 
-                if UserRole::is_admin(rb, &user_id).await? > 0 {
+                if UserRole::is_admin(rb, &user_id).await? {
                     info!("The current user is a super administrator");
                     sys_menu_list = Menu::select_by_map(rb, value! {}).await?;
                 } else {
