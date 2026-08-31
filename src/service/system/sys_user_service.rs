@@ -23,7 +23,7 @@ use rbatis::rbatis_codegen::ops::AsProxy;
 use rbatis::rbdc::datetime::DateTime;
 use rbs::value;
 use salvo::{Depot, Request};
-use std::collections::{HashMap, HashSet};
+use std::collections::HashSet;
 use tracing::{error, info};
 
 pub struct UserService;
@@ -288,7 +288,7 @@ impl UserService {
                     return Err(BusinessError("密码不正确"));
                 }
 
-                let (btn_menu, is_super) = Self::query_btn_menu(&id).await;
+                let (btn_menu, is_super) = Self::query_btn_menu(&id).await?;
 
                 if btn_menu.len() == 0 {
                     Self::add_login_log(item.account, 0, "用户没有分配角色或者菜单,不能登录", agent).await;
@@ -362,26 +362,17 @@ impl UserService {
      *author：刘飞华
      *date：2025/01/08 13:51:14
      */
-    async fn query_btn_menu(id: &i64) -> (Vec<String>, bool) {
-        let mut btn_menu: Vec<String> = Vec::new();
+    async fn query_btn_menu(id: &i64) -> Result<(Vec<String>, bool), AppError> {
         let rb = &mut RB.clone();
 
         if UserRole::is_admin(rb, id).await.unwrap_or_default() > 0 {
-            for x in Menu::select_by_map(rb, value! {"api_url !=":""}).await.unwrap_or_default() {
-                btn_menu.push(x.api_url.unwrap_or_default());
-            }
             info!("The current user is a super administrator");
-            (btn_menu, true)
+            Ok((rbatis::table_field_vec!(&Menu::select_by_map(rb, value! {"api_url !=":""}).await?, api_url), true))
         } else {
-            let sql_str = "select distinct u.api_url from sys_user_role t left join sys_role usr on t.role_id = usr.id left join sys_role_menu srm on usr.id = srm.role_id left join sys_menu u on srm.menu_id = u.id where u.api_url !='' and t.user_id = ?";
-            let btn_menu_map = rb.exec_decode::<Vec<HashMap<String, String>>>(sql_str, vec![value!(id)]).await.unwrap_or_default();
-            for x in btn_menu_map {
-                if let Some(api_url) = x.get("api_url") {
-                    btn_menu.push(api_url.to_string());
-                }
-            }
+            let sql_str = "select distinct u.* from sys_user_role t left join sys_role usr on t.role_id = usr.id left join sys_role_menu srm on usr.id = srm.role_id left join sys_menu u on srm.menu_id = u.id where u.api_url !='' and t.user_id = ?";
+            let menu_vec = rb.exec_decode::<Vec<Menu>>(sql_str, vec![value!(id)]).await.unwrap_or_default();
             info!("The current user is not a super administrator");
-            (btn_menu, false)
+            Ok((rbatis::table_field_vec!(&menu_vec, api_url), false))
         }
     }
 
