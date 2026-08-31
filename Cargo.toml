@@ -6,7 +6,7 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-salvo = { version = "0.95.0", features = ["affix-state","oapi","request-id","logging"] }
+salvo = { version = "0.96.0", features = ["affix-state", "oapi", "request-id", "logging"] }
 
 tokio = { version = "1", features = ["macros", "signal"] }
 
@@ -21,7 +21,7 @@ rbatis = { version = "4", features = ["debug_mode"] }
 rbdc-mysql={version="4"}
 rbdc-pool-fast={version="4"}
 
-jsonwebtoken = { version = "10", features = ["rust_crypto"] }
+jsonwebtoken = { version = "11.0.0", features = ["rust_crypto"] }
 
 redis = "1.2.4"
 deadpool-redis = "0.23.0"
