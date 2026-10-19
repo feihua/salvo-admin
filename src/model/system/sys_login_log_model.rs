@@ -86,11 +86,23 @@ impl LoginLog {
     }
 
     /*
+     *清空系统访问记录
+     *author：刘飞华
+     *date：2026/10/19 14:04:20
+     */
+    pub async fn clean(rb: &RBatis) -> rbatis::Result<u64> {
+        LoginLog::delete_by_map(rb, value! {}).await.map(|x| Ok(x.rows_affected)).map_err(|e| {
+            error!("Database error delete sys_login_log: {:?}", e);
+            e
+        })?
+    }
+
+    /*
      *根据id查询系统访问记录
      *author：刘飞华
      *date：2026/07/01 17:45:52
      */
-    pub async fn select_by_id(rb: &RBatis, id: &i64) -> rbatis::Result<Option<LoginLog>> {
+    pub async fn select_by_id(rb: &RBatis, id: i64) -> rbatis::Result<Option<LoginLog>> {
         Ok(LoginLog::select_by_map(rb, value! {"id": id}).await?.first().cloned())
     }
 

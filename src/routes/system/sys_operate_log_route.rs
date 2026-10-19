@@ -8,6 +8,7 @@ use salvo::Router;
 pub fn build_sys_operate_log_route() -> Router {
     Router::new()
         .push(Router::new().path("/system/operateLog/deleteOperateLog").post(delete_sys_operate_log))
+        .push(Router::new().path("/system/operateLog/cleanOperateLog").get(clean_sys_operate_log))
         .push(Router::new().path("/system/operateLog/queryOperateLogDetail").post(query_sys_operate_log_detail))
         .push(Router::new().path("/system/operateLog/queryOperateLogList").post(query_sys_operate_log_list))
     //记得在main.rs中的route()函数中添加构建操作日志记录路由build_sys_operate_log_route()

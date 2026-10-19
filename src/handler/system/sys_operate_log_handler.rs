@@ -22,6 +22,12 @@ pub async fn delete_sys_operate_log(req: JsonBody<DeleteOperateLogReq>) -> AppRe
     OperateLogService::delete_sys_operate_log(item).await.map(|rows_affected| ok_result_data(rows_affected))?
 }
 
+/// 清空操作日志记录
+#[handler]
+pub async fn clean_sys_operate_log() -> AppResult<u64> {
+    OperateLogService::clean_sys_operate_log().await.map(|rows_affected| ok_result_data(rows_affected))?
+}
+
 /*
  *查询操作日志记录详情
  *author：刘飞华

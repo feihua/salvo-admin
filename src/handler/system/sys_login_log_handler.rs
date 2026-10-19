@@ -22,6 +22,12 @@ pub async fn delete_sys_login_log(req: JsonBody<DeleteLoginLogReq>) -> AppResult
     LoginLogService::delete_sys_login_log(item).await.map(|rows_affected| ok_result_data(rows_affected))?
 }
 
+/// 删除系统访问记录
+#[handler]
+pub async fn clean_sys_login_log() -> AppResult<u64> {
+    LoginLogService::clean_sys_login_log().await.map(|rows_affected| ok_result_data(rows_affected))?
+}
+
 /*
  *查询系统访问记录详情
  *author：刘飞华

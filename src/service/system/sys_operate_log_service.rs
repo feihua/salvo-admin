@@ -23,12 +23,23 @@ impl OperateLogService {
     }
 
     /*
+     *清空操作日志记录
+     *author：刘飞华
+     *date：2025/01/08 13:51:14
+     */
+    pub async fn clean_sys_operate_log() -> Result<u64, AppError> {
+        let rb = &mut RB.clone();
+
+        OperateLog::clean(rb).await.map(|x| Ok(x))?
+    }
+
+    /*
      *查询操作日志记录详情
      *author：刘飞华
      *date：2025/01/08 13:51:14
      */
     pub async fn query_sys_operate_log_detail(item: QueryOperateLogDetailReq) -> Result<OperateLogResp, AppError> {
-        match OperateLog::select_by_id(&mut RB.clone(), &item.id).await? {
+        match OperateLog::select_by_id(&mut RB.clone(), item.id).await? {
             None => Err(AppError::BusinessError("操作日志不存在")),
             Some(x) => Ok(x.into()),
         }

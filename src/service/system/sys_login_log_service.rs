@@ -23,12 +23,23 @@ impl LoginLogService {
     }
 
     /*
+     *清空系统访问记录
+     *author：刘飞华
+     *date：2025/01/08 13:51:14
+     */
+    pub async fn clean_sys_login_log() -> Result<u64, AppError> {
+        let rb = &mut RB.clone();
+
+        LoginLog::clean(rb).await.map(|x| Ok(x))?
+    }
+
+    /*
      *查询系统访问记录详情
      *author：刘飞华
      *date：2025/01/08 13:51:14
      */
     pub async fn query_sys_login_log_detail(item: QueryLoginLogDetailReq) -> Result<LoginLogResp, AppError> {
-        match LoginLog::select_by_id(&mut RB.clone(), &item.id).await? {
+        match LoginLog::select_by_id(&mut RB.clone(), item.id).await? {
             None => Err(AppError::BusinessError("系统访问记录不存在")),
             Some(x) => Ok(x.into()),
         }
