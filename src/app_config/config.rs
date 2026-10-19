@@ -7,6 +7,7 @@ pub struct AppConfig {
     pub db: DbConfig,
     pub redis: RedisConfig,
     pub jwt: JwtConfig,
+    pub log: LogConfig,
 }
 
 // 定义服务器配置结构体
@@ -29,4 +30,10 @@ pub struct RedisConfig {
 #[derive(Debug, Deserialize)]
 pub struct JwtConfig {
     pub secret: String,
+}
+
+#[derive(Debug, Deserialize)]
+pub struct LogConfig {
+    pub directory: String,        //日志目录
+    pub file_name_prefix: String, //日志文件名前缀
 }

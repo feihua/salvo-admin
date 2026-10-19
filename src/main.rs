@@ -21,14 +21,12 @@ pub mod vo;
 // 主函数，异步运行
 #[tokio::main]
 async fn main() {
-    // 1.初始化日志
-    let _guard = init_log("logs", "app.log");
-    // 2.加载和解析配置文件
+    // 1.加载和解析配置文件
     let config = init_config("config.toml");
-
+    // 2.初始化日志
+    let _guard = init_log(config.log.directory.as_str(), config.log.file_name_prefix.as_str());
     // 初始化数据库连接
     init_db(&config.db.url);
-
     // 3.创建TCP监听器并启动服务器
     let acceptor = TcpListener::new(config.server.addr).bind().await;
 
