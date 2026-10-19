@@ -2,10 +2,10 @@
 // author：刘飞华
 // date：2025/01/08 13:51:14
 
+use crate::app_config::load_db::RB;
 use crate::common::error::AppError;
 use crate::model::system::sys_operate_log_model::OperateLog;
 use crate::vo::system::sys_operate_log_vo::*;
-use crate::RB;
 use rbatis::PageRequest;
 
 pub struct OperateLogService;

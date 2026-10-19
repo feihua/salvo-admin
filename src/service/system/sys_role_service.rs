@@ -2,6 +2,7 @@
 // author：刘飞华
 // date：2025/01/08 13:51:14
 
+use crate::app_config::load_db::RB;
 use crate::common::error::AppError;
 use crate::common::error::AppError::BusinessError;
 use crate::model::system::sys_menu_model::Menu;
@@ -12,7 +13,6 @@ use crate::model::system::sys_user_model::User;
 use crate::model::system::sys_user_role_model::UserRole;
 use crate::vo::system::sys_role_vo::*;
 use crate::vo::system::sys_user_vo::UserResp;
-use crate::RB;
 use rbatis::plugin::page::PageRequest;
 use rbs::value;
 

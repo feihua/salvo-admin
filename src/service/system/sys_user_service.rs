@@ -2,6 +2,7 @@
 // author：刘飞华
 // date：2025/01/08 13:51:14
 
+use crate::app_config::load_db::RB;
 use crate::common::error::AppError;
 use crate::common::error::AppError::BusinessError;
 use crate::model::system::sys_dept_model::Dept;
@@ -16,7 +17,6 @@ use crate::utils::user_agent_util::UserAgentUtil;
 use crate::vo::system::sys_dept_vo::DeptResp;
 use crate::vo::system::sys_role_vo::RoleResp;
 use crate::vo::system::sys_user_vo::*;
-use crate::RB;
 use chrono::Local;
 use rbatis::plugin::page::PageRequest;
 use rbatis::rbatis_codegen::ops::AsProxy;

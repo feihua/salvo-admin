@@ -2,12 +2,12 @@
 // author：刘飞华
 // date：2025/01/08 13:51:14
 
+use crate::app_config::load_db::RB;
 use crate::common::error::AppError;
 use crate::common::error::AppError::BusinessError;
 use crate::model::system::sys_post_model::Post;
 use crate::model::system::sys_user_post_model::UserPost;
 use crate::vo::system::sys_post_vo::*;
-use crate::RB;
 use rbatis::plugin::page::PageRequest;
 use rbs::value;
 
