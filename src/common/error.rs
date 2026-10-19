@@ -21,7 +21,6 @@ pub enum AppError {
     #[error("业务异常: {0}")]
     BusinessError(&'static str),
 }
-pub type AppResultRes<T> = Result<T, AppError>;
 pub type AppResult<T> = Result<Json<BaseResponse<T>>, AppError>;
 pub type AppResultPage<T> = Result<Json<BaseResponse<PageResult<T>>>, AppError>;
 
