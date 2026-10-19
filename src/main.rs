@@ -18,15 +18,14 @@ pub mod service;
 pub mod utils;
 pub mod vo;
 
-// 主函数，异步运行
 #[tokio::main]
 async fn main() {
     // 1.加载和解析配置文件
     let config = init_config("config.toml");
     // 2.初始化日志
-    let _guard = init_log(config.log.directory.as_str(), config.log.file_name_prefix.as_str());
+    let _guard = init_log(config.log);
     // 初始化数据库连接
-    init_db(&config.db.url);
+    init_db(config.db);
     // 3.创建TCP监听器并启动服务器
     let acceptor = TcpListener::new(config.server.addr).bind().await;
 
@@ -35,5 +34,5 @@ async fn main() {
 
     tokio::spawn(listen_shutdown_signal(handle));
 
-    server.serve(route(config.redis.url.as_str(), config.jwt.secret)).await;
+    server.serve(route(config.redis, config.jwt)).await;
 }

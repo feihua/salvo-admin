@@ -1,3 +1,4 @@
+use crate::app_config::config::{JwtConfig, RedisConfig};
 use crate::handler::system::sys_user_handler::login;
 use crate::middleware::auth::auth_token;
 use crate::routes::other::build_other_route;
@@ -9,7 +10,9 @@ pub mod other;
 pub mod system;
 
 // 定义路由配置函数
-pub fn route(url: &str, secret: String) -> Router {
+pub fn route(redis_config: RedisConfig, jwt_config: JwtConfig) -> Router {
+    let url = redis_config.url; // Redis URL
+    let secret = jwt_config.secret; // JWT Secret
     let cfg = deadpool_redis::Config::from_url(url);
     let pool = cfg.create_pool(Some(deadpool_redis::Runtime::Tokio1)).unwrap();
 
