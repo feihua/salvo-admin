@@ -28,7 +28,7 @@ impl DeptService {
         }
 
         match Dept::select_by_id(rb, &item.parent_id).await? {
-            None => Err(AppError::BusinessError("添加失败,上级部门不存在")),
+            None => Err(BusinessError("添加失败,上级部门不存在")),
             Some(dept) => {
                 if dept.status == 0 {
                     return Err(BusinessError("部门停用，不允许添加"));
