@@ -17,5 +17,4 @@ pub fn build_sys_user_route() -> Router {
         .push(Router::new().path("/system/user/queryUserRole").post(query_user_role))
         .push(Router::new().path("/system/user/updateUserRole").post(update_user_role))
         .push(Router::new().path("/system/user/updateUserPassword").post(update_sys_user_password))
-    //记得在main.rs中的route()函数中添加构建用户信息路由build_sys_user_route()
 }

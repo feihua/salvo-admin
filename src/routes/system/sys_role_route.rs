@@ -20,5 +20,4 @@ pub fn build_sys_role_route() -> Router {
         .push(Router::new().path("/system/role/cancelAuthUser").post(cancel_auth_user))
         .push(Router::new().path("/system/role/batchCancelAuthUser").post(batch_cancel_auth_user))
         .push(Router::new().path("/system/role/batchAuthUser").post(batch_auth_user))
-    //记得在main.rs中的route()函数中添加构建角色信息路由build_sys_role_route()
 }

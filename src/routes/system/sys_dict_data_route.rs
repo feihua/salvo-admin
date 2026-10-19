@@ -13,5 +13,4 @@ pub fn build_sys_dict_data_route() -> Router {
         .push(Router::new().path("/system/dictData/updateDictDataStatus").post(update_sys_dict_data_status))
         .push(Router::new().path("/system/dictData/queryDictDataDetail").post(query_sys_dict_data_detail))
         .push(Router::new().path("/system/dictData/queryDictDataList").post(query_sys_dict_data_list))
-    //记得在main.rs中的route()函数中添加构建字典数据表路由build_sys_dict_data_route()
 }

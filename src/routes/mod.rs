@@ -1,32 +1,23 @@
-use crate::routes::system::sys_dept_route::build_sys_dept_route;
-use crate::routes::system::sys_dict_data_route::build_sys_dict_data_route;
-use crate::routes::system::sys_dict_type_route::build_sys_dict_type_route;
-use crate::routes::system::sys_login_log_route::build_sys_login_log_route;
-use crate::routes::system::sys_menu_route::build_sys_menu_route;
-use crate::routes::system::sys_notice_route::build_sys_notice_route;
-use crate::routes::system::sys_operate_log_route::build_sys_operate_log_route;
-use crate::routes::system::sys_post_route::build_sys_post_route;
-use crate::routes::system::sys_role_route::build_sys_role_route;
-use crate::routes::system::sys_user_route::build_sys_user_route;
-use salvo::Router;
+use crate::handler::system::sys_user_handler::login;
+use crate::middleware::auth::auth_token;
+use crate::routes::other::build_other_route;
+use crate::routes::system::build_system_route;
+use salvo::logging::Logger;
+use salvo::{affix_state, Router};
 
 pub mod other;
 pub mod system;
 
-pub fn build_system_route() -> Router {
-    Router::new()
-        .push(build_sys_user_route())
-        .push(build_sys_role_route())
-        .push(build_sys_menu_route())
-        .push(build_sys_dept_route())
-        .push(build_sys_dict_data_route())
-        .push(build_sys_dict_type_route())
-        .push(build_sys_login_log_route())
-        .push(build_sys_operate_log_route())
-        .push(build_sys_post_route())
-        .push(build_sys_notice_route())
-}
+// 定义路由配置函数
+pub fn route(url: &str, secret: String) -> Router {
+    let cfg = deadpool_redis::Config::from_url(url);
+    let pool = cfg.create_pool(Some(deadpool_redis::Runtime::Tokio1)).unwrap();
 
-pub fn build_other_route() -> Router {
+    // 创建路由实例，配置API路径和处理函数
     Router::new()
+        .hoop(affix_state::insert("pool", pool).insert("secret", secret))
+        .path("/api")
+        .push(Router::new().path("/system/user/login").post(login))
+        .push(Router::new().hoop(auth_token).push(build_system_route()).push(build_other_route()))
+        .hoop(Logger::new())
 }

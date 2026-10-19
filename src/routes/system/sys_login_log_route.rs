@@ -11,5 +11,4 @@ pub fn build_sys_login_log_route() -> Router {
         .push(Router::new().path("/system/loginLog/cleanLoginLog").get(clean_sys_login_log))
         .push(Router::new().path("/system/loginLog/queryLoginLogDetail").post(query_sys_login_log_detail))
         .push(Router::new().path("/system/loginLog/queryLoginLogList").post(query_sys_login_log_list))
-    //记得在main.rs中的route()函数中添加构建系统访问记录路由build_sys_login_log_route()
 }

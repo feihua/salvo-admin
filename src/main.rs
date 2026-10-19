@@ -3,10 +3,8 @@ extern crate rbatis;
 
 use crate::app_config::load_config::init_config;
 use crate::app_config::load_log::init_log;
-use crate::middleware::auth::auth_token;
-use crate::routes::{build_other_route, build_system_route};
+use crate::routes::route;
 use crate::utils::shutdown_signal::listen_shutdown_signal;
-use handler::system::sys_user_handler::*;
 use once_cell::sync::Lazy;
 use rbatis::rbdc::pool::{ConnectionManager, Pool};
 use rbatis::RBatis;
@@ -58,19 +56,4 @@ async fn main() {
     tokio::spawn(listen_shutdown_signal(handle));
 
     server.serve(route(config.redis.url.as_str(), config.jwt.secret)).await;
-}
-
-// 定义路由配置函数
-fn route(url: &str, secret: String) -> Router {
-    let cfg = deadpool_redis::Config::from_url(url);
-    let pool = cfg.create_pool(Some(deadpool_redis::Runtime::Tokio1)).unwrap();
-
-    // 创建路由实例，配置API路径和处理函数
-    Router::new()
-        .hoop(affix_state::insert("pool", pool).insert("secret", secret))
-        .path("/api")
-        .get(hello)
-        .push(Router::new().path("/system/user/login").post(login))
-        .push(Router::new().hoop(auth_token).push(build_system_route()).push(build_other_route()))
-        .hoop(Logger::new())
 }
