@@ -5,9 +5,10 @@
 use crate::app_config::load_db::RB;
 use crate::common::error::AppError;
 use crate::common::error::AppError::BusinessError;
-use crate::model::system::sys_menu_model::{select_count_menu_by_parent_id, Menu};
+use crate::model::system::sys_menu_model::{Menu, select_count_menu_by_parent_id};
 use crate::model::system::sys_role_menu_model::RoleMenu;
 use crate::vo::system::sys_menu_vo::*;
+use curd_trait::BaseCurd;
 use rbatis::plugin::page::PageRequest;
 use rbs::value;
 
@@ -101,7 +102,7 @@ impl MenuService {
     pub async fn update_sys_menu_status(item: UpdateMenuStatusReq) -> Result<u64, AppError> {
         let rb = &mut RB.clone();
 
-        Menu::update_status(rb, item.ids, item.status).await.map(|x| Ok(x))?
+        Menu::update_status(rb, "sys_menu", item.ids, item.status).await.map(|x| Ok(x))?
     }
 
     /*

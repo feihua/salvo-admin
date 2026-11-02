@@ -1,7 +1,7 @@
 [package]
 name = "salvo-admin"
 version = "0.1.0"
-edition = "2021"
+edition = "2024"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
@@ -32,3 +32,7 @@ once_cell = "1.18.0"
 regex = "1.11.1"
 config = "0.15.9"
 chrono = "0.4.38"
+
+curd_trait = "0.1.1"
+curd_macro = "0.1.1"
+

@@ -18,6 +18,7 @@ use crate::vo::system::sys_dept_vo::DeptResp;
 use crate::vo::system::sys_role_vo::RoleResp;
 use crate::vo::system::sys_user_vo::*;
 use chrono::Local;
+use curd_trait::BaseCurd;
 use rbatis::plugin::page::PageRequest;
 use rbatis::rbatis_codegen::ops::AsProxy;
 use rbatis::rbdc::datetime::DateTime;
@@ -157,7 +158,7 @@ impl UserService {
 
         let rb = &mut RB.clone();
 
-        User::update_status(rb, ids, item.status).await.map(|x| Ok(x))?
+        User::update_status(rb, "sys_user", ids, item.status).await.map(|x| Ok(x))?
     }
 
     /*

@@ -5,8 +5,9 @@
 use crate::vo::system::sys_post_vo::PostReq;
 use crate::vo::system::sys_post_vo::PostResp;
 use crate::vo::system::sys_post_vo::QueryPostListReq;
-use rbatis::rbdc::datetime::DateTime;
+use curd_macro::Curd;
 use rbatis::RBatis;
+use rbatis::rbdc::datetime::DateTime;
 use rbs::value;
 use serde::{Deserialize, Serialize};
 use tracing::error;
@@ -15,7 +16,7 @@ use tracing::error;
  *author：刘飞华
  *date：2024/12/25 10:01:11
  */
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize, Curd)]
 pub struct Post {
     pub id: Option<i64>,               //岗位id
     pub post_code: String,             //岗位编码
@@ -70,71 +71,6 @@ impl Into<PostResp> for Post {
 }
 
 impl Post {
-    /*
-     *添加岗位信息
-     *author：刘飞华
-     *date：2026/07/01 17:49:14
-     */
-    pub async fn add(rb: &RBatis, item: &Post) -> rbatis::Result<Option<u64>> {
-        Post::insert(rb, item).await.map(|x| Ok(x.last_insert_id.as_u64())).map_err(|e| {
-            error!("Database error insert into sys_post: {:?}", e);
-            e
-        })?
-    }
-
-    /*
-     *删除岗位信息
-     *author：刘飞华
-     *date：2026/07/01 17:49:14
-     */
-    pub async fn delete(rb: &RBatis, ids: Vec<i64>) -> rbatis::Result<u64> {
-        Post::delete_by_map(rb, value! {"id": ids}).await.map(|x| Ok(x.rows_affected)).map_err(|e| {
-            error!("Database error delete sys_post: {:?}", e);
-            e
-        })?
-    }
-
-    /*
-     *更新岗位信息
-     *author：刘飞华
-     *date：2026/07/01 17:49:14
-     */
-    pub async fn update(rb: &RBatis, item: &Post, id: i64) -> rbatis::Result<u64> {
-        Post::update_by_map(rb, item, value! {"id": id}).await.map(|x| Ok(x.rows_affected)).map_err(|e| {
-            error!("Database error update sys_post: {:?}", e);
-            e
-        })?
-    }
-
-    /*
-     *更新岗位信息状态
-     *author：刘飞华
-     *date：2026/07/01 17:49:14
-     */
-    pub async fn update_status(rb: &RBatis, ids: Vec<i64>, status: i8) -> rbatis::Result<u64> {
-        let update_sql = format!(
-            "update sys_post set status = ? ,update_time = ? where id in ({})",
-            ids.iter().map(|_| "?").collect::<Vec<&str>>().join(", ")
-        );
-
-        let mut param = vec![value!(status), value!(DateTime::now())];
-        param.extend(ids.iter().map(|&id| value!(id)));
-
-        rb.exec(&update_sql, param).await.map(|x| Ok(x.rows_affected)).map_err(|e| {
-            error!("Database error update_status sys_post: {:?}", e);
-            e
-        })?
-    }
-
-    /*
-     *根据id查询岗位信息
-     *author：刘飞华
-     *date：2026/07/01 17:49:14
-     */
-    pub async fn select_by_id(rb: &RBatis, id: &i64) -> rbatis::Result<Option<Post>> {
-        Ok(Post::select_by_map(rb, value! {"id": id}).await?.first().cloned())
-    }
-
     /*
      *根据条件分页查询岗位信息
      *author：刘飞华

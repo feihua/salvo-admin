@@ -7,6 +7,7 @@ use crate::common::error::AppError;
 use crate::common::error::AppError::BusinessError;
 use crate::model::system::sys_dept_model::Dept;
 use crate::vo::system::sys_dept_vo::*;
+use curd_trait::BaseCurd;
 use rbatis::rbatis_codegen::ops::AsProxy;
 use rbatis::rbdc::DateTime;
 use rbs::value;
@@ -58,7 +59,7 @@ impl DeptService {
             return Err(BusinessError("部门存在用户,不允许删除"));
         }
 
-        Dept::delete(rb, item.id).await.map(|x| Ok(x))?
+        Dept::delete(rb, vec![item.id]).await.map(|x| Ok(x))?
     }
 
     /*
@@ -134,12 +135,12 @@ impl DeptService {
             for id in &ids {
                 if let Some(x) = Dept::select_by_id(rb, id).await? {
                     let ancestors = x.ancestors.unwrap_or_default();
-                    Dept::update_status(rb, ancestors.split(",").map(|s| s.i64()).collect::<Vec<i64>>(), item.status).await?;
+                    Dept::update_status(rb, "sys_dept", ancestors.split(",").map(|s| s.i64()).collect::<Vec<i64>>(), item.status).await?;
                 }
             }
         }
 
-        Dept::update_status(rb, ids, item.status).await.map(|x| Ok(x))?
+        Dept::update_status(rb, "sys_dept", ids, item.status).await.map(|x| Ok(x))?
     }
 
     /*

@@ -8,6 +8,7 @@ use crate::common::error::AppError::BusinessError;
 use crate::model::system::sys_post_model::Post;
 use crate::model::system::sys_user_post_model::UserPost;
 use crate::vo::system::sys_post_vo::*;
+use curd_trait::BaseCurd;
 use rbatis::plugin::page::PageRequest;
 use rbs::value;
 
@@ -97,7 +98,7 @@ impl PostService {
     pub async fn update_sys_post_status(item: UpdatePostStatusReq) -> Result<u64, AppError> {
         let rb = &mut RB.clone();
 
-        Post::update_status(rb, item.ids, item.status).await.map(|x| Ok(x))?
+        Post::update_status(rb, "sys_post", item.ids, item.status).await.map(|x| Ok(x))?
     }
 
     /*

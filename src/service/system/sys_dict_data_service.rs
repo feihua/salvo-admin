@@ -7,6 +7,7 @@ use crate::common::error::AppError;
 use crate::common::error::AppError::BusinessError;
 use crate::model::system::sys_dict_data_model::DictData;
 use crate::vo::system::sys_dict_data_vo::*;
+use curd_trait::BaseCurd;
 use rbatis::plugin::page::PageRequest;
 use rbs::value;
 
@@ -83,7 +84,7 @@ impl DictDataService {
     pub async fn update_sys_dict_data_status(item: UpdateDictDataStatusReq) -> Result<u64, AppError> {
         let rb = &mut RB.clone();
 
-        DictData::update_status(rb, item.ids, item.status).await.map(|x| Ok(x))?
+        DictData::update_status(rb, "sys_dict_data", item.ids, item.status).await.map(|x| Ok(x))?
     }
 
     /*

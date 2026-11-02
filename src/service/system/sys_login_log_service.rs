@@ -6,6 +6,7 @@ use crate::app_config::load_db::RB;
 use crate::common::error::AppError;
 use crate::model::system::sys_login_log_model::LoginLog;
 use crate::vo::system::sys_login_log_vo::*;
+use curd_trait::BaseCurd;
 use rbatis::plugin::page::PageRequest;
 
 pub struct LoginLogService;
@@ -39,7 +40,7 @@ impl LoginLogService {
      *date：2025/01/08 13:51:14
      */
     pub async fn query_sys_login_log_detail(item: QueryLoginLogDetailReq) -> Result<LoginLogResp, AppError> {
-        match LoginLog::select_by_id(&mut RB.clone(), item.id).await? {
+        match LoginLog::select_by_id(&mut RB.clone(), &item.id).await? {
             None => Err(AppError::BusinessError("系统访问记录不存在")),
             Some(x) => Ok(x.into()),
         }

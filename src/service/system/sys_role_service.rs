@@ -13,6 +13,7 @@ use crate::model::system::sys_user_model::User;
 use crate::model::system::sys_user_role_model::UserRole;
 use crate::vo::system::sys_role_vo::*;
 use crate::vo::system::sys_user_vo::UserResp;
+use curd_trait::BaseCurd;
 use rbatis::plugin::page::PageRequest;
 use rbs::value;
 
@@ -109,7 +110,7 @@ impl RoleService {
         }
         let rb = &mut RB.clone();
 
-        Role::update_status(rb, item.ids, item.status).await.map(|x| Ok(x))?
+        Role::update_status(rb, "sys_role", item.ids, item.status).await.map(|x| Ok(x))?
     }
 
     /*

@@ -3,6 +3,7 @@ use crate::common::error::AppError;
 use crate::common::error::AppError::BusinessError;
 use crate::model::system::sys_notice_model::Notice;
 use crate::vo::system::sys_notice_vo::*;
+use curd_trait::BaseCurd;
 use rbatis::plugin::page::PageRequest;
 use rbs::value;
 
@@ -53,7 +54,7 @@ impl NoticeService {
             return Err(BusinessError("主键不能为空"));
         }
 
-        if Notice::select_by_id(rb, id.unwrap_or_default()).await?.is_none() {
+        if Notice::select_by_id(rb, &id.unwrap_or_default()).await?.is_none() {
             return Err(BusinessError("通知公告不存在"));
         };
 
@@ -76,7 +77,7 @@ impl NoticeService {
      */
     pub async fn update_sys_notice_status(item: UpdateNoticeStatusReq) -> Result<u64, AppError> {
         let rb = &mut RB.clone();
-        Notice::update_status(rb, item.ids, item.status).await.map(|x| Ok(x))?
+        Notice::update_status(rb, "sys_notice", item.ids, item.status).await.map(|x| Ok(x))?
     }
 
     /*
@@ -85,7 +86,7 @@ impl NoticeService {
      *date：2025/01/08 13:51:14
      */
     pub async fn query_sys_notice_detail(item: QueryNoticeDetailReq) -> Result<NoticeResp, AppError> {
-        match Notice::select_by_id(&mut RB.clone(), item.id).await? {
+        match Notice::select_by_id(&mut RB.clone(), &item.id).await? {
             None => Err(BusinessError("通知公告不存在")),
             Some(x) => Ok(x.into()),
         }
