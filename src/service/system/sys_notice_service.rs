@@ -18,11 +18,7 @@ impl NoticeService {
     pub async fn add_sys_notice(mut item: NoticeReq) -> Result<u64, AppError> {
         let rb = &mut RB.clone();
 
-        let condition = value! {
-            "notice_title": &item.notice_title,
-        };
-
-        if Notice::select_by_map(rb, condition).await?.len() > 0 {
+        if Notice::exists_by_field(rb, "notice_title", &item.notice_title).await? {
             return Err(BusinessError("公告标题已存在"));
         }
 

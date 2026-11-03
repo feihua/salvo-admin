@@ -7,10 +7,7 @@ use crate::vo::system::sys_dict_type_vo::DictTypeResp;
 use crate::vo::system::sys_dict_type_vo::QueryDictTypeListReq;
 use curd_macro::Curd;
 use rbatis::RBatis;
-use rbatis::rbdc::datetime::DateTime;
-use rbs::value;
 use serde::{Deserialize, Serialize};
-use tracing::error;
 /*
  *字典类型
  *author：刘飞华
