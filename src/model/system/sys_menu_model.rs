@@ -79,16 +79,6 @@ impl Into<MenuResp> for Menu {
  */
 rbatis::crud!(Menu {}, "sys_menu");
 
-/*
- *查询菜单数量
- *author：刘飞华
- *date：2024/12/25 10:01:11
- */
-#[sql("select count(1) from sys_menu where parent_id= ?")]
-pub async fn select_count_menu_by_parent_id(rb: &RBatis, parent_id: &i64) -> rbatis::Result<i64> {
-    impled!()
-}
-
 impl Menu {
     /*
      *根据条件分页查询菜单信息

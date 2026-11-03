@@ -5,7 +5,7 @@
 use crate::app_config::load_db::RB;
 use crate::common::error::AppError;
 use crate::common::error::AppError::BusinessError;
-use crate::model::system::sys_menu_model::{Menu, select_count_menu_by_parent_id};
+use crate::model::system::sys_menu_model::Menu;
 use crate::model::system::sys_role_menu_model::RoleMenu;
 use crate::vo::system::sys_menu_vo::*;
 use curd_trait::BaseCurd;
@@ -48,11 +48,11 @@ impl MenuService {
 
         let ids = item.ids;
         for x in &ids {
-            if select_count_menu_by_parent_id(rb, x).await? > 0 {
+            if Menu::exists_by_field(rb, "parent_id", x).await? {
                 return Err(BusinessError("存在子菜单,不允许删除"));
             }
 
-            if RoleMenu::select_count_menu_by_menu_id(rb, x).await? > 0 {
+            if RoleMenu::exists_by_field(rb, "menu_id", x).await? {
                 return Err(BusinessError("菜单已分配,不允许删除"));
             }
         }

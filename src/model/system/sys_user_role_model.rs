@@ -1,16 +1,15 @@
 // author：刘飞华
 // createTime：2024/12/12 14:41:44
 
+use curd_macro::Curd;
 use rbatis::RBatis;
-use rbs::value;
 use serde::{Deserialize, Serialize};
-use tracing::error;
 /*
  *角色用户关联表
  *author：刘飞华
  *date：2024/12/12 14:41:44
  */
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize, Curd)]
 pub struct UserRole {
     pub id: Option<i64>, //主键
     pub user_id: i64,    //用户ID
@@ -35,16 +34,6 @@ impl UserRole {
             error!("Database error update sys_user: {:?}", e);
             e
         })?
-    }
-
-    /*
-     *通过角色id查询角色使用数量
-     *author：刘飞华
-     *date：2024/12/12 14:41:44
-     */
-    #[sql("select count(1) from sys_user_role where role_id = ?")]
-    pub async fn count_user_role_by_role_id(rb: &RBatis, role_id: &i64) -> rbatis::Result<i64> {
-        impled!()
     }
 
     /*

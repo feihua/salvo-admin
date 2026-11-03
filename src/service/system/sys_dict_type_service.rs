@@ -44,7 +44,7 @@ impl DictTypeService {
                 Some(x) => x.dict_type,
             };
 
-            if DictData::count_dict_data_by_type(rb, &dict_type).await? > 0 {
+            if DictData::exists_by_field(rb, "dict_type", &dict_type).await? {
                 return Err(BusinessError("已分配,不能删除"));
             }
         }

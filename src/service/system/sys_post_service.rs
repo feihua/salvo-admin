@@ -50,7 +50,7 @@ impl PostService {
             match Post::select_by_id(rb, id).await? {
                 None => return Err(BusinessError("不能删除")),
                 Some(_) => {
-                    if UserPost::count_user_post_by_id(rb, id).await? > 0 {
+                    if UserPost::exists_by_field(rb, "post_id", id).await? {
                         return Err(BusinessError("已分配,不能删除"));
                     }
                 }

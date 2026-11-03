@@ -57,7 +57,7 @@ impl RoleService {
                 return Err(BusinessError("角色不存在,不能删除"));
             }
 
-            if UserRole::count_user_role_by_role_id(rb, id).await? > 0 {
+            if UserRole::exists_by_field(rb, "role_id", id).await? {
                 return Err(BusinessError("已分配,不能删除"));
             }
         }
