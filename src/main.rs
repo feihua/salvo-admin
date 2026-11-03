@@ -2,10 +2,11 @@
 extern crate rbatis;
 
 use crate::app_config::load_config::init_config;
-use crate::app_config::load_db::init_db;
+use crate::app_config::load_db::{RB, init_db};
 use crate::app_config::load_log::init_log;
 use crate::routes::route;
 use crate::utils::shutdown_signal::listen_shutdown_signal;
+use model::tables_init::{sync_tables, sync_tables_data};
 use salvo::prelude::*;
 
 pub mod app_config;
@@ -26,6 +27,12 @@ async fn main() {
     let _guard = init_log(config.log);
     // 初始化数据库连接
     init_db(config.db);
+
+    // 同步数据库表结构
+    sync_tables(&mut RB.clone()).await;
+    // 同步数据库表数据
+    sync_tables_data(&mut RB.clone()).await;
+
     // 3.创建TCP监听器并启动服务器
     let acceptor = TcpListener::new(config.server.addr).bind().await;
 
