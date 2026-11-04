@@ -3,8 +3,7 @@ use crate::handler::system::sys_user_handler::login;
 use crate::middleware::auth::auth_token;
 use crate::routes::other::build_other_route;
 use crate::routes::system::build_system_route;
-use salvo::logging::Logger;
-use salvo::{affix_state, Router};
+use salvo::{Router, affix_state};
 
 pub mod other;
 pub mod system;
@@ -22,5 +21,4 @@ pub fn route(redis_config: RedisConfig, jwt_config: JwtConfig) -> Router {
         .path("/api")
         .push(Router::new().path("/system/user/login").post(login))
         .push(Router::new().hoop(auth_token).push(build_system_route()).push(build_other_route()))
-        .hoop(Logger::new())
 }

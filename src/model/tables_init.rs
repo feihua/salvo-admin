@@ -167,6 +167,7 @@ create table if not exists  sys_role_dept
     role_id bigint not null comment '角色id',
     dept_id bigint not null comment '部门id'
 ) comment = '角色和部门关联表';
+
 create table if not exists  sys_role_menu
 (
     id          bigint auto_increment comment '主键'
@@ -217,7 +218,8 @@ create table if not exists  sys_user_role
     user_id     bigint   default 0                 not null comment '用户ID',
     role_id     bigint                             not null comment '角色ID'
 )
-    comment '角色用户关联表'
+    comment '角色用户关联表';
+
 ",
         vec![],
     )
