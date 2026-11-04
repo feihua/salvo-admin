@@ -35,4 +35,5 @@ chrono = "0.4.38"
 
 curd_trait = "0.1.2"
 curd_macro = "0.1.2"
+print_log_macro = "0.1.1"
 

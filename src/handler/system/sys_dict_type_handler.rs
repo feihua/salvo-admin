@@ -6,18 +6,19 @@ use crate::common::error::{AppResult, AppResultPage};
 use crate::common::result::{ok_result_data, ok_result_page};
 use crate::service::system::sys_dict_type_service::DictTypeService;
 use crate::vo::system::sys_dict_type_vo::*;
+use print_log_macro::log;
 use salvo::oapi::extract::JsonBody;
 use salvo::prelude::*;
-use tracing::info;
+
 /*
  *添加字典类型
  *author：刘飞华
  *date：2025/01/08 13:51:14
  */
 #[handler]
+#[log]
 pub async fn add_sys_dict_type(req: JsonBody<DictTypeReq>) -> AppResult<u64> {
     let item = req.into_inner();
-    info!("add sys_dict_type params: {:?}", &item);
 
     DictTypeService::add_sys_dict_type(item).await.map(|last_insert_id| ok_result_data(last_insert_id))?
 }
@@ -28,9 +29,9 @@ pub async fn add_sys_dict_type(req: JsonBody<DictTypeReq>) -> AppResult<u64> {
  *date：2025/01/08 13:51:14
  */
 #[handler]
+#[log]
 pub async fn delete_sys_dict_type(req: JsonBody<DeleteDictTypeReq>) -> AppResult<u64> {
     let item = req.into_inner();
-    info!("delete sys_dict_type params: {:?}", &item);
 
     DictTypeService::delete_sys_dict_type(item).await.map(|rows_affected| ok_result_data(rows_affected))?
 }
@@ -41,9 +42,9 @@ pub async fn delete_sys_dict_type(req: JsonBody<DeleteDictTypeReq>) -> AppResult
  *date：2025/01/08 13:51:14
  */
 #[handler]
+#[log]
 pub async fn update_sys_dict_type(req: JsonBody<DictTypeReq>) -> AppResult<u64> {
     let item = req.into_inner();
-    info!("update sys_dict_type params: {:?}", &item);
 
     DictTypeService::update_sys_dict_type(item).await.map(|rows_affected| ok_result_data(rows_affected))?
 }
@@ -54,6 +55,7 @@ pub async fn update_sys_dict_type(req: JsonBody<DictTypeReq>) -> AppResult<u64> 
  *date：2025/01/08 13:51:14
  */
 #[handler]
+#[log]
 pub async fn update_sys_dict_type_status(req: JsonBody<UpdateDictTypeStatusReq>) -> AppResult<u64> {
     let item = req.into_inner();
 
@@ -66,6 +68,7 @@ pub async fn update_sys_dict_type_status(req: JsonBody<UpdateDictTypeStatusReq>)
  *date：2025/01/08 13:51:14
  */
 #[handler]
+#[log]
 pub async fn query_sys_dict_type_detail(req: JsonBody<QueryDictTypeDetailReq>) -> AppResult<DictTypeResp> {
     let item = req.into_inner();
 
@@ -78,6 +81,7 @@ pub async fn query_sys_dict_type_detail(req: JsonBody<QueryDictTypeDetailReq>) -
  *date：2025/01/08 13:51:14
  */
 #[handler]
+#[log]
 pub async fn query_sys_dict_type_list(req: JsonBody<QueryDictTypeListReq>) -> AppResultPage<DictTypeResp> {
     let item = req.into_inner();
 

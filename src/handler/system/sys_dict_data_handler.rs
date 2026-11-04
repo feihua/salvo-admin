@@ -6,19 +6,19 @@ use crate::common::error::{AppResult, AppResultPage};
 use crate::common::result::{ok_result_data, ok_result_page};
 use crate::service::system::sys_dict_data_service::DictDataService;
 use crate::vo::system::sys_dict_data_vo::*;
+use print_log_macro::log;
 use salvo::oapi::extract::JsonBody;
 use salvo::prelude::*;
-use tracing::info;
+
 /*
  *添加字典数据
  *author：刘飞华
  *date：2025/01/08 13:51:14
  */
 #[handler]
+#[log]
 pub async fn add_sys_dict_data(req: JsonBody<DictDataReq>) -> AppResult<u64> {
     let item = req.into_inner();
-
-    info!("add sys_dict_data params: {:?}", &item);
 
     DictDataService::add_sys_dict_data(item).await.map(|last_insert_id| ok_result_data(last_insert_id))?
 }
@@ -29,9 +29,9 @@ pub async fn add_sys_dict_data(req: JsonBody<DictDataReq>) -> AppResult<u64> {
  *date：2025/01/08 13:51:14
  */
 #[handler]
+#[log]
 pub async fn delete_sys_dict_data(req: JsonBody<DeleteDictDataReq>) -> AppResult<u64> {
     let item = req.into_inner();
-    info!("delete sys_dict_data params: {:?}", &item);
 
     DictDataService::delete_sys_dict_data(item).await.map(|rows_affected| ok_result_data(rows_affected))?
 }
@@ -41,9 +41,9 @@ pub async fn delete_sys_dict_data(req: JsonBody<DeleteDictDataReq>) -> AppResult
  *date：2025/01/08 13:51:14
  */
 #[handler]
+#[log]
 pub async fn update_sys_dict_data(req: JsonBody<DictDataReq>) -> AppResult<u64> {
     let item = req.into_inner();
-    info!("update sys_dict_data params: {:?}", &item);
 
     DictDataService::update_sys_dict_data(item).await.map(|rows_affected| ok_result_data(rows_affected))?
 }
@@ -54,9 +54,9 @@ pub async fn update_sys_dict_data(req: JsonBody<DictDataReq>) -> AppResult<u64> 
  *date：2025/01/08 13:51:14
  */
 #[handler]
+#[log]
 pub async fn update_sys_dict_data_status(req: JsonBody<UpdateDictDataStatusReq>) -> AppResult<u64> {
     let item = req.into_inner();
-    info!("update sys_dict_data_status params: {:?}", &item);
 
     DictDataService::update_sys_dict_data_status(item).await.map(|rows_affected| ok_result_data(rows_affected))?
 }
@@ -67,9 +67,9 @@ pub async fn update_sys_dict_data_status(req: JsonBody<UpdateDictDataStatusReq>)
  *date：2025/01/08 13:51:14
  */
 #[handler]
+#[log]
 pub async fn query_sys_dict_data_detail(req: JsonBody<QueryDictDataDetailReq>) -> AppResult<DictDataResp> {
     let item = req.into_inner();
-    info!("query sys_dict_data_detail params: {:?}", &item);
 
     DictDataService::query_sys_dict_data_detail(item).await.map(|record| ok_result_data(record))?
 }
@@ -80,9 +80,9 @@ pub async fn query_sys_dict_data_detail(req: JsonBody<QueryDictDataDetailReq>) -
  *date：2025/01/08 13:51:14
  */
 #[handler]
+#[log]
 pub async fn query_sys_dict_data_list(req: JsonBody<QueryDictDataListReq>) -> AppResultPage<DictDataResp> {
     let item = req.into_inner();
-    info!("query sys_dict_data_list params: {:?}", &item);
 
     DictDataService::query_sys_dict_data_list(item).await.map(|(list, total)| ok_result_page(list, total))?
 }

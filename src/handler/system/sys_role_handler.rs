@@ -7,18 +7,19 @@ use crate::common::result::{ok_result_data, ok_result_page};
 use crate::service::system::sys_role_service::RoleService;
 use crate::vo::system::sys_role_vo::*;
 use crate::vo::system::sys_user_vo::UserResp;
+use print_log_macro::log;
 use salvo::oapi::extract::JsonBody;
 use salvo::prelude::*;
-use tracing::info;
+
 /*
  *添加角色信息
  *author：刘飞华
  *date：2025/01/08 13:51:14
  */
 #[handler]
+#[log]
 pub async fn add_sys_role(req: JsonBody<RoleReq>) -> AppResult<u64> {
     let item = req.into_inner();
-    info!("add sys_role params: {:?}", &item);
 
     RoleService::add_sys_role(item).await.map(|last_insert_id| ok_result_data(last_insert_id))?
 }
@@ -29,9 +30,9 @@ pub async fn add_sys_role(req: JsonBody<RoleReq>) -> AppResult<u64> {
  *date：2025/01/08 13:51:14
  */
 #[handler]
+#[log]
 pub async fn delete_sys_role(req: JsonBody<DeleteRoleReq>) -> AppResult<u64> {
     let item = req.into_inner();
-    info!("delete sys_role params: {:?}", &item);
 
     RoleService::delete_sys_role(item).await.map(|rows_affected| ok_result_data(rows_affected))?
 }
@@ -42,9 +43,9 @@ pub async fn delete_sys_role(req: JsonBody<DeleteRoleReq>) -> AppResult<u64> {
  *date：2025/01/08 13:51:14
  */
 #[handler]
+#[log]
 pub async fn update_sys_role(req: JsonBody<RoleReq>) -> AppResult<u64> {
     let item = req.into_inner();
-    info!("update sys_role params: {:?}", &item);
 
     RoleService::update_sys_role(item).await.map(|rows_affected| ok_result_data(rows_affected))?
 }
@@ -55,9 +56,9 @@ pub async fn update_sys_role(req: JsonBody<RoleReq>) -> AppResult<u64> {
  *date：2025/01/08 13:51:14
  */
 #[handler]
+#[log]
 pub async fn update_sys_role_status(req: JsonBody<UpdateRoleStatusReq>) -> AppResult<u64> {
     let item = req.into_inner();
-    info!("update sys_role_status params: {:?}", &item);
 
     RoleService::update_sys_role_status(item).await.map(|rows_affected| ok_result_data(rows_affected))?
 }
@@ -68,9 +69,9 @@ pub async fn update_sys_role_status(req: JsonBody<UpdateRoleStatusReq>) -> AppRe
  *date：2025/01/08 13:51:14
  */
 #[handler]
+#[log]
 pub async fn query_sys_role_detail(req: JsonBody<QueryRoleDetailReq>) -> AppResult<RoleResp> {
     let item = req.into_inner();
-    info!("query sys_role_detail params: {:?}", &item);
 
     RoleService::query_sys_role_detail(item).await.map(|record| ok_result_data(record))?
 }
@@ -81,9 +82,9 @@ pub async fn query_sys_role_detail(req: JsonBody<QueryRoleDetailReq>) -> AppResu
  *date：2025/01/08 13:51:14
  */
 #[handler]
+#[log]
 pub async fn query_sys_role_list(req: JsonBody<QueryRoleListReq>) -> AppResultPage<RoleResp> {
     let item = req.into_inner();
-    info!("query sys_role_list params: {:?}", &item);
 
     RoleService::query_sys_role_list(item).await.map(|(list, total)| ok_result_page(list, total))?
 }
@@ -94,9 +95,9 @@ pub async fn query_sys_role_list(req: JsonBody<QueryRoleListReq>) -> AppResultPa
  *date：2025/01/08 13:51:14
  */
 #[handler]
+#[log]
 pub async fn query_role_menu(req: JsonBody<QueryRoleMenuReq>) -> AppResult<QueryRoleMenuData> {
     let item = req.into_inner();
-    info!("query role_menu params: {:?}", &item);
 
     RoleService::query_role_menu(item).await.map(|record| ok_result_data(record))?
 }
@@ -107,9 +108,9 @@ pub async fn query_role_menu(req: JsonBody<QueryRoleMenuReq>) -> AppResult<Query
  *date：2025/01/08 13:51:14
  */
 #[handler]
+#[log]
 pub async fn update_role_menu(req: JsonBody<UpdateRoleMenuReq>) -> AppResult<u64> {
     let item = req.into_inner();
-    info!("update_role_menu params: {:?}", &item);
 
     RoleService::update_role_menu(item).await.map(|rows_affected| ok_result_data(rows_affected))?
 }
@@ -120,9 +121,9 @@ pub async fn update_role_menu(req: JsonBody<UpdateRoleMenuReq>) -> AppResult<u64
  *date：2025/01/08 13:51:14
  */
 #[handler]
+#[log]
 pub async fn query_allocated_list(req: JsonBody<AllocatedListReq>) -> AppResultPage<UserResp> {
     let item = req.into_inner();
-    info!("update role_menu params: {:?}", &item);
 
     RoleService::query_allocated_list(item).await.map(|(list, total)| ok_result_page(list, total))?
 }
@@ -133,9 +134,9 @@ pub async fn query_allocated_list(req: JsonBody<AllocatedListReq>) -> AppResultP
  *date：2025/01/08 13:51:14
  */
 #[handler]
+#[log]
 pub async fn query_unallocated_list(req: JsonBody<UnallocatedListReq>) -> AppResultPage<UserResp> {
     let item = req.into_inner();
-    info!("update role_menu params: {:?}", &item);
 
     RoleService::query_unallocated_list(item).await.map(|(list, total)| ok_result_page(list, total))?
 }
@@ -146,9 +147,9 @@ pub async fn query_unallocated_list(req: JsonBody<UnallocatedListReq>) -> AppRes
  *date：2025/01/08 13:51:14
  */
 #[handler]
+#[log]
 pub async fn cancel_auth_user(req: JsonBody<CancelAuthUserReq>) -> AppResult<i64> {
     let item = req.into_inner();
-    info!("update role_menu params: {:?}", &item);
 
     RoleService::cancel_auth_user(item).await.map(|rows_affected| ok_result_data(rows_affected))?
 }
@@ -159,9 +160,9 @@ pub async fn cancel_auth_user(req: JsonBody<CancelAuthUserReq>) -> AppResult<i64
  *date：2025/01/08 13:51:14
  */
 #[handler]
+#[log]
 pub async fn batch_cancel_auth_user(req: JsonBody<CancelAuthUserAllReq>) -> AppResult<u64> {
     let item = req.into_inner();
-    info!("cancel auth_user_all params: {:?}", &item);
 
     RoleService::batch_cancel_auth_user(item).await.map(|rows_affected| ok_result_data(rows_affected))?
 }
@@ -172,9 +173,9 @@ pub async fn batch_cancel_auth_user(req: JsonBody<CancelAuthUserAllReq>) -> AppR
  *date：2025/01/08 13:51:14
  */
 #[handler]
+#[log]
 pub async fn batch_auth_user(req: JsonBody<SelectAuthUserAllReq>) -> AppResult<u64> {
     let item = req.into_inner();
-    info!("select all_auth_user params: {:?}", &item);
 
     RoleService::batch_auth_user(item).await.map(|rows_affected| ok_result_data(rows_affected))?
 }

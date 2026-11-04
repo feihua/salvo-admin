@@ -6,24 +6,26 @@ use crate::common::error::{AppResult, AppResultPage};
 use crate::common::result::{ok_result_data, ok_result_page};
 use crate::service::system::sys_operate_log_service::OperateLogService;
 use crate::vo::system::sys_operate_log_vo::*;
+use print_log_macro::log;
 use salvo::oapi::extract::JsonBody;
 use salvo::prelude::*;
-use tracing::info;
+
 /*
  *删除操作日志记录
  *author：刘飞华
  *date：2025/01/08 13:51:14
  */
 #[handler]
+#[log]
 pub async fn delete_sys_operate_log(req: JsonBody<DeleteOperateLogReq>) -> AppResult<u64> {
     let item = req.into_inner();
-    info!("delete sys_operate_log params: {:?}", &item);
 
     OperateLogService::delete_sys_operate_log(item).await.map(|rows_affected| ok_result_data(rows_affected))?
 }
 
 /// 清空操作日志记录
 #[handler]
+#[log]
 pub async fn clean_sys_operate_log() -> AppResult<u64> {
     OperateLogService::clean_sys_operate_log().await.map(|rows_affected| ok_result_data(rows_affected))?
 }
@@ -34,10 +36,9 @@ pub async fn clean_sys_operate_log() -> AppResult<u64> {
  *date：2025/01/08 13:51:14
  */
 #[handler]
+#[log]
 pub async fn query_sys_operate_log_detail(req: JsonBody<QueryOperateLogDetailReq>) -> AppResult<OperateLogResp> {
     let item = req.into_inner();
-
-    info!("query sys_operate_log_detail params: {:?}", &item);
 
     OperateLogService::query_sys_operate_log_detail(item).await.map(|record| ok_result_data(record))?
 }
@@ -48,9 +49,9 @@ pub async fn query_sys_operate_log_detail(req: JsonBody<QueryOperateLogDetailReq
  *date：2025/01/08 13:51:14
  */
 #[handler]
+#[log]
 pub async fn query_sys_operate_log_list(req: JsonBody<QueryOperateLogListReq>) -> AppResultPage<OperateLogResp> {
     let item = req.into_inner();
-    info!("query sys_operate_log_list params: {:?}", &item);
 
     OperateLogService::query_sys_operate_log_list(item).await.map(|(list, total)| ok_result_page(list, total))?
 }

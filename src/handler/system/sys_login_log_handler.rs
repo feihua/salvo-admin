@@ -6,24 +6,26 @@ use crate::common::error::{AppResult, AppResultPage};
 use crate::common::result::{ok_result_data, ok_result_page};
 use crate::service::system::sys_login_log_service::LoginLogService;
 use crate::vo::system::sys_login_log_vo::*;
+use print_log_macro::log;
 use salvo::oapi::extract::JsonBody;
 use salvo::prelude::*;
-use tracing::info;
+
 /*
  *删除系统访问记录
  *author：刘飞华
  *date：2025/01/08 13:51:14
  */
 #[handler]
+#[log]
 pub async fn delete_sys_login_log(req: JsonBody<DeleteLoginLogReq>) -> AppResult<u64> {
     let item = req.into_inner();
-    info!("delete sys_login_log params: {:?}", &item);
 
     LoginLogService::delete_sys_login_log(item).await.map(|rows_affected| ok_result_data(rows_affected))?
 }
 
 /// 删除系统访问记录
 #[handler]
+#[log]
 pub async fn clean_sys_login_log() -> AppResult<u64> {
     LoginLogService::clean_sys_login_log().await.map(|rows_affected| ok_result_data(rows_affected))?
 }
@@ -34,9 +36,9 @@ pub async fn clean_sys_login_log() -> AppResult<u64> {
  *date：2025/01/08 13:51:14
  */
 #[handler]
+#[log]
 pub async fn query_sys_login_log_detail(req: JsonBody<QueryLoginLogDetailReq>) -> AppResult<LoginLogResp> {
     let item = req.into_inner();
-    info!("query sys_login_log_detail params: {:?}", &item);
 
     LoginLogService::query_sys_login_log_detail(item).await.map(|record| ok_result_data(record))?
 }
@@ -47,9 +49,9 @@ pub async fn query_sys_login_log_detail(req: JsonBody<QueryLoginLogDetailReq>) -
  *date：2025/01/08 13:51:14
  */
 #[handler]
+#[log]
 pub async fn query_sys_login_log_list(req: JsonBody<QueryLoginLogListReq>) -> AppResultPage<LoginLogResp> {
     let item = req.into_inner();
-    info!("query sys_login_log_list params: {:?}", &item);
 
     LoginLogService::query_sys_login_log_list(item).await.map(|(list, total)| ok_result_page(list, total))?
 }

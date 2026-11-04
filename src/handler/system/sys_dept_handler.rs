@@ -6,18 +6,19 @@ use crate::common::error::AppResult;
 use crate::common::result::ok_result_data;
 use crate::service::system::sys_dept_service::DeptService;
 use crate::vo::system::sys_dept_vo::*;
+use print_log_macro::log;
 use salvo::oapi::extract::JsonBody;
 use salvo::prelude::*;
-use tracing::info;
+
 /*
  *添加部门
  *author：刘飞华
  *date：2025/01/08 13:51:14
  */
 #[handler]
+#[log]
 pub async fn add_sys_dept(req: JsonBody<DeptReq>) -> AppResult<u64> {
     let item = req.into_inner();
-    info!("add sys_dept params: {:?}", &item);
 
     DeptService::add_sys_dept(item).await.map(|last_insert_id| ok_result_data(last_insert_id))?
 }
@@ -28,9 +29,9 @@ pub async fn add_sys_dept(req: JsonBody<DeptReq>) -> AppResult<u64> {
  *date：2025/01/08 13:51:14
  */
 #[handler]
+#[log]
 pub async fn delete_sys_dept(req: JsonBody<DeleteDeptReq>) -> AppResult<u64> {
     let item = req.into_inner();
-    info!("delete sys_dept params: {:?}", &item);
 
     DeptService::delete_sys_dept(item).await.map(|rows_affected| ok_result_data(rows_affected))?
 }
@@ -41,9 +42,9 @@ pub async fn delete_sys_dept(req: JsonBody<DeleteDeptReq>) -> AppResult<u64> {
  *date：2025/01/08 13:51:14
  */
 #[handler]
+#[log]
 pub async fn update_sys_dept(req: JsonBody<DeptReq>) -> AppResult<u64> {
     let item = req.into_inner();
-    info!("update sys_dept params: {:?}", &item);
 
     DeptService::update_sys_dept(item).await.map(|rows_affected| ok_result_data(rows_affected))?
 }
@@ -54,9 +55,9 @@ pub async fn update_sys_dept(req: JsonBody<DeptReq>) -> AppResult<u64> {
  *date：2025/01/08 13:51:14
  */
 #[handler]
+#[log]
 pub async fn update_sys_dept_status(req: JsonBody<UpdateDeptStatusReq>) -> AppResult<u64> {
     let item = req.into_inner();
-    info!("update sys_dept_status params: {:?}", &item);
 
     DeptService::update_sys_dept_status(item).await.map(|rows_affected| ok_result_data(rows_affected))?
 }
@@ -67,9 +68,9 @@ pub async fn update_sys_dept_status(req: JsonBody<UpdateDeptStatusReq>) -> AppRe
  *date：2025/01/08 13:51:14
  */
 #[handler]
+#[log]
 pub async fn query_sys_dept_detail(req: JsonBody<QueryDeptDetailReq>) -> AppResult<DeptResp> {
     let item = req.into_inner();
-    info!("query sys_dept_detail params: {:?}", &item);
 
     DeptService::query_sys_dept_detail(item).await.map(|record| ok_result_data(record))?
 }
@@ -80,9 +81,9 @@ pub async fn query_sys_dept_detail(req: JsonBody<QueryDeptDetailReq>) -> AppResu
  *date：2025/01/08 13:51:14
  */
 #[handler]
+#[log]
 pub async fn query_sys_dept_list(req: JsonBody<QueryDeptListReq>) -> AppResult<Vec<DeptResp>> {
     let item = req.into_inner();
-    info!("query sys_dept_list params: {:?}", &item);
 
     DeptService::query_sys_dept_list(item).await.map(|rows_affected| ok_result_data(rows_affected))?
 }

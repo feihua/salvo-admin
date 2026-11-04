@@ -2383,6 +2383,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "print_log_macro"
+version = "0.1.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "0539415c27f5818958df73a8c471b386fc50c43565d10f9db16cd7007f21234d"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn 2.0.119",
+]
+
+[[package]]
 name = "proc-macro-crate"
 version = "3.5.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3075,6 +3086,7 @@ dependencies = [
  "deadpool-redis",
  "jsonwebtoken",
  "once_cell",
+ "print_log_macro",
  "rbatis",
  "rbdc-mysql",
  "rbdc-pool-fast",
